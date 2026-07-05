@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" role="img" aria-label="Illustration eines persönlichen Beratungsgesprächs zwischen Kundin und Stylistin">
+  <rect width="400" height="340" rx="20" fill="#f7f2ec"/>
+  <ellipse cx="200" cy="308" rx="150" ry="14" fill="#e7ddd0" opacity="0.6"/>
+
+  <!-- mirror / connecting element -->
+  <circle cx="200" cy="150" r="46" fill="#fdfbf8" stroke="#b8794a" stroke-width="2" opacity="0.9"/>
+  <circle cx="200" cy="150" r="46" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.25"/>
+  <path d="M182,138 C190,128 210,128 218,138" stroke="#e0d3c2" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M186,162 C194,170 206,170 214,162" stroke="#e0d3c2" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- client, left -->
+  <g>
+    <path d="M28,330 C28,268 55,242 92,242 C129,242 156,268 156,330 Z" fill="#6b5a54"/>
+    <rect x="80" y="196" width="24" height="34" rx="10" fill="#eabf95"/>
+    <ellipse cx="92" cy="176" rx="38" ry="42" fill="#eabf95"/>
+    <path d="M56,168 C56,122 128,122 128,168 C132,192 132,216 140,262 C140,276 120,282 92,282 C64,282 44,276 44,262 C52,216 52,192 56,168 Z" fill="#6b4226"/>
+    <path d="M92,130 L92,190" stroke="#4a2c17" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- stylist, right -->
+  <g>
+    <path d="M244,330 C244,268 271,242 308,242 C345,242 372,268 372,330 Z" fill="#c65a53"/>
+    <rect x="296" y="196" width="24" height="34" rx="10" fill="#e2b184"/>
+    <ellipse cx="308" cy="176" rx="36" ry="40" fill="#e2b184"/>
+    <path d="M274,170 C274,130 342,130 342,170 C342,182 337,192 328,198 C312,186 304,186 288,198 C279,192 274,182 274,170 Z" fill="#2c221c"/>
+    <path d="M308,138 L308,182" stroke="#171310" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <circle cx="200" cy="170" r="170" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.1"/>
+</svg>

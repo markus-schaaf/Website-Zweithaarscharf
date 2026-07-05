@@ -26,6 +26,16 @@ urlpatterns = [
         TemplateView.as_view(template_name="tasty/index.html"),
         name="home",
     ),
+    path(
+        "peruecken/",
+        TemplateView.as_view(template_name="tasty/menu.html"),
+        name="wigs",
+    ),
+    path(
+        "beratungstermin/",
+        TemplateView.as_view(template_name="tasty/reservation.html"),
+        name="reservation",
+    ),
     # path("pages/", include("pages.urls")),
     # path("trainings/", include("trainings.urls")),
 ]

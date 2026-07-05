@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" role="img" aria-label="Illustration einer schwarzen, kinnlangen Bob-Echthaarperücke, Modell Bob Chic">
+  <rect width="300" height="340" rx="20" fill="#f7f2ec"/>
+  <ellipse cx="150" cy="298" rx="88" ry="14" fill="#e7ddd0" opacity="0.6"/>
+  <path d="M62,338 C62,255 96,222 150,222 C204,222 238,255 238,338 Z" fill="#4a4340"/>
+  <rect x="132" y="150" width="36" height="50" rx="14" fill="#e7b98c"/>
+  <ellipse cx="150" cy="126" rx="54" ry="60" fill="#eabf95"/>
+  <path d="M92,116 C92,52 208,52 208,116 C212,148 214,172 214,194 L214,214 C214,224 185,231 150,231 C115,231 86,224 86,214 L86,194 C86,172 88,148 92,116 Z" fill="#211f1e"/>
+  <path d="M150,60 L150,145" stroke="#0e0d0c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M112,84 C108,130 106,175 106,212" stroke="#3a3735" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M188,84 C192,130 194,175 194,212" stroke="#3a3735" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <circle cx="150" cy="170" r="120" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.12"/>
+</svg>

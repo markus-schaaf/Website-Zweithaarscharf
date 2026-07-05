@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" role="img" aria-label="Illustration einer rotbraunen, lockigen Echthaarperücke, Modell Curly Volume">
+  <rect width="300" height="340" rx="20" fill="#f7f2ec"/>
+  <ellipse cx="150" cy="316" rx="98" ry="14" fill="#e7ddd0" opacity="0.6"/>
+  <path d="M56,338 C56,255 96,222 150,222 C204,222 244,255 244,338 Z" fill="#5b4b46"/>
+  <rect x="132" y="150" width="36" height="50" rx="14" fill="#e7b98c"/>
+  <path d="M150,50 Q104,50 94,90 Q66,96 60,130 Q40,140 46,172 Q26,188 38,216 Q22,238 44,262 Q40,286 70,296 Q98,326 150,328 Q202,326 230,296 Q260,286 256,262 Q278,238 262,216 Q274,188 254,172 Q260,140 240,130 Q234,96 206,90 Q196,50 150,50 Z" fill="#8a3d24"/>
+  <ellipse cx="150" cy="128" rx="52" ry="58" fill="#eabf95"/>
+  <path d="M112,86 Q100,110 106,140" stroke="#5e2717" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M188,86 Q200,110 194,140" stroke="#5e2717" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <circle cx="150" cy="170" r="120" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.12"/>
+</svg>

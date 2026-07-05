@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" role="img" aria-label="Illustration einer langen blonden, gestuften Echthaarperücke, Modell Long Layers">
+  <rect width="300" height="340" rx="20" fill="#f7f2ec"/>
+  <ellipse cx="150" cy="316" rx="96" ry="14" fill="#e7ddd0" opacity="0.6"/>
+  <path d="M58,338 C58,255 95,222 150,222 C205,222 242,255 242,338 Z" fill="#6b5a54"/>
+  <rect x="132" y="150" width="36" height="50" rx="14" fill="#e7b98c"/>
+  <ellipse cx="150" cy="126" rx="54" ry="60" fill="#eabf95"/>
+  <path d="M88,116 C88,52 212,52 212,116 C220,160 234,220 232,300 C230,318 214,308 206,296 C206,314 190,320 180,306 C178,322 160,324 152,310 C146,324 128,322 124,306 C116,320 98,314 96,298 C90,308 74,318 70,300 C68,220 82,160 88,116 Z" fill="#d9a054"/>
+  <path d="M150,58 L150,148" stroke="#b9843c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M104,86 C98,150 92,230 84,296" stroke="#eec27f" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M200,86 C206,150 212,230 220,296" stroke="#eec27f" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="150" cy="170" r="120" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.12"/>
+</svg>

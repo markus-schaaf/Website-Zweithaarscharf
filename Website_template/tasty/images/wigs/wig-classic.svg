@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" role="img" aria-label="Illustration einer schulterlangen braunen Echthaarperücke, Modell Classic">
+  <rect width="300" height="340" rx="20" fill="#f7f2ec"/>
+  <ellipse cx="150" cy="304" rx="92" ry="14" fill="#e7ddd0" opacity="0.6"/>
+  <path d="M60,338 C60,255 95,222 150,222 C205,222 240,255 240,338 Z" fill="#5b4b46"/>
+  <rect x="132" y="150" width="36" height="50" rx="14" fill="#e7b98c"/>
+  <ellipse cx="150" cy="128" rx="54" ry="60" fill="#eabf95"/>
+  <path d="M92,118 C92,55 208,55 208,118 C214,150 214,190 226,296 C226,318 198,328 150,328 C102,328 74,318 74,296 C86,190 86,150 92,118 Z" fill="#6b4226"/>
+  <path d="M150,62 L150,150" stroke="#4a2c17" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M108,90 C104,150 100,220 96,288" stroke="#8a5a34" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M196,90 C200,150 204,220 208,288" stroke="#8a5a34" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <circle cx="150" cy="170" r="120" fill="none" stroke="#b8794a" stroke-width="2" opacity="0.12"/>
+</svg>

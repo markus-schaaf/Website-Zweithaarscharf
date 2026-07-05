@@ -1,29 +1,15 @@
+{% load static %}
 <!DOCTYPE HTML>
 <html>
-	<head>
+  <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Tasty &mdash; Free Website Template, Free HTML5 Template by freehtml5.co</title>
+	<title>Beratungstermin buchen &mdash; Zweithaar Schaaf</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Free HTML5 Website Template by freehtml5.co" />
-	<meta name="keywords" content="free website templates, free html5, free template, free bootstrap, free website template, html5, css3, mobile first, responsive" />
-	<meta name="author" content="freehtml5.co" />
+	<meta name="description" content="Vereinbaren Sie Ihren persönlichen, kostenlosen Beratungstermin bei Zweithaar Schaaf &ndash; für die passende Echthaarperücke, Toupet oder Haarteil." />
+	<meta name="keywords" content="Beratungstermin, Perücke Beratung, Zweithaar, Termin buchen, Haarersatz Beratung" />
+	<meta name="author" content="Zweithaar Schaaf" />
 
-	<!-- 
-	//////////////////////////////////////////////////////
-
-	FREE HTML5 TEMPLATE 
-	DESIGNED & DEVELOPED by FreeHTML5.co
-		
-	Website: 		http://freehtml5.co/
-	Email: 			info@freehtml5.co
-	Twitter: 		http://twitter.com/fh5co
-	Facebook: 		https://www.facebook.com/fh5co
-
-	//////////////////////////////////////////////////////
-	 -->
-
-  	<!-- Facebook and Twitter integration -->
 	<meta property="og:title" content=""/>
 	<meta property="og:image" content=""/>
 	<meta property="og:url" content=""/>
@@ -36,74 +22,57 @@
 
 	<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond:300,300i,400,400i,500,600i,700" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
-	
-	<!-- Animate.css -->
-	<link rel="stylesheet" href="css/animate.css">
-	<!-- Icomoon Icon Fonts-->
-	<link rel="stylesheet" href="css/icomoon.css">
-	<!-- Bootstrap  -->
-	<link rel="stylesheet" href="css/bootstrap.css">
 
-	<!-- Flexslider  -->
-	<link rel="stylesheet" href="css/flexslider.css">
-	<!-- Date Time -->
-	<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
+	<link rel="stylesheet" href="{% static 'css/animate.css' %}">
+	<link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
+	<link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+	<link rel="stylesheet" href="{% static 'css/flexslider.css' %}">
+	<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-	<!-- Theme style  -->
-	<link rel="stylesheet" href="css/style.css">
+	<script src="{% static 'js/modernizr-2.6.2.min.js' %}"></script>
+  </head>
+  <body>
 
-	<!-- Modernizr JS -->
-	<script src="js/modernizr-2.6.2.min.js"></script>
-	<!-- FOR IE9 below -->
-	<!--[if lt IE 9]>
-	<script src="js/respond.min.js"></script>
-	<![endif]-->
-
-	</head>
-	<body>
-		
 	<div class="fh5co-loader"></div>
-	
+
 	<div id="page">
 	<nav class="fh5co-nav" role="navigation">
-		<!-- <div class="top-menu"> -->
-			<div class="container">
-				<div class="row">
-					<div class="col-xs-12 text-center logo-wrap">
-						<div id="fh5co-logo"><a href="index.html">Tasty<span>.</span></a></div>
-					</div>
-					<div class="col-xs-12 text-center menu-1 menu-wrap">
-						<ul>
-							<li><a href="index.html">Home</a></li>
-							<li><a href="menu.html">Menu</a></li>
-							<li class="has-dropdown">
-								<a href="gallery.html">Gallery</a>
-								<ul class="dropdown">
-									<li><a href="#">Events</a></li>
-									<li><a href="#">Food</a></li>
-									<li><a href="#">Coffees</a></li>
-								</ul>
-							</li>
-							<li class="active"><a href="reservation.html">Reservation</a></li>
-							<li><a href="about.html">About</a></li>
-							<li><a href="contact.html">Contact</a></li>
-						</ul>
-					</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12 text-center logo-wrap">
+					<div id="fh5co-logo"><a href="{% url 'home' %}">Zweithaar Schaaf<span>.</span></a></div>
 				</div>
-				
+				<div class="col-xs-12 text-center menu-1 menu-wrap">
+					<ul>
+						<li><a href="{% url 'home' %}">Home</a></li>
+						<li><a href="{% url 'wigs' %}">Unsere Perücken</a></li>
+						<li class="has-dropdown">
+							<a href="gallery.html">Galerie</a>
+							<ul class="dropdown">
+								<li><a href="#">Damenperücken</a></li>
+								<li><a href="#">Herrenperücken &amp; Toupets</a></li>
+								<li><a href="#">Vorher &amp; Nachher</a></li>
+							</ul>
+						</li>
+						<li class="active"><a href="{% url 'reservation' %}">Beratungstermin</a></li>
+						<li><a href="about.html">Über uns</a></li>
+						<li><a href="contact.html">Kontakt</a></li>
+					</ul>
+				</div>
 			</div>
-		<!-- </div> -->
+		</div>
 	</nav>
 
-	<header id="fh5co-header" class="fh5co-cover js-fullheight" role="banner" style="background-image: url(images/hero_1.jpeg);" data-stellar-background-ratio="0.5">
+	<header id="fh5co-header" class="fh5co-cover js-fullheight" role="banner" style="background-image: url('{% static 'images/wigs/hero-wigs-banner.svg' %}');" data-stellar-background-ratio="0.5">
 		<div class="overlay"></div>
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12 text-center">
 					<div class="display-t js-fullheight">
 						<div class="display-tc js-fullheight animate-box" data-animate-effect="fadeIn">
-							<h1>Reserved a Table Today!</h1>
-							<h2>Brought to you by <a href="http://freehtml5.co/" target="_blank">freehtml5.co</a></h2>
+							<h1>Ihr <em>Beratungstermin</em></h1>
+							<h2>Persönlich, unverbindlich und ganz auf Sie abgestimmt</h2>
 						</div>
 					</div>
 				</div>
@@ -111,93 +80,125 @@
 		</div>
 	</header>
 
-	
+	<div id="fh5co-steps" class="fh5co-section">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2 text-center fh5co-heading animate-box">
+					<h2>So läuft Ihre Beratung ab</h2>
+					<p>Drei einfache Schritte bis zur Perücke, die wirklich zu Ihnen passt.</p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4 text-center animate-box">
+					<span class="icon-calendar" style="font-size: 2.4em; color: #ea272d;"></span>
+					<h3>1. Termin wählen</h3>
+					<p>Sie füllen das Formular aus und nennen uns Ihren Wunschtermin sowie das gewünschte Beratungsthema.</p>
+				</div>
+				<div class="col-md-4 text-center animate-box">
+					<span class="icon-chat2" style="font-size: 2.4em; color: #ea272d;"></span>
+					<h3>2. Persönliches Gespräch</h3>
+					<p>Wir besprechen in Ruhe Ihre Wünsche &ndash; von Haarfarbe und Länge bis zu Passform und Budget.</p>
+				</div>
+				<div class="col-md-4 text-center animate-box">
+					<span class="icon-smile2" style="font-size: 2.4em; color: #ea272d;"></span>
+					<h3>3. Anprobe &amp; Wohlfühlen</h3>
+					<p>Sie probieren Modelle direkt an und entscheiden in Ruhe, ohne jede Verpflichtung.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div id="fh5co-reservation-form" class="fh5co-section">
 		<div class="container">
 			<div class="row">
-				<div class="col-md-12 fh5co-heading animate-box">
-					<h2>Reservation</h2>
-					<div class="row">
-						<div class="col-md-6">
-							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis ab debitis sit itaque totam, a maiores nihil, nulla magnam porro minima officiis! Doloribus aliquam voluptates corporis et tempora consequuntur ipsam, itaque, nesciunt similique commodi omnis. Ad magni perspiciatis, voluptatum repellat.</p>
-						</div>
+				<div class="col-md-5 col-sm-6 animate-box img-to-responsive" data-animate-effect="fadeInLeft">
+					<img src="{% static 'images/consultation/consultation-scene.svg' %}" class="img-responsive" alt="Beratungsgespräch bei Zweithaar Schaaf">
+					<div class="section-heading" style="margin-top: 20px;">
+						<h2>Gut zu wissen</h2>
+						<ul class="fh5co-footer-links" style="padding-left: 0; list-style: none;">
+							<li>&#8226;&nbsp; Dauer: ca. 60 Minuten</li>
+							<li>&#8226;&nbsp; Kostenlos &amp; unverbindlich</li>
+							<li>&#8226;&nbsp; Gerne auch mit Begleitung</li>
+							<li>&#8226;&nbsp; Diskrete, ruhige Atmosphäre</li>
+						</ul>
+						<p>Sie erhalten nach Ihrer Anfrage eine Rückmeldung von uns zur Terminbestätigung.</p>
 					</div>
 				</div>
-				
-				<div class="col-md-6 col-md-push-6 col-sm-6 col-sm-push-6">
-					<form action="#" id="form-wrap">
+
+				<div class="col-md-6 col-md-push-1 col-sm-6 animate-box" data-animate-effect="fadeInRight">
+					<div class="section-heading">
+						<h2>Termin anfragen</h2>
+						<p>Füllen Sie das Formular aus &ndash; wir melden uns zeitnah bei Ihnen, um den Termin zu bestätigen.</p>
+					</div>
+
+					<!--
+						Hinweis: Dieses Formular ist aktuell nicht an ein Backend angebunden.
+						Beim Absenden wird lediglich eine Bestätigung im Browser angezeigt (siehe Skript am Seitenende).
+						Für den echten Versand wird später ein POST-Endpunkt (z.B. Django-View inkl. E-Mail-Versand) benötigt.
+					-->
+					<form id="form-wrap" novalidate>
 						<div class="row form-group">
 							<div class="col-md-12">
-								<label for="name">Your Name</label>
-								<input type="text" class="form-control" id="name">
+								<label for="fullname">Vor- und Nachname *</label>
+								<input type="text" class="form-control" id="fullname" name="fullname" autocomplete="name" required>
+							</div>
+						</div>
+						<div class="row form-group">
+							<div class="col-md-6">
+								<label for="email">E-Mail-Adresse *</label>
+								<input type="email" class="form-control" id="email" name="email" autocomplete="email" required>
+							</div>
+							<div class="col-md-6">
+								<label for="phone">Telefonnummer</label>
+								<input type="tel" class="form-control" id="phone" name="phone" autocomplete="tel">
 							</div>
 						</div>
 						<div class="row form-group">
 							<div class="col-md-12">
-								<label for="many">How Many People</label>
-								<select name="many" id="many" class="form-control custom_select">
-									<option value="#">1</option>
-									<option value="#">2</option>
-									<option value="#">3</option>
-									<option value="#">4+</option>
+								<label for="topic">Art der Beratung *</label>
+								<select name="topic" id="topic" class="form-control custom_select" required>
+									<option value="" selected disabled>Bitte auswählen&hellip;</option>
+									<option value="damenperuecke">Damenperücke</option>
+									<option value="herrenperuecke">Herrenperücke</option>
+									<option value="toupet">Toupet / Haarteil</option>
+									<option value="pflege">Pflegeberatung</option>
+									<option value="sonstiges">Sonstiges</option>
 								</select>
 							</div>
 						</div>
 						<div class="row form-group">
 							<div class="col-md-12">
-								<label for="taskdatetime">When</label>
-								<input type="text" name="task-datetime" id="taskdatetime" class="form-control"/>
+								<label for="taskdatetime">Wunschtermin (Datum &amp; Uhrzeit) *</label>
+								<input type="text" name="task-datetime" id="taskdatetime" class="form-control" placeholder="TT.MM.JJJJ, HH:MM" autocomplete="off" required>
 							</div>
 						</div>
 						<div class="row form-group">
 							<div class="col-md-12">
-								<input type="submit" class="btn btn-primary btn-outline btn-lg" value="Submit Form">
+								<label for="message">Ihre Nachricht / Wünsche</label>
+								<textarea class="form-control" id="message" name="message" rows="4" placeholder="z. B. Wunschfarbe, Wunschlänge, Anlass oder Fragen an uns"></textarea>
 							</div>
 						</div>
-
-					</form>
-				</div>
-				
-				
-			</div>
-		</div>
-	</div>
-
-	<div id="fh5co-featured-testimony" class="fh5co-section">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12 fh5co-heading animate-box">
-					<h2>Testimony</h2>
-					<div class="row">
-						<div class="col-md-6">
-							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis ab debitis sit itaque totam, a maiores nihil, nulla magnam porro minima officiis! Doloribus aliquam voluptates corporis et tempora consequuntur ipsam, itaque, nesciunt similique commodi omnis.</p>
+						<div class="row form-group">
+							<div class="col-md-12">
+								<div class="checkbox">
+									<label>
+										<input type="checkbox" id="privacy" name="privacy" required>
+										Ich habe die <a href="#">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *
+									</label>
+								</div>
+							</div>
 						</div>
+						<div class="row form-group">
+							<div class="col-md-12">
+								<input type="submit" class="btn btn-primary btn-outline btn-lg" value="Termin anfragen">
+							</div>
+						</div>
+					</form>
+
+					<div id="form-confirmation" class="animate-box" style="display: none;">
+						<h3>Vielen Dank!</h3>
+						<p>Ihre Anfrage wurde erfasst. Da noch kein Buchungssystem angebunden ist, meldet sich unser Team derzeit noch manuell telefonisch oder per E-Mail bei Ihnen zur Terminbestätigung.</p>
 					</div>
-				</div>
-
-				<div class="col-md-5 animate-box img-to-responsive animate-box" data-animate-effect="fadeInLeft">
-						<img src="images/person_1.jpg" alt="">
-				</div>
-				<div class="col-md-7 animate-box" data-animate-effect="fadeInRight">
-					<blockquote>
-						<p> &ldquo; Quantum ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis ab debitis sit itaque totam, a maiores nihil, nulla magnam porro minima officiis! Doloribus aliquam voluptates corporis et tempora consequuntur ipsam. &rdquo;</p>
-						<p class="author"><cite>&mdash; Jane Smith</cite></p>
-					</blockquote>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	
-	
-	<div id="fh5co-started" class="fh5co-section animate-box" style="background-image: url(images/hero_1.jpeg);" data-stellar-background-ratio="0.5">
-		<div class="overlay"></div>
-		<div class="container">
-			<div class="row animate-box">
-				<div class="col-md-8 col-md-offset-2 text-center fh5co-heading">
-					<h2>Book a Table</h2>
-					<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae enim quae vitae cupiditate, sequi quam ea id dolor reiciendis consectetur repudiandae. Rem quam, repellendus veniam ipsa fuga maxime odio? Eaque!</p>
-					<p><a href="reservation.html" class="btn btn-primary btn-outline">Book Now</a></p>
 				</div>
 			</div>
 		</div>
@@ -207,37 +208,36 @@
 		<div class="container">
 			<div class="row row-pb-md">
 				<div class="col-md-4 fh5co-widget">
-					<h4>Tasty</h4>
-					<p>Facilis ipsum reprehenderit nemo molestias. Aut cum mollitia reprehenderit. Eos cumque dicta adipisci architecto culpa amet.</p>
+					<h4>Zweithaar Schaaf</h4>
+					<p>Ihr Fachgeschäft für Echthaarperücken, Toupets und Haarteile &ndash; individuelle Beratung und handwerkliche Qualität aus einer Hand.</p>
 				</div>
 				<div class="col-md-2 col-md-push-1 fh5co-widget">
 					<h4>Links</h4>
 					<ul class="fh5co-footer-links">
-						<li><a href="#">Home</a></li>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Menu</a></li>
-						<li><a href="#">Gallery</a></li>
+						<li><a href="{% url 'home' %}">Home</a></li>
+						<li><a href="about.html">Über uns</a></li>
+						<li><a href="{% url 'wigs' %}">Unsere Perücken</a></li>
+						<li><a href="gallery.html">Galerie</a></li>
 					</ul>
 				</div>
 
 				<div class="col-md-2 col-md-push-1 fh5co-widget">
-					<h4>Categories</h4>
+					<h4>Sortiment</h4>
 					<ul class="fh5co-footer-links">
-						<li><a href="#">Landing Page</a></li>
-						<li><a href="#">Real Estate</a></li>
-						<li><a href="#">Personal</a></li>
-						<li><a href="#">Business</a></li>
-						<li><a href="#">e-Commerce</a></li>
+						<li><a href="#">Damenperücken</a></li>
+						<li><a href="#">Herrenperücken</a></li>
+						<li><a href="#">Toupets</a></li>
+						<li><a href="#">Haarteile</a></li>
+						<li><a href="#">Pflegeprodukte</a></li>
 					</ul>
 				</div>
 
 				<div class="col-md-4 col-md-push-1 fh5co-widget">
-					<h4>Contact Information</h4>
+					<h4>Kontakt</h4>
 					<ul class="fh5co-footer-links">
-						<li>198 West 21th Street, <br> Suite 721 New York NY 10016</li>
-						<li><a href="tel://1234567920">+ 1235 2355 98</a></li>
-						<li><a href="mailto:info@yoursite.com">info@yoursite.com</a></li>
-						<li><a href="http://https://freehtml5.co">freehtml5.co</a></li>
+						<li>Zweithaar Schaaf<br>Musterstraße 1, 12345 Musterstadt</li>
+						<li><a href="tel://+4912345678">+49 123 456 78</a></li>
+						<li><a href="mailto:info@zweithaarschaaf.de">info@zweithaarschaaf.de</a></li>
 					</ul>
 				</div>
 
@@ -246,16 +246,7 @@
 			<div class="row copyright">
 				<div class="col-md-12 text-center">
 					<p>
-						<small class="block">&copy; 2016 Free HTML5. All Rights Reserved.</small> 
-						<small class="block">Designed by <a href="http://freehtml5.co/" target="_blank">FreeHTML5.co</a> Demo Images: <a href="http://unsplash.co/" target="_blank">Unsplash</a></small>
-					</p>
-					<p>
-						<ul class="fh5co-social-icons">
-							<li><a href="#"><i class="icon-twitter2"></i></a></li>
-							<li><a href="#"><i class="icon-facebook2"></i></a></li>
-							<li><a href="#"><i class="icon-linkedin2"></i></a></li>
-							<li><a href="#"><i class="icon-dribbble2"></i></a></li>
-						</ul>
+						<small class="block">&copy; 2026 Zweithaar Schaaf. Alle Rechte vorbehalten.</small>
 					</p>
 				</div>
 			</div>
@@ -267,28 +258,47 @@
 	<div class="gototop js-top">
 		<a href="#" class="js-gotop"><i class="icon-arrow-up22"></i></a>
 	</div>
-	
+
 	<!-- jQuery -->
-	<script src="js/jquery.min.js"></script>
+	<script src="{% static 'js/jquery.min.js' %}"></script>
 	<!-- jQuery Easing -->
-	<script src="js/jquery.easing.1.3.js"></script>
+	<script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
 	<!-- Bootstrap -->
-	<script src="js/bootstrap.min.js"></script>
+	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<!-- Waypoints -->
-	<script src="js/jquery.waypoints.min.js"></script>
+	<script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
 	<!-- Waypoints -->
-	<script src="js/jquery.stellar.min.js"></script>
+	<script src="{% static 'js/jquery.stellar.min.js' %}"></script>
 	<!-- Flexslider -->
-	<script src="js/jquery.flexslider-min.js"></script>
-
+	<script src="{% static 'js/jquery.flexslider-min.js' %}"></script>
 	<!-- Date Time -->
-	<script src="js/moment.min.js"></script>
-	<script src="js/bootstrap-datetimepicker.js"></script>
-	
-
+	<script src="{% static 'js/moment.min.js' %}"></script>
+	<script src="{% static 'js/bootstrap-datetimepicker.js' %}"></script>
 	<!-- Main -->
-	<script src="js/main.js"></script>
+	<script src="{% static 'js/main.js' %}"></script>
 
-	</body>
+	<script>
+		// Kein Backend angebunden: simuliert nur eine Bestätigung im Browser.
+		(function () {
+			var form = document.getElementById('form-wrap');
+			var confirmation = document.getElementById('form-confirmation');
+			if (!form || !confirmation) { return; }
+			form.addEventListener('submit', function (event) {
+				event.preventDefault();
+				if (form.checkValidity && !form.checkValidity()) {
+					if (form.reportValidity) { form.reportValidity(); }
+					return;
+				}
+				var name = document.getElementById('fullname').value.trim();
+				if (name) {
+					confirmation.querySelector('h3').textContent = 'Vielen Dank, ' + name + '!';
+				}
+				form.style.display = 'none';
+				confirmation.style.display = 'block';
+				confirmation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			});
+		})();
+	</script>
+
+  </body>
 </html>
-
