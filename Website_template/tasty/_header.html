@@ -1,0 +1,35 @@
+{% load static %}
+<header class="site-header fh5co-nav" role="banner">
+  <div class="announce-bar">Kostenlose &amp; unverbindliche Beratung &mdash; jetzt Termin vereinbaren</div>
+  <div class="nav-container">
+    <nav class="site-nav" role="navigation">
+      <div class="site-nav__links menu-1 menu-wrap">
+        <ul>
+          <li{% if active == "home" %} class="is-active"{% endif %}><a href="{% url 'home' %}">Home</a></li>
+          <li{% if active == "wigs" %} class="is-active"{% endif %}><a href="{% url 'wigs' %}">Unsere Per&uuml;cken</a></li>
+          <li class="has-dropdown{% if active == "gallery" %} is-active{% endif %}">
+            <a href="{% url 'gallery' %}">Galerie</a>
+            <ul class="dropdown">
+              <li><a href="{% url 'gallery' %}#damen">Damenper&uuml;cken</a></li>
+              <li><a href="{% url 'gallery' %}#herren">Herrenper&uuml;cken &amp; Toupets</a></li>
+              <li><a href="{% url 'gallery' %}#vorher-nachher">Vorher &amp; Nachher</a></li>
+            </ul>
+          </li>
+          <li{% if active == "reservation" %} class="is-active"{% endif %}><a href="{% url 'reservation' %}">Beratungstermin</a></li>
+          <li{% if active == "about" %} class="is-active"{% endif %}><a href="{% url 'about' %}">&Uuml;ber uns</a></li>
+          <li{% if active == "contact" %} class="is-active"{% endif %}><a href="{% url 'contact' %}">Kontakt</a></li>
+        </ul>
+      </div>
+
+      <div class="site-nav__logo">
+        <a href="{% url 'home' %}">Zweithaar<span> Schaaf</span></a>
+      </div>
+
+      <div class="site-nav__actions">
+        <span class="nav-action" title="Suche &ndash; bald verf&uuml;gbar" aria-label="Suche (bald verf&uuml;gbar)">Suche</span>
+        <span class="nav-action" title="Konto &ndash; bald verf&uuml;gbar" aria-label="Konto (bald verf&uuml;gbar)">Konto</span>
+        <span class="nav-action nav-action--gold" title="Warenkorb &ndash; bald verf&uuml;gbar" aria-label="Warenkorb (bald verf&uuml;gbar)">Warenkorb (0)</span>
+      </div>
+    </nav>
+  </div>
+</header>

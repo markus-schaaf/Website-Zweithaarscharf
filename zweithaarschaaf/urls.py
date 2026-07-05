@@ -23,18 +23,46 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path(
         "",
-        TemplateView.as_view(template_name="tasty/index.html"),
+        TemplateView.as_view(
+            template_name="tasty/index.html", extra_context={"active": "home"}
+        ),
         name="home",
     ),
     path(
         "peruecken/",
-        TemplateView.as_view(template_name="tasty/menu.html"),
+        TemplateView.as_view(
+            template_name="tasty/menu.html", extra_context={"active": "wigs"}
+        ),
         name="wigs",
     ),
     path(
+        "galerie/",
+        TemplateView.as_view(
+            template_name="tasty/gallery.html", extra_context={"active": "gallery"}
+        ),
+        name="gallery",
+    ),
+    path(
         "beratungstermin/",
-        TemplateView.as_view(template_name="tasty/reservation.html"),
+        TemplateView.as_view(
+            template_name="tasty/reservation.html",
+            extra_context={"active": "reservation"},
+        ),
         name="reservation",
+    ),
+    path(
+        "ueber-uns/",
+        TemplateView.as_view(
+            template_name="tasty/about.html", extra_context={"active": "about"}
+        ),
+        name="about",
+    ),
+    path(
+        "kontakt/",
+        TemplateView.as_view(
+            template_name="tasty/contact.html", extra_context={"active": "contact"}
+        ),
+        name="contact",
     ),
     # path("pages/", include("pages.urls")),
     # path("trainings/", include("trainings.urls")),

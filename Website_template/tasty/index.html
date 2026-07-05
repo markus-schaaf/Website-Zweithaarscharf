@@ -1,390 +1,189 @@
+{% extends "tasty/_base.html" %}
 {% load static %}
-<!DOCTYPE HTML>
-<html>
-  <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Zweithaar Schaaf &mdash; Echthaarperücken in Premiumqualität</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Zweithaar Schaaf &ndash; Echthaarperücken in Premiumqualität. Individuelle Beratung, handgefertigte Perücken und einfühlsamer Service." />
-	<meta name="keywords" content="Echthaarperücke, Perücke kaufen, Zweithaar, Haarersatz, Toupet, Damenperücke, Herrenperücke" />
-	<meta name="author" content="Zweithaar Schaaf" />
 
-	<meta property="og:title" content=""/>
-	<meta property="og:image" content=""/>
-	<meta property="og:url" content=""/>
-	<meta property="og:site_name" content=""/>
-	<meta property="og:description" content=""/>
-	<meta name="twitter:title" content="" />
-	<meta name="twitter:image" content="" />
-	<meta name="twitter:url" content="" />
-	<meta name="twitter:card" content="" />
+{% block title %}Zweithaar Schaaf &mdash; Echthaarper&uuml;cken in Premiumqualit&auml;t{% endblock %}
+{% block description %}Zweithaar Schaaf &ndash; Echthaarper&uuml;cken in Premiumqualit&auml;t. Individuelle Beratung, handgefertigte Per&uuml;cken und einf&uuml;hlsamer Service.{% endblock %}
+{% block body_class %}page-home{% endblock %}
 
-	<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond:300,300i,400,400i,500,600i,700" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
-	
-	<link rel="stylesheet" href="{% static 'css/animate.css' %}">
-	<link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
-	<link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
-	<link rel="stylesheet" href="{% static 'css/flexslider.css' %}">
-	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/flexslider.css' %}">
+{% endblock %}
 
-	<script src="{% static 'js/modernizr-2.6.2.min.js' %}"></script>
-  </head>
-  <body>
-		
-	<div class="fh5co-loader"></div>
-	
-	<div id="page">
-	<nav class="fh5co-nav" role="navigation">
-		<!-- <div class="top-menu"> -->
-			<div class="container">
-				<div class="row">
-					<div class="col-xs-12 text-center logo-wrap">
-						<div id="fh5co-logo"><a href="{% url 'home' %}">Zweithaar Schaaf<span>.</span></a></div>
-					</div>
-					<div class="col-xs-12 text-center menu-1 menu-wrap">
-						<ul>
-							<li class="active"><a href="{% url 'home' %}">Home</a></li>
-							<li><a href="{% url 'wigs' %}">Unsere Perücken</a></li>
-							<li class="has-dropdown">
-								<a href="gallery.html">Galerie</a>
-								<ul class="dropdown">
-									<li><a href="#">Damenperücken</a></li>
-									<li><a href="#">Herrenperücken &amp; Toupets</a></li>
-									<li><a href="#">Vorher &amp; Nachher</a></li>
-								</ul>
-							</li>
-							<li><a href="{% url 'reservation' %}">Beratungstermin</a></li>
-							<li><a href="about.html">Über uns</a></li>
-							<li><a href="contact.html">Kontakt</a></li>
-						</ul>
-					</div>
-				</div>
-				
-			</div>
-		<!-- </div> -->
-	</nav>
+{% block content %}
 
-	<header id="fh5co-header" class="fh5co-cover js-fullheight" role="banner" style="background-image: url('{% static 'images/hero_1.jpeg' %}');" data-stellar-background-ratio="0.5">
-		<div class="overlay"></div>
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12 text-center">
-					<div class="display-t js-fullheight">
-						<div class="display-tc js-fullheight animate-box" data-animate-effect="fadeIn">
-							<h1>Echthaarperücken <em>für</em> ein neues <em>Selbstbewusstsein</em></h1>
-							<h2>Handgefertigt. Natürlich. Individuell auf Sie abgestimmt.</h2>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</header>
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Zweithaar Schaaf</span>
+    <h1>Echthaarper&uuml;cken f&uuml;r ein neues <em>Selbstbewusstsein</em></h1>
+    <p>Handgefertigt. Nat&uuml;rlich. Individuell auf Sie abgestimmt.</p>
+    <a href="{% url 'reservation' %}" class="btn btn-gold">Beratungstermin vereinbaren</a>
+  </div>
+</section>
 
-	<div id="fh5co-about" class="fh5co-section">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-6 col-md-pull-4 img-wrap animate-box" data-animate-effect="fadeInLeft">
-					<img src="{% static 'images/hero_1.jpeg' %}" alt="Free Restaurant Bootstrap Website Template by FreeHTML5.co">
-				</div>
-				<div class="col-md-5 col-md-push-1 animate-box">
-					<div class="section-heading">
-						<h2>Über Zweithaar Schaaf</h2>
-						<p>Seit vielen Jahren begleiten wir Menschen, die aus gesundheitlichen oder persönlichen Gründen auf der Suche nach hochwertigem Haarersatz sind. Unsere Echthaarperücken bestehen aus 100&nbsp;% natürlichem Echthaar und werden von Hand gefertigt &ndash; für ein Ergebnis, das man weder sieht noch spürt.</p>
-						<p>In einem persönlichen Beratungsgespräch nehmen wir uns Zeit für Ihre Wünsche: von der Farb- und Schnittwahl bis zur perfekten Passform. So finden Sie die Perücke, die wirklich zu Ihnen passt.</p>
-						<p><a href="{% url 'reservation' %}" class="btn btn-primary btn-outline">Beratungstermin vereinbaren</a></p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<section class="section">
+  <div class="container">
+    <div class="split">
+      <div class="ph-image" style="--ph-ratio: 1;">
+        <span class="ph-image__label">ZWEITHAAR SCHAAF<br>FOTO FOLGT</span>
+      </div>
+      <div>
+        <span class="eyebrow">&Uuml;ber uns</span>
+        <h2>&Uuml;ber Zweithaar Schaaf</h2>
+        <p>Seit vielen Jahren begleiten wir Menschen, die aus gesundheitlichen oder pers&ouml;nlichen Gr&uuml;nden auf der Suche nach hochwertigem Haarersatz sind. Unsere Echthaarper&uuml;cken bestehen aus 100&nbsp;% nat&uuml;rlichem Echthaar und werden von Hand gefertigt &ndash; f&uuml;r ein Ergebnis, das man weder sieht noch sp&uuml;rt.</p>
+        <p>In einem pers&ouml;nlichen Beratungsgespr&auml;ch nehmen wir uns Zeit f&uuml;r Ihre W&uuml;nsche: von der Farb- und Schnittwahl bis zur perfekten Passform. So finden Sie die Per&uuml;cke, die wirklich zu Ihnen passt.</p>
+        <a href="{% url 'reservation' %}" class="btn btn-outline">Beratungstermin vereinbaren</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-	<div id="fh5co-featured-menu" class="fh5co-section">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12 fh5co-heading animate-box">
-					<h2>Unsere Perücken</h2>
-					<div class="row">
-						<div class="col-md-6">
-							<p>Ob Damen- oder Herrenperücke, Toupet oder Haarteil &ndash; jedes Modell wird aus feinstem Echthaar gefertigt und individuell angepasst. Ein kleiner Auszug aus unserem Sortiment:</p>
-						</div>
-					</div>
-				</div>
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Sortiment</span>
+      <h2>Unsere Per&uuml;cken</h2>
+      <p>Ob Damen- oder Herrenper&uuml;cke, Toupet oder Haarteil &ndash; jedes Modell wird aus feinstem Echthaar gefertigt und individuell angepasst. Ein kleiner Auszug aus unserem Sortiment:</p>
+    </div>
 
-				<div class="col-md-3 col-sm-6 col-xs-6 col-xxs-12 fh5co-item-wrap animate-box">
-					<div class="fh5co-item">
-						<img src="{% static 'images/gallery_9.jpeg' %}" class="img-responsive" alt="Echthaarperücke Classic">
-						<h3>Perücke &bdquo;Classic&ldquo;</h3>
-						<span class="fh5co-price">ab 890<sup>,-</sup></span>
-						<p>Zeitloses, schulterlanges Modell aus 100&nbsp;% Echthaar mit natürlichem Ansatz &ndash; ideal für den Alltag.</p>
-					</div>
-				</div>
-				<div class="col-md-3 col-sm-6 col-xs-6 col-xxs-12 fh5co-item-wrap animate-box">
-					<div class="fh5co-item margin_top">
-						<img src="{% static 'images/gallery_8.jpeg' %}" class="img-responsive" alt="Echthaarperücke Long Layers">
-						<h3>Perücke &bdquo;Long Layers&ldquo;</h3>
-						<span class="fh5co-price">ab 1.190<sup>,-</sup></span>
-						<p>Voluminöses Langhaarmodell mit fein gestuften Strähnen für einen besonders lebendigen Look.</p>
-					</div>
-				</div>
-				<div class="clearfix visible-sm-block visible-xs-block"></div>
-				<div class="col-md-3 col-sm-6 col-xs-6 col-xxs-12 fh5co-item-wrap animate-box">
-					<div class="fh5co-item">
-						<img src="{% static 'images/gallery_7.jpeg' %}" class="img-responsive" alt="Herrenperücke Natural">
-						<h3>Herrenperücke &bdquo;Natural&ldquo;</h3>
-						<span class="fh5co-price">ab 790<sup>,-</sup></span>
-						<p>Dezentes Kurzhaarmodell mit hauchdünnem Skin-Ansatz &ndash; unsichtbar im Haaransatz.</p>
-					</div>
-				</div>
-				<div class="col-md-3 col-sm-6 col-xs-6 col-xxs-12 fh5co-item-wrap animate-box">
-					<div class="fh5co-item margin_top">
-						<img src="{% static 'images/gallery_6.jpeg' %}" class="img-responsive" alt="Toupet Comfort">
-						<h3>Toupet &bdquo;Comfort&ldquo;</h3>
-						<span class="fh5co-price">ab 590<sup>,-</sup></span>
-						<p>Leichtes, atmungsaktives Haarteil zur punktuellen Kaschierung &ndash; angenehm auch bei sensibler Kopfhaut.</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="grid grid-4">
+      <div class="product-card">
+        <div class="product-card__image">
+          <span class="badge badge-popular">Beliebt</span>
+          <div class="ph-image">
+            <span class="ph-image__label">CLASSIC<br>FOTO FOLGT</span>
+          </div>
+        </div>
+        <p class="product-card__name">Per&uuml;cke &bdquo;Classic&ldquo;</p>
+        <span class="product-card__price">ab 890,-</span>
+        <p class="product-card__desc">Zeitloses, schulterlanges Modell mit nat&uuml;rlichem Ansatz und glattem Haar.</p>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image">
+          <span class="badge badge-new">Neu</span>
+          <div class="ph-image">
+            <span class="ph-image__label">LONG LAYERS<br>FOTO FOLGT</span>
+          </div>
+        </div>
+        <p class="product-card__name">Per&uuml;cke &bdquo;Long Layers&ldquo;</p>
+        <span class="product-card__price">ab 1.190,-</span>
+        <p class="product-card__desc">Volumin&ouml;ses Langhaarmodell mit fein gestuften Str&auml;hnen.</p>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image">
+          <div class="ph-image">
+            <span class="ph-image__label">NATURAL (HERREN)<br>FOTO FOLGT</span>
+          </div>
+        </div>
+        <p class="product-card__name">Herrenper&uuml;cke &bdquo;Natural&ldquo;</p>
+        <span class="product-card__price">ab 790,-</span>
+        <p class="product-card__desc">Dezentes Kurzhaarmodell mit hauchd&uuml;nnem Skin-Ansatz.</p>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image">
+          <div class="ph-image">
+            <span class="ph-image__label">COMFORT TOUPET<br>FOTO FOLGT</span>
+          </div>
+        </div>
+        <p class="product-card__name">Toupet &bdquo;Comfort&ldquo;</p>
+        <span class="product-card__price">ab 590,-</span>
+        <p class="product-card__desc">Leichtes, atmungsaktives Haarteil zur punktuellen Kaschierung.</p>
+      </div>
+    </div>
 
-	<div id="fh5co-featured-testimony" class="fh5co-section">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12 fh5co-heading animate-box">
-					<h2>Was unsere Kundinnen sagen</h2>
-					<div class="row">
-						<div class="col-md-6">
-							<p>Vertrauen entsteht durch Erfahrung. Lesen Sie, wie unsere Kundinnen und Kunden ihren Weg zur passenden Perücke bei uns erlebt haben.</p>
-						</div>
-					</div>
-				</div>
+    <div class="text-center" style="margin-top: 48px;">
+      <a href="{% url 'wigs' %}" class="btn btn-outline">Alle Per&uuml;cken ansehen</a>
+    </div>
+  </div>
+</section>
 
-				<div class="col-md-5 animate-box img-to-responsive animate-box" data-animate-effect="fadeInLeft">
-						<img src="{% static 'images/person_1.jpg' %}" alt="Kundin von Zweithaar Schaaf">
-				</div>
-				<div class="col-md-7 animate-box" data-animate-effect="fadeInRight">
-					<blockquote>
-						<p> &ldquo;Ich wurde von Anfang an einfühlsam beraten und habe eine Perücke bekommen, die aussieht wie mein eigenes Haar. Ich fühle mich wieder wie ich selbst.&rdquo;</p>
-						<p class="author"><cite>&mdash; Sabine M.</cite></p>
-					</blockquote>
-				</div>
-			</div>
-		</div>
-	</div>
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Erfahrungen</span>
+      <h2>Was unsere Kundinnen sagen</h2>
+    </div>
+    <div class="testimonial">
+      <blockquote>
+        <p>&ldquo;Ich wurde von Anfang an einf&uuml;hlsam beraten und habe eine Per&uuml;cke bekommen, die aussieht wie mein eigenes Haar. Ich f&uuml;hle mich wieder wie ich selbst.&rdquo;</p>
+      </blockquote>
+      <cite>&mdash; Sabine M.</cite>
+    </div>
+  </div>
+</section>
 
-	<div id="fh5co-slider" class="fh5co-section animate-box">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-6 animate-box">
-					<div class="fh5co-heading">
-						<h2>Qualität <em>&amp;</em> Handwerk</h2>
-						<p>Jede Perücke wird in liebevoller Handarbeit gefertigt und individuell an Kopfform, Haaransatz und Wunschfrisur angepasst.</p>
-					</div>
-				</div>
-				<div class="col-md-6 col-md-push-1 animate-box">
-					<aside id="fh5co-slider-wrwap">
-					<div class="flexslider">
-						<ul class="slides">
-					   	<li style="background-image: url('{% static 'images/gallery_7.jpeg' %}');">
-					   		<div class="overlay-gradient"></div>
-					   		<div class="container-fluid">
-					   			<div class="row">
-						   			<div class="col-md-12 col-md-offset-0 col-md-pull-10 slider-text slider-text-bg">
-						   				<div class="slider-text-inner">
-						   					<div class="desc">
-													<h2>100&nbsp;<em>%</em> Echthaar</h2>
-													<p>Nur sortenreines, sorgfältig ausgewähltes Echthaar sorgt für einen natürlichen Glanz und eine Haptik, die sich wie Ihr eigenes Haar anfühlt.</p>
-													<p><a href="about.html" class="btn btn-primary btn-outline">Mehr erfahren</a></p>
-						   					</div>
-						   				</div>
-						   			</div>
-						   		</div>
-					   		</div>
-					   	</li>
-					   	<li style="background-image: url('{% static 'images/gallery_6.jpeg' %}');">
-					   		<div class="overlay-gradient"></div>
-					   		<div class="container-fluid">
-					   			<div class="row">
-						   			<div class="col-md-12 col-md-offset-0 col-md-pull-10 slider-text slider-text-bg">
-						   				<div class="slider-text-inner">
-						   					<div class="desc">
-													<h2>Individuelle <em>Beratung</em></h2>
-													<p>In einem persönlichen Termin ermitteln wir gemeinsam Farbe, Struktur und Schnitt &ndash; für ein Ergebnis, das perfekt zu Ihnen passt.</p>
-													<p><a href="{% url 'reservation' %}" class="btn btn-primary btn-outline">Termin vereinbaren</a></p>
-						   					</div>
-						   				</div>
-						   			</div>
-						   		</div>
-					   		</div>
-					   	</li>
-					   	<li style="background-image: url('{% static 'images/gallery_5.jpeg' %}');">
-					   		<div class="overlay-gradient"></div>
-					   		<div class="container-fluid">
-					   			<div class="row">
-						   			<div class="col-md-12 col-md-offset-0 col-md-pull-10 slider-text slider-text-bg">
-						   				<div class="slider-text-inner">
-						   					<div class="desc">
-													<h2>Pflege <em>&amp;</em> Service</h2>
-													<p>Auch nach dem Kauf sind wir für Sie da: professionelle Pflege, Anpassungen und Auffrischungen halten Ihre Perücke lange schön.</p>
-													<p><a href="contact.html" class="btn btn-primary btn-outline">Kontakt aufnehmen</a></p>
-						   					</div>
-						   				</div>
-						   			</div>
-						   		</div>
-					   		</div>
-					   	</li>		   	
-					  	</ul>
-				  	</div>
-				</aside>
-				</div>
-			</div>
-		</div>
-	</div>
+<section class="section section-alt feature-slider">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Warum Zweithaar Schaaf</span>
+      <h2>Qualit&auml;t &amp; Handwerk</h2>
+    </div>
+    <div id="fh5co-slider-wrwap">
+      <div class="flexslider">
+        <ul class="slides">
+          <li>
+            <div class="slide-inner">
+              <span class="eyebrow">Material</span>
+              <h3>100&nbsp;% Echthaar</h3>
+              <p>Nur sortenreines, sorgf&auml;ltig ausgew&auml;hltes Echthaar sorgt f&uuml;r einen nat&uuml;rlichen Glanz und eine Haptik, die sich wie Ihr eigenes Haar anf&uuml;hlt.</p>
+            </div>
+          </li>
+          <li>
+            <div class="slide-inner">
+              <span class="eyebrow">Service</span>
+              <h3>Individuelle Beratung</h3>
+              <p>In einem pers&ouml;nlichen Termin ermitteln wir gemeinsam Farbe, Struktur und Schnitt &ndash; f&uuml;r ein Ergebnis, das perfekt zu Ihnen passt.</p>
+            </div>
+          </li>
+          <li>
+            <div class="slide-inner">
+              <span class="eyebrow">Nachsorge</span>
+              <h3>Pflege &amp; Service</h3>
+              <p>Auch nach dem Kauf sind wir f&uuml;r Sie da: professionelle Pflege, Anpassungen und Auffrischungen halten Ihre Per&uuml;cke lange sch&ouml;n.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-	<div id="fh5co-blog" class="fh5co-section">
-		<div class="container">
-			<div class="row animate-box">
-				<div class="col-md-8 col-md-offset-2 text-center fh5co-heading animate-box">
-					<h2>Aktuelles &amp; Wissenswertes</h2>
-					<p>Tipps rund um Pflege, Auswahl und Umgang mit Echthaarperücken &ndash; damit Sie sich von Anfang an sicher fühlen.</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-4">
-					<div class="fh5co-blog animate-box">
-						<a href="#" class="blog-bg" style="background-image: url('{% static 'images/gallery_1.jpeg' %}');"></a>
-						<div class="blog-text">
-							<span class="posted_on">Ratgeber</span>
-							<h3><a href="#">Die richtige Perücke finden</a></h3>
-							<p>Worauf es bei Passform, Kopfform und Haarstruktur ankommt, damit Ihre neue Perücke perfekt sitzt.</p>
-							<ul class="stuff">
-								<li><a href="#">Weiterlesen<i class="icon-arrow-right22"></i></a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="fh5co-blog animate-box">
-						<a href="#" class="blog-bg" style="background-image: url('{% static 'images/gallery_2.jpeg' %}');"></a>
-						<div class="blog-text">
-							<span class="posted_on">Pflegetipps</span>
-							<h3><a href="#">Echthaar richtig pflegen</a></h3>
-							<p>Mit der richtigen Pflege bleibt Ihre Echthaarperücke lange geschmeidig, glänzend und in Form.</p>
-							<ul class="stuff">
-								<li><a href="#">Weiterlesen<i class="icon-arrow-right22"></i></a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="fh5co-blog animate-box">
-						<a href="#" class="blog-bg" style="background-image: url('{% static 'images/gallery_3.jpeg' %}');"></a>
-						<div class="blog-text">
-							<span class="posted_on">Erfahrung</span>
-							<h3><a href="#">Haarersatz bei Haarausfall</a></h3>
-							<p>Wie eine gut sitzende Perücke helfen kann, den Alltag wieder mit mehr Selbstvertrauen zu meistern.</p>
-							<ul class="stuff">
-								<li><a href="#">Weiterlesen<i class="icon-arrow-right22"></i></a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	
-	<div id="fh5co-started" class="fh5co-section animate-box" style="background-image: url('{% static 'images/hero_1.jpeg' %}');" data-stellar-background-ratio="0.5">
-		<div class="overlay"></div>
-		<div class="container">
-			<div class="row animate-box">
-				<div class="col-md-8 col-md-offset-2 text-center fh5co-heading">
-					<h2>Kostenlose Beratung vereinbaren</h2>
-					<p>Lassen Sie sich unverbindlich und persönlich beraten &ndash; wir finden gemeinsam die Perücke, die zu Ihnen und Ihrem Alltag passt.</p>
-					<p><a href="{% url 'reservation' %}" class="btn btn-primary btn-outline">Termin buchen</a></p>
-				</div>
-			</div>
-		</div>
-	</div>
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Ratgeber</span>
+      <h2>Aktuelles &amp; Wissenswertes</h2>
+      <p>Tipps rund um Pflege, Auswahl und Umgang mit Echthaarper&uuml;cken &ndash; damit Sie sich von Anfang an sicher f&uuml;hlen.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="tip-card">
+        <span class="tip-card__label">Ratgeber</span>
+        <h3>Die richtige Per&uuml;cke finden</h3>
+        <p>Worauf es bei Passform, Kopfform und Haarstruktur ankommt, damit Ihre neue Per&uuml;cke perfekt sitzt.</p>
+      </div>
+      <div class="tip-card">
+        <span class="tip-card__label">Pflegetipps</span>
+        <h3>Echthaar richtig pflegen</h3>
+        <p>Mit der richtigen Pflege bleibt Ihre Echthaarper&uuml;cke lange geschmeidig, gl&auml;nzend und in Form.</p>
+      </div>
+      <div class="tip-card">
+        <span class="tip-card__label">Erfahrung</span>
+        <h3>Haarersatz bei Haarausfall</h3>
+        <p>Wie eine gut sitzende Per&uuml;cke helfen kann, den Alltag wieder mit mehr Selbstvertrauen zu meistern.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-	<footer id="fh5co-footer" role="contentinfo" class="fh5co-section">
-		<div class="container">
-			<div class="row row-pb-md">
-				<div class="col-md-4 fh5co-widget">
-					<h4>Zweithaar Schaaf</h4>
-					<p>Ihr Fachgeschäft für Echthaarperücken, Toupets und Haarteile &ndash; individuelle Beratung und handwerkliche Qualität aus einer Hand.</p>
-				</div>
-				<div class="col-md-2 col-md-push-1 fh5co-widget">
-					<h4>Links</h4>
-					<ul class="fh5co-footer-links">
-						<li><a href="{% url 'home' %}">Home</a></li>
-						<li><a href="about.html">Über uns</a></li>
-						<li><a href="{% url 'wigs' %}">Unsere Perücken</a></li>
-						<li><a href="gallery.html">Galerie</a></li>
-					</ul>
-				</div>
+<section class="cta-band">
+  <div class="container">
+    <h2>Kostenlose Beratung vereinbaren</h2>
+    <p>Lassen Sie sich unverbindlich und pers&ouml;nlich beraten &ndash; wir finden gemeinsam die Per&uuml;cke, die zu Ihnen und Ihrem Alltag passt.</p>
+    <a href="{% url 'reservation' %}" class="btn btn-gold">Termin buchen</a>
+  </div>
+</section>
 
-				<div class="col-md-2 col-md-push-1 fh5co-widget">
-					<h4>Sortiment</h4>
-					<ul class="fh5co-footer-links">
-						<li><a href="#">Damenperücken</a></li>
-						<li><a href="#">Herrenperücken</a></li>
-						<li><a href="#">Toupets</a></li>
-						<li><a href="#">Haarteile</a></li>
-						<li><a href="#">Pflegeprodukte</a></li>
-					</ul>
-				</div>
+{% endblock %}
 
-				<div class="col-md-4 col-md-push-1 fh5co-widget">
-					<h4>Kontakt</h4>
-					<ul class="fh5co-footer-links">
-						<li>Zweithaar Schaaf<br>Musterstraße 1, 12345 Musterstadt</li>
-						<li><a href="tel://+4912345678">+49 123 456 78</a></li>
-						<li><a href="mailto:info@zweithaarschaaf.de">info@zweithaarschaaf.de</a></li>
-					</ul>
-				</div>
-
-			</div>
-
-			<div class="row copyright">
-				<div class="col-md-12 text-center">
-					<p>
-						<small class="block">&copy; 2026 Zweithaar Schaaf. Alle Rechte vorbehalten.</small>
-					</p>
-					<p>
-						<ul class="fh5co-social-icons">
-							<li><a href="#"><i class="icon-twitter2"></i></a></li>
-							<li><a href="#"><i class="icon-facebook2"></i></a></li>
-							<li><a href="#"><i class="icon-linkedin2"></i></a></li>
-							<li><a href="#"><i class="icon-dribbble2"></i></a></li>
-						</ul>
-					</p>
-				</div>
-			</div>
-
-		</div>
-	</footer>
-	</div>
-
-	<div class="gototop js-top">
-		<a href="#" class="js-gotop"><i class="icon-arrow-up22"></i></a>
-	</div>
-	
-	<!-- jQuery -->
-	<script src="{% static 'js/jquery.min.js' %}"></script>
-	<!-- jQuery Easing -->
-	<script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
-	<!-- Bootstrap -->
-	<script src="{% static 'js/bootstrap.min.js' %}"></script>
-	<!-- Waypoints -->
-	<script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
-	<!-- Waypoints -->
-	<script src="{% static 'js/jquery.stellar.min.js' %}"></script>
-	<!-- Flexslider -->
-	<script src="{% static 'js/jquery.flexslider-min.js' %}"></script>
-	<!-- Main -->
-	<script src="{% static 'js/main.js' %}"></script>
-
-  </body>
-</html>
+{% block extra_js %}
+  <script src="{% static 'js/jquery.flexslider-min.js' %}"></script>
+{% endblock %}
