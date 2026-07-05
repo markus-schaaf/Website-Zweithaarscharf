@@ -1,7 +1,7 @@
 {% extends "tasty/_base.html" %}
 {% load static %}
 
-{% block title %}Unsere Per&uuml;cken &mdash; Zweithaar Schaaf{% endblock %}
+{% block title %}Shop &mdash; Zweithaar Schaaf{% endblock %}
 {% block description %}Echthaarper&uuml;cken, Toupets und Haarteile von Zweithaar Schaaf &ndash; handgefertigt, individuell angepasst und in verschiedenen L&auml;ngen und Farben erh&auml;ltlich.{% endblock %}
 {% block body_class %}page-wigs{% endblock %}
 
@@ -9,7 +9,7 @@
 
 <section class="hero hero--plain">
   <div class="container">
-    <span class="eyebrow">Sortiment</span>
+    <span class="eyebrow">Shop</span>
     <h1>Unsere <em>Echthaarper&uuml;cken</em></h1>
     <p>Handgefertigt aus 100&nbsp;% Echthaar &ndash; f&uuml;r jeden Anlass die passende Wahl.</p>
   </div>
@@ -23,40 +23,18 @@
     </div>
 
     <div class="grid grid-4">
+      {% for p in damen_products %}
       <div class="product-card">
         <div class="product-card__image">
-          <span class="badge badge-popular">Beliebt</span>
-          <div class="ph-image"><span class="ph-image__label">CLASSIC<br>FOTO FOLGT</span></div>
+          {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
+          {% if p.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+          <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
         </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Classic&ldquo;</p>
-        <span class="product-card__price">ab 890,-</span>
-        <p class="product-card__desc">Zeitloses, schulterlanges Modell mit nat&uuml;rlichem Ansatz und glattem Haar &ndash; ideal f&uuml;r den Alltag.</p>
+        <p class="product-card__name">{{ p.display_name }}</p>
+        <span class="product-card__price">ab {{ p.price }},-</span>
+        <p class="product-card__desc">{{ p.desc }}</p>
       </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <span class="badge badge-new">Neu</span>
-          <div class="ph-image"><span class="ph-image__label">LONG LAYERS<br>FOTO FOLGT</span></div>
-        </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Long Layers&ldquo;</p>
-        <span class="product-card__price">ab 1.190,-</span>
-        <p class="product-card__desc">Volumin&ouml;ses Langhaarmodell mit fein gestuften Str&auml;hnen f&uuml;r einen besonders lebendigen Look.</p>
-      </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <div class="ph-image"><span class="ph-image__label">BOB CHIC<br>FOTO FOLGT</span></div>
-        </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Bob Chic&ldquo;</p>
-        <span class="product-card__price">ab 950,-</span>
-        <p class="product-card__desc">Kinnlanger, glatter Bob mit klarer Kontur &ndash; pflegeleicht und ausdrucksstark zugleich.</p>
-      </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <div class="ph-image"><span class="ph-image__label">CURLY VOLUME<br>FOTO FOLGT</span></div>
-        </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Curly Volume&ldquo;</p>
-        <span class="product-card__price">ab 1.290,-</span>
-        <p class="product-card__desc">Lebendige Locken in warmem Rotbraun &ndash; f&uuml;r einen Auftritt mit besonders viel F&uuml;lle.</p>
-      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
@@ -69,22 +47,18 @@
     </div>
 
     <div class="grid grid-4">
+      {% for p in herren_products %}
       <div class="product-card">
         <div class="product-card__image">
-          <div class="ph-image"><span class="ph-image__label">NATURAL<br>FOTO FOLGT</span></div>
+          {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
+          {% if p.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+          <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
         </div>
-        <p class="product-card__name">Herrenper&uuml;cke &bdquo;Natural&ldquo;</p>
-        <span class="product-card__price">ab 790,-</span>
-        <p class="product-card__desc">Dezentes Kurzhaarmodell mit hauchd&uuml;nnem Skin-Ansatz &ndash; unsichtbar im Haaransatz.</p>
+        <p class="product-card__name">{{ p.display_name }}</p>
+        <span class="product-card__price">ab {{ p.price }},-</span>
+        <p class="product-card__desc">{{ p.desc }}</p>
       </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <div class="ph-image"><span class="ph-image__label">COMFORT<br>FOTO FOLGT</span></div>
-        </div>
-        <p class="product-card__name">Toupet &bdquo;Comfort&ldquo;</p>
-        <span class="product-card__price">ab 590,-</span>
-        <p class="product-card__desc">Leichtes, atmungsaktives Haarteil zur punktuellen Kaschierung &ndash; angenehm auch bei sensibler Kopfhaut.</p>
-      </div>
+      {% endfor %}
     </div>
   </div>
 </section>

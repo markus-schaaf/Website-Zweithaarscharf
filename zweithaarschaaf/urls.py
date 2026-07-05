@@ -19,6 +19,8 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
 
+from .demo_products import DAMEN_PRODUCTS, HERREN_PRODUCTS
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(
@@ -31,7 +33,12 @@ urlpatterns = [
     path(
         "peruecken/",
         TemplateView.as_view(
-            template_name="tasty/menu.html", extra_context={"active": "wigs"}
+            template_name="tasty/menu.html",
+            extra_context={
+                "active": "wigs",
+                "damen_products": DAMEN_PRODUCTS,
+                "herren_products": HERREN_PRODUCTS,
+            },
         ),
         name="wigs",
     ),
