@@ -1,0 +1,66 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Produktverwaltung &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Produkt<em>verwaltung</em></h1>
+    <p>Produkte anlegen, bearbeiten und f&uuml;r Zielgruppen freischalten.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+      <a class="btn btn-gold" href="{% url 'shop_manage:product_create' %}">Neues Produkt</a>
+      <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
+    </div>
+
+    <div class="form-card" style="overflow-x: auto;">
+      <table class="account-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Kategorie</th>
+            <th>Zielgruppe</th>
+            <th>Preis</th>
+            <th>Badge</th>
+            <th>Aktiv</th>
+            <th>Sortierung</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in produkte %}
+            <tr{% if not p.is_active %} class="is-inactive"{% endif %}>
+              <td>{{ p.name }}</td>
+              <td>{{ p.get_category_display }}</td>
+              <td>
+                <span class="role-badge{% if p.audience == 'b2b' %} role-badge--b2b{% endif %}">
+                  {{ p.get_audience_display }}
+                </span>
+              </td>
+              <td>ab {{ p.price_display }},- &euro;</td>
+              <td>{% if p.badge %}{{ p.get_badge_display }}{% else %}&ndash;{% endif %}</td>
+              <td>{% if p.is_active %}Ja{% else %}Nein{% endif %}</td>
+              <td>{{ p.sort_order }}</td>
+              <td><a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

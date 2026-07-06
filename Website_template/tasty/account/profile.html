@@ -1,0 +1,58 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Mein Konto &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Konto</span>
+    <h1>Mein <em>Konto</em></h1>
+    <p>Sch&ouml;n, dass Sie da sind{% if user.first_name %}, {{ user.first_name }}{% endif %}.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 680px;">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="form-card">
+      <h2>Ihre Kontodaten</h2>
+      <table class="account-table">
+        <tr><th>E-Mail-Adresse</th><td>{{ user.email }}</td></tr>
+        <tr><th>Name</th><td>{{ user.first_name }} {{ user.last_name }}</td></tr>
+        <tr><th>Rolle</th><td>{{ user.get_role_display }}</td></tr>
+        {% if user.role == "B2B" %}
+          <tr><th>Firmenname</th><td>{{ user.company_name }}</td></tr>
+          <tr><th>USt-IdNr.</th><td>{{ user.vat_id|default:"–" }}</td></tr>
+          <tr><th>Telefon</th><td>{{ user.phone }}</td></tr>
+          <tr><th>Anschrift</th><td>{{ user.street }}, {{ user.zip_code }} {{ user.city }}</td></tr>
+        {% endif %}
+        <tr><th>Mitglied seit</th><td>{{ user.date_joined|date:"d.m.Y" }}</td></tr>
+      </table>
+
+      <div style="margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+        {% if user.can_view_users %}
+          <a class="btn btn-gold" href="{% url 'accounts:user_list' %}">Nutzerverwaltung</a>
+        {% endif %}
+        {% if user.can_manage_products %}
+          <a class="btn btn-gold" href="{% url 'shop_manage:product_list' %}">Produktverwaltung</a>
+        {% endif %}
+        {% if user.role == "ADMIN" %}
+          <a class="btn btn-gold" href="{% url 'admin:index' %}">Django-Admin</a>
+        {% endif %}
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn">Abmelden</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

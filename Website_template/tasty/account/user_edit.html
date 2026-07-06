@@ -1,0 +1,50 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Benutzer bearbeiten &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Benutzer <em>bearbeiten</em></h1>
+    <p>{{ object.email }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 560px;">
+    <div class="form-card">
+      <h2>{{ object.first_name }} {{ object.last_name }}</h2>
+      <p class="text-muted">Registriert am {{ object.date_joined|date:"d.m.Y" }}</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.role.id_for_label }}">Rolle</label>
+            {{ form.role }}
+            {{ form.role.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-checkbox">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+              Konto ist aktiv (deaktivierte Konten k&ouml;nnen sich nicht anmelden)
+            </label>
+          </div>
+        </div>
+        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'accounts:user_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

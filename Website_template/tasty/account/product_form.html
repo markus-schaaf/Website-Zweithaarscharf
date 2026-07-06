@@ -1,0 +1,98 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{% if object %}Produkt bearbeiten{% else %}Neues Produkt{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    {% if object %}
+      <h1>Produkt <em>bearbeiten</em></h1>
+      <p>{{ object.name }}</p>
+    {% else %}
+      <h1>Neues <em>Produkt</em></h1>
+      <p>Legen Sie ein neues Produkt f&uuml;r den Shop an.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 640px;">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">Name *</label>
+            {{ form.name }}
+            {{ form.name.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.label.id_for_label }}">Kurzlabel (Platzhalterbild) *</label>
+            {{ form.label }}
+            {{ form.label.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.category.id_for_label }}">Kategorie *</label>
+            {{ form.category }}
+            {{ form.category.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.audience.id_for_label }}">Zielgruppe *</label>
+            {{ form.audience }}
+            {{ form.audience.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.price.id_for_label }}">Preis (ab, in &euro;) *</label>
+            {{ form.price }}
+            {{ form.price.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.sort_order.id_for_label }}">Sortierung</label>
+            {{ form.sort_order }}
+            {{ form.sort_order.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.badge.id_for_label }}">Badge</label>
+            {{ form.badge }}
+            {{ form.badge.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.description.id_for_label }}">Beschreibung</label>
+            {{ form.description }}
+            {{ form.description.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-checkbox">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+              Produkt ist aktiv (inaktive Produkte sind im Shop unsichtbar)
+            </label>
+          </div>
+        </div>
+        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'shop_manage:product_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

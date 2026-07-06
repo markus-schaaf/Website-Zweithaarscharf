@@ -1,0 +1,58 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Anmelden &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Konto</span>
+    <h1>Anmelden</h1>
+    <p>Melden Sie sich mit Ihrer E-Mail-Adresse an.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 560px;">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="form-card">
+      <h2>Willkommen zur&uuml;ck</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.username.id_for_label }}">{{ form.username.label }} *</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.password.id_for_label }}">{{ form.password.label }} *</label>
+            {{ form.password }}
+            {{ form.password.errors }}
+          </div>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="form-row mb-0">
+          <button type="submit" class="btn btn-gold btn-block">Anmelden</button>
+        </div>
+      </form>
+      <p class="text-muted" style="margin-top: 24px; margin-bottom: 0;">
+        Noch kein Konto? <a href="{% url 'accounts:register' %}">Jetzt registrieren</a><br>
+        Gesch&auml;ftskunde? <a href="{% url 'accounts:register_b2b' %}">Firmenkonto erstellen</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

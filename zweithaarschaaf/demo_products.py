@@ -1,4 +1,8 @@
-"""Demo-Produktdaten fuer die Shop-Seite (Platzhalter, kein echtes Sortiment)."""
+"""Demo-Produktdaten (Platzhalter, kein echtes Sortiment).
+
+Wird nicht mehr direkt gerendert, sondern per `manage.py seed_products`
+in die Datenbank uebernommen (shop.Product).
+"""
 
 DAMEN_PRODUCTS = [
     {"display_name": 'Perücke „Classic“', "label": "CLASSIC", "price": "890", "badge": "popular",
@@ -64,4 +68,36 @@ HERREN_PRODUCTS = [
      "desc": "Präzise gearbeitetes Toupet in dunkelbraun."},
     {"display_name": 'Herrenperücke „Grey Blend“', "label": "GREY BLEND", "price": "840", "badge": None,
      "desc": "Grau-braun melierter Kurzhaarschnitt für einen natürlichen Grauverlauf."},
+]
+
+PFLEGE_PRODUCTS = [
+    {"display_name": "Perücken-Shampoo mild", "label": "SHAMPOO MILD", "price": "19", "badge": "popular",
+     "desc": "Mildes Spezialshampoo für Echthaarperücken, reinigt schonend und erhält den Glanz."},
+    {"display_name": "Conditioner & Intensivkur", "label": "CONDITIONER", "price": "24", "badge": None,
+     "desc": "Pflegende Kur für geschmeidiges Echthaar, beugt Austrocknung und Knotenbildung vor."},
+    {"display_name": "Pflegespray Echthaar", "label": "PFLEGESPRAY", "price": "21", "badge": "new",
+     "desc": "Leichtes Sprühspray für Feuchtigkeit und Kämmbarkeit zwischen den Wäschen."},
+    {"display_name": "Perückenständer Holz", "label": "STAENDER", "price": "29", "badge": None,
+     "desc": "Formstabiler Holzständer zur schonenden Aufbewahrung und Trocknung Ihrer Perücke."},
+    {"display_name": "Perückenbürste antistatisch", "label": "BUERSTE", "price": "15", "badge": None,
+     "desc": "Spezialbürste mit abgerundeten Borsten, schont Ansatz und Tressen."},
+]
+
+# Nur fuer B2B-Kunden sichtbar (audience "b2b")
+ROHLING_PRODUCTS = [
+    {"display_name": "Echthaar-Rohling 30 cm, naturbraun", "label": "ROHLING 30 BRAUN", "price": "240", "badge": None,
+     "audience": "b2b",
+     "desc": "Unbehandeltes europäisches Echthaar auf Tresse, ideal für Konfektion und Maßanfertigung."},
+    {"display_name": "Echthaar-Rohling 40 cm, hellblond", "label": "ROHLING 40 BLOND", "price": "320", "badge": "popular",
+     "audience": "b2b",
+     "desc": "Unbehandelte, sortenreine Knüpfware in Hellblond, geeignet zum Färben und Tönen."},
+    {"display_name": "Echthaar-Rohling 50 cm, dunkelbraun", "label": "ROHLING 50 DUNKEL", "price": "410", "badge": None,
+     "audience": "b2b",
+     "desc": "Lange, gleichmäßig gezogene Strähnen für hochwertige Vollperücken und Haarteile."},
+    {"display_name": "Echthaar-Rohling 55 cm, grau meliert", "label": "ROHLING 55 GRAU", "price": "460", "badge": None,
+     "audience": "b2b",
+     "desc": "Natürlich grau meliertes Echthaar, unbehandelt, für authentische Grauverläufe."},
+    {"display_name": "Echthaar-Rohling 60 cm, schwarz", "label": "ROHLING 60 SCHWARZ", "price": "520", "badge": "new",
+     "audience": "b2b",
+     "desc": "Doppelt gezogene Premium-Qualität in Tiefschwarz für anspruchsvolle Maßanfertigungen."},
 ]

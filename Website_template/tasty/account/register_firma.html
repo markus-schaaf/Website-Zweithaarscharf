@@ -1,0 +1,111 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Gesch&auml;ftskonto erstellen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Konto</span>
+    <h1>Gesch&auml;ftskonto <em>erstellen</em></h1>
+    <p>F&uuml;r Friseure, Studios und Wiederverk&auml;ufer &ndash; inklusive Zugriff auf unser B2B-Sortiment.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 640px;">
+    <div class="form-card">
+      <h2>Ihre Firmendaten</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.company_name.id_for_label }}">Firmenname *</label>
+            {{ form.company_name }}
+            {{ form.company_name.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.vat_id.id_for_label }}">USt-IdNr. (optional)</label>
+            {{ form.vat_id }}
+            {{ form.vat_id.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.phone.id_for_label }}">Telefon *</label>
+            {{ form.phone }}
+            {{ form.phone.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.street.id_for_label }}">Stra&szlig;e und Hausnummer *</label>
+            {{ form.street }}
+            {{ form.street.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.zip_code.id_for_label }}">PLZ *</label>
+            {{ form.zip_code }}
+            {{ form.zip_code.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.city.id_for_label }}">Ort *</label>
+            {{ form.city }}
+            {{ form.city.errors }}
+          </div>
+        </div>
+
+        <h3 style="margin-top: 2rem;">Ansprechpartner</h3>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.first_name.id_for_label }}">Vorname *</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.last_name.id_for_label }}">Nachname *</label>
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.password1.id_for_label }}">Passwort *</label>
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+            <span class="helptext">{{ form.password1.help_text }}</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.password2.id_for_label }}">Passwort best&auml;tigen *</label>
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+          </div>
+        </div>
+        <div class="form-row mb-0">
+          <button type="submit" class="btn btn-gold btn-block">Gesch&auml;ftskonto erstellen</button>
+        </div>
+      </form>
+      <p class="text-muted" style="margin-top: 24px; margin-bottom: 0;">
+        Privatkunde? <a href="{% url 'accounts:register' %}">Zur normalen Registrierung</a><br>
+        Bereits registriert? <a href="{% url 'accounts:login' %}">Zur Anmeldung</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

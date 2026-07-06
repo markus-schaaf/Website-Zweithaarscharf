@@ -16,13 +16,16 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import TemplateView
 
-from .demo_products import DAMEN_PRODUCTS, HERREN_PRODUCTS
+from shop.views import WigsView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("konto/produkte/", include("shop.manage_urls")),
+    path("konto/", include("accounts.urls")),
+    path("warenkorb/", include("shop.urls")),
     path(
         "",
         TemplateView.as_view(
@@ -30,17 +33,13 @@ urlpatterns = [
         ),
         name="home",
     ),
+    path("peruecken/", WigsView.as_view(), name="wigs"),
     path(
-        "peruecken/",
+        "leistungen/",
         TemplateView.as_view(
-            template_name="tasty/menu.html",
-            extra_context={
-                "active": "wigs",
-                "damen_products": DAMEN_PRODUCTS,
-                "herren_products": HERREN_PRODUCTS,
-            },
+            template_name="tasty/services.html", extra_context={"active": "services"}
         ),
-        name="wigs",
+        name="services",
     ),
     path(
         "galerie/",

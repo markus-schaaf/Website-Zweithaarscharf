@@ -1,0 +1,71 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Nutzerverwaltung &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Nutzer<em>verwaltung</em></h1>
+    {% if user.can_manage_users %}
+      <p>Alle registrierten Konten verwalten.</p>
+    {% else %}
+      <p>Nur-Lese-Ansicht &ndash; &Auml;nderungen sind Administratoren vorbehalten.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="form-card" style="overflow-x: auto;">
+      <table class="account-table">
+        <thead>
+          <tr>
+            <th>E-Mail</th>
+            <th>Name</th>
+            <th>Rolle</th>
+            <th>Aktiv</th>
+            <th>Registriert am</th>
+            {% if user.can_manage_users %}<th>Aktionen</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in benutzer %}
+            <tr{% if not b.is_active %} class="is-inactive"{% endif %}>
+              <td>{{ b.email }}</td>
+              <td>{{ b.first_name }} {{ b.last_name }}</td>
+              <td>
+                <span class="role-badge{% if b.role == 'ADMIN' %} role-badge--admin{% elif b.role == 'ALL_POWER' %} role-badge--allpower{% endif %}">
+                  {{ b.get_role_display }}
+                </span>
+              </td>
+              <td>{% if b.is_active %}Ja{% else %}Nein{% endif %}</td>
+              <td>{{ b.date_joined|date:"d.m.Y" }}</td>
+              {% if user.can_manage_users %}
+                <td>
+                  {% if b.pk != user.pk %}
+                    <a href="{% url 'accounts:user_edit' b.pk %}">Bearbeiten</a>
+                    &nbsp;|&nbsp;
+                    <a href="{% url 'accounts:user_delete' b.pk %}">L&ouml;schen</a>
+                  {% else %}
+                    <span class="text-muted">Eigenes Konto</span>
+                  {% endif %}
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

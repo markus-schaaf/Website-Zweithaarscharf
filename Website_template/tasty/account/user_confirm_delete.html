@@ -1,0 +1,34 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Benutzer l&ouml;schen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Benutzer <em>l&ouml;schen</em></h1>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 560px;">
+    <div class="form-card">
+      <h2>Sind Sie sicher?</h2>
+      <p>
+        M&ouml;chten Sie das Konto <strong>{{ object.email }}</strong>
+        ({{ object.first_name }} {{ object.last_name }}) wirklich unwiderruflich l&ouml;schen?
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+          <button type="submit" class="btn btn-gold">Endg&uuml;ltig l&ouml;schen</button>
+          <a class="btn" href="{% url 'accounts:user_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
