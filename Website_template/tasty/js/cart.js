@@ -231,21 +231,21 @@
         total += line;
         return (
           '<tr data-product-id="' + p.id + '">' +
-          '<td>' + p.name + '</td>' +
-          '<td>ab ' + p.price_display + ',- €</td>' +
-          '<td><span class="qty-controls">' +
+          '<td class="cart-table__name">' + p.name + '</td>' +
+          '<td data-label="Einzelpreis">ab ' + p.price_display + ',- €</td>' +
+          '<td data-label="Menge"><span class="qty-controls">' +
           '<button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">−</button>' +
           '<span class="qty-value">' + qty + '</span>' +
           '<button type="button" class="qty-btn js-qty-plus" aria-label="Menge erhöhen">+</button>' +
           '</span></td>' +
-          '<td class="js-line-total">' + euroFormat.format(line) + '</td>' +
-          '<td><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>' +
+          '<td data-label="Zwischensumme" class="js-line-total">' + euroFormat.format(line) + '</td>' +
+          '<td class="cart-table__actions"><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>' +
           '</tr>'
         );
       }).join('');
 
       container.innerHTML =
-        '<div class="form-card" style="overflow-x: auto;">' +
+        '<div class="form-card table-scroll">' +
         '<table class="account-table cart-table" id="cart-anon-table">' +
         '<thead><tr><th>Produkt</th><th>Einzelpreis</th><th>Menge</th><th>Zwischensumme</th><th></th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +

@@ -13,6 +13,26 @@ urlpatterns = [
         name="product_edit",
     ),
     path(
+        "<int:pk>/3d/",
+        manage_views.Produkt3DView.as_view(),
+        name="product_3d",
+    ),
+    path(
+        "<int:pk>/3d/generieren/",
+        manage_views.Produkt3DGenerierenView.as_view(),
+        name="product_3d_generate",
+    ),
+    path(
+        "<int:pk>/3d/sichtbarkeit/",
+        manage_views.Produkt3DSichtbarkeitView.as_view(),
+        name="product_3d_visibility",
+    ),
+    path(
+        "<int:pk>/3d/status/",
+        manage_views.Produkt3DStatusView.as_view(),
+        name="product_3d_status",
+    ),
+    path(
         "konfigurator/",
         manage_views.KonfiguratorListeView.as_view(),
         name="configurator_list",

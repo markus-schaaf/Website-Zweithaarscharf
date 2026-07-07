@@ -1283,3 +1283,146 @@ button.nav-action:focus {
   color: var(--text-secondary);
   margin: 0.75rem 0 1.25rem 0;
 }
+
+/* =======================================================
+   Mobile Design
+   ======================================================= */
+
+/* Hintergrund nicht scrollen, solange das Off-Canvas-Menue offen ist */
+body.overflow {
+  overflow: hidden;
+}
+
+/* Badge im H1 der Produktdetailseite: nicht absolut positionieren
+   (absolute Positionierung gilt nur fuer Badges auf Produktkarten) */
+h1 .badge {
+  position: static;
+}
+
+/* Groessere Trefferflaeche fuer den Burger-Button (44x44px Touch-Ziel) */
+.fh5co-nav-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+/* Touch-Geraete: Mengen-Buttons auf Mindest-Touch-Groesse anheben */
+@media (pointer: coarse) {
+  .qty-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  #fh5co-offcanvas a {
+    padding: 16px 0;
+  }
+}
+
+@media screen and (max-width: 40em) {
+
+  /* Announce-Bar kompakter, damit sie einzeilig bleibt */
+  .announce-bar {
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    padding: 0.5em 0.75em;
+  }
+
+  /* Formular-Karten: weniger Innenabstand */
+  .form-card {
+    padding: 1.25rem 1rem;
+  }
+
+  /* Button-Reihen gestapelt und volle Breite */
+  .btn-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-row .btn { width: 100%; }
+  .btn-row form { width: 100%; }
+  .btn-row form .btn { width: 100%; }
+
+  /* Mind. 16px in Eingabefeldern, sonst zoomt iOS Safari beim Fokus */
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 16px;
+  }
+
+  /* Konto-Tabellen: engere Zellen, lange Werte umbrechen */
+  .account-table th,
+  .account-table td {
+    padding: 0.625rem 0.625rem 0.625rem 0;
+  }
+  .account-table td { word-break: break-word; }
+
+  /* Mengen-Buttons auf Touch-Groesse */
+  .qty-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  /* Warenkorb: Tabelle wird zu gestapelten Karten */
+  .cart-table,
+  .cart-table tbody,
+  .cart-table tfoot,
+  .cart-table tr,
+  .cart-table td {
+    display: block;
+    width: 100%;
+  }
+  .cart-table thead { display: none; }
+  .cart-table tbody tr {
+    border: 1px solid var(--border-soft);
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .cart-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border: none;
+    padding: 0.375rem 0;
+  }
+  .cart-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .cart-table .cart-table__name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+    padding-bottom: 0.625rem;
+    margin-bottom: 0.375rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-table .cart-table__actions {
+    justify-content: flex-end;
+    padding-top: 0.625rem;
+  }
+  .cart-table tfoot tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 0 0 0;
+    border-top: 1px solid var(--border-soft);
+  }
+  .cart-table tfoot th {
+    padding: 0;
+    border: none;
+    font-size: 1rem;
+  }
+  .cart-table tfoot th:empty { display: none; }
+  .cart-table tfoot th[colspan] {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+}

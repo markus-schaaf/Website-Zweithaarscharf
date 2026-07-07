@@ -27,7 +27,7 @@
       <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
     </div>
 
-    <div class="form-card" class="table-scroll">
+    <div class="form-card table-scroll">
       <table class="account-table">
         <thead>
           <tr>
@@ -55,7 +55,11 @@
               <td>{% if p.badge %}{{ p.get_badge_display }}{% else %}&ndash;{% endif %}</td>
               <td>{% if p.is_active %}Ja{% else %}Nein{% endif %}</td>
               <td>{{ p.sort_order }}</td>
-              <td><a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a></td>
+              <td>
+                <a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a>
+                &middot;
+                <a href="{% url 'shop_manage:product_3d' p.pk %}">3D</a>
+              </td>
             </tr>
           {% endfor %}
         </tbody>

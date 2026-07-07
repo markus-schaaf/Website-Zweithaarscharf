@@ -19,7 +19,7 @@
     {% if user.is_authenticated %}
 
       {% if cart_items %}
-        <div class="form-card" class="table-scroll">
+        <div class="form-card table-scroll">
           <table class="account-table cart-table" id="cart-table">
             <thead>
               <tr>
@@ -33,17 +33,17 @@
             <tbody>
               {% for item in cart_items %}
               <tr data-product-id="{{ item.product_id }}">
-                <td>{{ item.product.name }}</td>
-                <td>ab {{ item.product.price_display }},- &euro;</td>
-                <td>
+                <td class="cart-table__name">{{ item.product.name }}</td>
+                <td data-label="Einzelpreis">ab {{ item.product.price_display }},- &euro;</td>
+                <td data-label="Menge">
                   <span class="qty-controls">
                     <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
                     <span class="qty-value">{{ item.quantity }}</span>
                     <button type="button" class="qty-btn js-qty-plus" aria-label="Menge erh&ouml;hen">+</button>
                   </span>
                 </td>
-                <td class="js-line-total">{{ item.line_total|euro }}</td>
-                <td><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>
+                <td data-label="Zwischensumme" class="js-line-total">{{ item.line_total|euro }}</td>
+                <td class="cart-table__actions"><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>
               </tr>
               {% endfor %}
             </tbody>

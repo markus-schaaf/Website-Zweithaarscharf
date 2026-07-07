@@ -1,0 +1,171 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}3D-Vorschau &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>3D-<em>Vorschau</em></h1>
+    <p>{{ produkt.name }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if asset %}
+      <div class="form-card mb-24" id="asset-status" data-status="{{ asset.status }}"
+           data-status-url="{% url 'shop_manage:product_3d_status' produkt.pk %}">
+        <h2 style="margin-top: 0;">Aktuelles 3D-Modell</h2>
+        <p>
+          Status:
+          <strong>{{ asset.get_status_display }}</strong>
+          {% if asset.status == "pending" or asset.status == "processing" %}
+            <span class="form-hint">&ndash; Seite aktualisiert sich automatisch.</span>
+          {% endif %}
+        </p>
+        {% if asset.status == "failed" and asset.error_message %}
+          <div class="form-errors">{{ asset.error_message }}</div>
+        {% endif %}
+
+        {% if asset.status == "done" and asset.model_file %}
+          <model-viewer src="{{ asset.model_file.url }}"
+                        {% if asset.preview_thumbnail %}poster="{{ asset.preview_thumbnail.url }}"{% endif %}
+                        alt="3D-Vorschau: {{ produkt.name }}"
+                        camera-controls auto-rotate disable-pan
+                        camera-orbit="0deg 85deg 105%"
+                        style="width: 100%; aspect-ratio: 1 / 1; background: #f4f2ef;">
+          </model-viewer>
+
+          <div class="btn-row" style="margin-top: 16px;">
+            <form method="post" action="{% url 'shop_manage:product_3d_visibility' produkt.pk %}">
+              {% csrf_token %}
+              {% if asset.is_public %}
+                <button type="submit" class="btn">F&uuml;r Kunden verbergen</button>
+              {% else %}
+                <button type="submit" class="btn btn-gold">F&uuml;r Kunden freigeben</button>
+              {% endif %}
+            </form>
+          </div>
+          <p class="form-hint">
+            {% if asset.is_public %}
+              Das Modell ist auf der Produktseite f&uuml;r Kunden sichtbar.
+            {% else %}
+              Das Modell ist noch nicht freigegeben &ndash; Kunden sehen weiterhin die Produktfotos.
+            {% endif %}
+          </p>
+        {% endif %}
+
+        {% if asset.status == "done" or asset.status == "failed" %}
+          <form method="post" action="{% url 'shop_manage:product_3d_generate' produkt.pk %}" style="margin-top: 8px;">
+            {% csrf_token %}
+            <button type="submit" class="btn">Neu generieren (gleiche Bilder)</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="form-card">
+      <h2 style="margin-top: 0;">{% if asset %}Neue Bilder hochladen{% else %}Bilder f&uuml;r die 3D-Generierung{% endif %}</h2>
+      <p class="form-hint">
+        1&ndash;4 Produktfotos (ideal: frontal fotografiert). Der Hintergrund wird automatisch
+        entfernt und die Haare werden auf einen neutralen Dummy-Kopf gesetzt, bevor das
+        3D-Modell erzeugt wird. Der Vorgang dauert einige Minuten.
+      </p>
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.source_image_1.id_for_label }}">Bild 1 (frontal) *</label>
+            {{ form.source_image_1 }}
+            {{ form.source_image_1.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.source_image_2.id_for_label }}">Bild 2</label>
+            {{ form.source_image_2 }}
+            {{ form.source_image_2.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.source_image_3.id_for_label }}">Bild 3</label>
+            {{ form.source_image_3 }}
+            {{ form.source_image_3.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.source_image_4.id_for_label }}">Bild 4</label>
+            {{ form.source_image_4 }}
+            {{ form.source_image_4.errors }}
+          </div>
+        </div>
+
+        <h2 style="margin: 24px 0 8px 0;">Feinjustierung (optional)</h2>
+        <p class="form-hint">Nur anpassen, wenn die Haare auf dem Dummy-Kopf falsch sitzen. Werte sind Anteile der Bildgr&ouml;&szlig;e.</p>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.comp_offset_x.id_for_label }}">Versatz X (&minus; links / + rechts)</label>
+            {{ form.comp_offset_x }}
+            {{ form.comp_offset_x.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.comp_offset_y.id_for_label }}">Versatz Y (&minus; hoch / + runter)</label>
+            {{ form.comp_offset_y }}
+            {{ form.comp_offset_y.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.comp_scale.id_for_label }}">Skalierung (1.0 = Standard)</label>
+            {{ form.comp_scale }}
+            {{ form.comp_scale.errors }}
+          </div>
+        </div>
+
+        <div class="form-row mb-0">
+          <button type="submit" class="btn btn-gold">Hochladen &amp; 3D-Modell generieren</button>
+          <a class="btn" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktliste</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/vendor/model-viewer.min.js' %}"></script>
+<script>
+  // Solange die Generierung laeuft: Status pollen und bei Aenderung neu laden
+  (function () {
+    var card = document.getElementById("asset-status");
+    if (!card) return;
+    var status = card.dataset.status;
+    if (status !== "pending" && status !== "processing") return;
+    var timer = setInterval(function () {
+      fetch(card.dataset.statusUrl, { headers: { "Accept": "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.status !== status) {
+            clearInterval(timer);
+            window.location.reload();
+          }
+        })
+        .catch(function () { /* naechster Versuch beim folgenden Intervall */ });
+    }, 5000);
+  })();
+</script>
+{% endblock %}

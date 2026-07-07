@@ -38,7 +38,19 @@
     <div class="split product-detail">
 
       <div class="product-detail__gallery">
-        {% if product.image %}
+        {% if product.public_3d_asset %}
+          <model-viewer class="img-tile"
+                        src="{{ product.public_3d_asset.model_file.url }}"
+                        {% if product.public_3d_asset.preview_thumbnail %}poster="{{ product.public_3d_asset.preview_thumbnail.url }}"{% endif %}
+                        alt="3D-Ansicht: {{ product.name }} &ndash; per Ziehen drehen"
+                        camera-controls disable-pan
+                        camera-orbit="0deg 85deg 105%"
+                        interaction-prompt="auto"
+                        style="width: 100%; aspect-ratio: 1 / 1;">
+            <div slot="progress-bar"></div>
+          </model-viewer>
+          <p class="form-hint" style="text-align: center;">360&deg;-Ansicht: mit Maus oder Finger drehen, Scrollen/Pinch zum Zoomen</p>
+        {% elif product.image %}
           <img class="img-tile" src="{{ product.image.url }}" alt="{{ product.name }}">
         {% elif product.placeholder_image %}
           <img class="img-tile" src="{% static product.placeholder_image %}" alt="Illustration: {{ product.name }}">
@@ -139,5 +151,8 @@
 {% block extra_js %}
 {% if product.is_configurable %}
 <script src="{% static 'js/configurator.js' %}"></script>
+{% endif %}
+{% if product.public_3d_asset %}
+<script type="module" src="{% static 'js/vendor/model-viewer.min.js' %}"></script>
 {% endif %}
 {% endblock %}

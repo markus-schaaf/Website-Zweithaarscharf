@@ -29,7 +29,7 @@
     </div>
 
     {% for gruppe in gruppen %}
-      <div class="form-card" class="table-scroll mb-24">
+      <div class="form-card table-scroll mb-24">
         <div class="btn-row mb-12">
           <h2 class="mb-0">{{ gruppe.name }}{% if not gruppe.is_active %} <span class="role-badge">inaktiv</span>{% endif %}</h2>
           <a href="{% url 'shop_manage:group_edit' gruppe.pk %}">Gruppe bearbeiten</a>

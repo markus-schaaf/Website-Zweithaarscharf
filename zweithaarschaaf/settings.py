@@ -101,6 +101,21 @@ if not DEBUG:
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+
+# Celery (3D-Generierung im Hintergrund)
+# Standard: Eager-Modus — Tasks laufen synchron im Request, kein Redis nötig (Entwicklung).
+# Produktion: CELERY_TASK_ALWAYS_EAGER=0 setzen und Worker starten (siehe README.md).
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = os.environ.get("CELERY_TASK_ALWAYS_EAGER", "1") == "1"
+CELERY_TASK_EAGER_PROPAGATES = False  # Fehler landen in error_message, nie beim Nutzer
+
+
+# 3D-Produktvorschau (Image-to-3D, siehe shop/services/providers.py)
+IMAGE3D_PROVIDER = os.environ.get("IMAGE3D_PROVIDER", "meshy")
+MESHY_API_KEY = os.environ.get("MESHY_API_KEY", "")
+IMAGE3D_POLL_INTERVAL = 10  # Sekunden zwischen Status-Abfragen beim Provider
+IMAGE3D_POLL_TIMEOUT = 20 * 60  # Sekunden, bis eine Generierung als fehlgeschlagen gilt
+
 WSGI_APPLICATION = 'zweithaarschaaf.wsgi.application'
 
 

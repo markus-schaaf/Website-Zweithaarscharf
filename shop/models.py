@@ -97,6 +97,13 @@ class Product(models.Model):
         return self.PLACEHOLDER_IMAGES.get(self.category)
 
     @property
+    def public_3d_asset(self):
+        """Neuestes fertiges und freigegebenes 3D-Modell (sonst None)."""
+        return self.assets_3d.filter(
+            status=Product3DAsset.Status.DONE, is_public=True
+        ).first()
+
+    @property
     def detail_attributes(self):
         """(Label, Wert)-Paare fuer die Detailseite — nur befuellte Felder."""
         if self.category == self.Category.PFLEGE:
@@ -116,6 +123,80 @@ class Product(models.Model):
             if value:
                 rows.append((self._meta.get_field(field_name).verbose_name, value))
         return rows
+
+
+class Product3DAsset(models.Model):
+    """Generiertes 3D-Modell (GLB) eines Produkts inkl. Quellbildern und Status.
+
+    Quellbilder als vier Einzelfelder statt eigenem Bild-Model: das
+    Provider-Limit ist fix 1-4 Bilder, so bleiben Form und Views trivial.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Wartet"
+        PROCESSING = "processing", "In Bearbeitung"
+        DONE = "done", "Fertig"
+        FAILED = "failed", "Fehlgeschlagen"
+
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="assets_3d"
+    )
+    source_image_1 = models.ImageField("Quellbild 1", upload_to="products/3d/sources/")
+    source_image_2 = models.ImageField(
+        "Quellbild 2", upload_to="products/3d/sources/", blank=True
+    )
+    source_image_3 = models.ImageField(
+        "Quellbild 3", upload_to="products/3d/sources/", blank=True
+    )
+    source_image_4 = models.ImageField(
+        "Quellbild 4", upload_to="products/3d/sources/", blank=True
+    )
+    status = models.CharField(
+        "Status", max_length=12, choices=Status.choices, default=Status.PENDING
+    )
+    model_file = models.FileField(
+        "3D-Modell (GLB)", upload_to="products/3d/models/", blank=True
+    )
+    preview_thumbnail = models.ImageField(
+        "Vorschaubild", upload_to="products/3d/thumbs/", blank=True
+    )
+    error_message = models.TextField("Fehlermeldung", blank=True, default="")
+    is_public = models.BooleanField("Für Kunden sichtbar", default=False)
+    provider = models.CharField("3D-Dienst", max_length=30, blank=True, default="")
+    provider_job_id = models.CharField(max_length=100, blank=True, default="")
+
+    # Feinjustierung des Compositings auf den Dummy-Kopf
+    # (Anteile der Kopfbild-Breite/-Höhe bzw. Skalierungsfaktor)
+    comp_offset_x = models.FloatField("Versatz X", default=0.0)
+    comp_offset_y = models.FloatField("Versatz Y", default=0.0)
+    comp_scale = models.FloatField("Skalierung", default=1.0)
+
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "3D-Modell"
+        verbose_name_plural = "3D-Modelle"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"3D-Modell für {self.product} ({self.get_status_display()})"
+
+    @property
+    def source_images(self):
+        return [
+            f
+            for f in (
+                self.source_image_1,
+                self.source_image_2,
+                self.source_image_3,
+                self.source_image_4,
+            )
+            if f
+        ]
 
 
 class ConfiguratorGroup(models.Model):
