@@ -22,16 +22,16 @@
       </ul>
     {% endif %}
 
-    <div style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+    <div class="btn-row mb-24">
       <a class="btn btn-gold" href="{% url 'shop_manage:group_create' %}">Neue Gruppe</a>
       <a class="btn btn-gold" href="{% url 'shop_manage:option_create' %}">Neue Option</a>
       <a class="btn" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktverwaltung</a>
     </div>
 
     {% for gruppe in gruppen %}
-      <div class="form-card" style="overflow-x: auto; margin-bottom: 24px;">
-        <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 12px;">
-          <h2 style="margin: 0;">{{ gruppe.name }}{% if not gruppe.is_active %} <span class="role-badge">inaktiv</span>{% endif %}</h2>
+      <div class="form-card" class="table-scroll mb-24">
+        <div class="btn-row mb-12">
+          <h2 class="mb-0">{{ gruppe.name }}{% if not gruppe.is_active %} <span class="role-badge">inaktiv</span>{% endif %}</h2>
           <a href="{% url 'shop_manage:group_edit' gruppe.pk %}">Gruppe bearbeiten</a>
           <a href="{% url 'shop_manage:option_create' %}?gruppe={{ gruppe.pk }}">Option hinzuf&uuml;gen</a>
         </div>

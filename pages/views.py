@@ -1,4 +1,75 @@
-from django.shortcuts import render
+import logging
 
-def home(request):
-    return render(request, "pages/base.html")
+from django.conf import settings
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.urls import reverse_lazy
+from django.views.generic import FormView, TemplateView
+
+from .forms import AppointmentForm, ContactForm
+
+logger = logging.getLogger(__name__)
+
+
+class ImpressumView(TemplateView):
+    template_name = "tasty/legal/impressum.html"
+
+
+class DatenschutzView(TemplateView):
+    template_name = "tasty/legal/datenschutz.html"
+
+
+def _notify(subject, body):
+    """E-Mail an die Geschäftsadresse; Fehler dürfen die Anfrage nicht verwerfen."""
+    try:
+        send_mail(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.CONTACT_RECIPIENT_EMAIL],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception("E-Mail-Benachrichtigung fehlgeschlagen (%s)", subject)
+
+
+class ContactView(FormView):
+    template_name = "tasty/contact.html"
+    form_class = ContactForm
+    success_url = reverse_lazy("contact")
+    extra_context = {"active": "contact"}
+
+    def form_valid(self, form):
+        obj = form.save()
+        _notify(
+            f"Neue Kontaktanfrage von {obj.name}",
+            f"Name: {obj.name}\nE-Mail: {obj.email}\n\nNachricht:\n{obj.message}",
+        )
+        messages.success(
+            self.request,
+            "Vielen Dank für Ihre Nachricht! Wir melden uns so schnell wie möglich bei Ihnen.",
+        )
+        return super().form_valid(form)
+
+
+class ReservationView(FormView):
+    template_name = "tasty/reservation.html"
+    form_class = AppointmentForm
+    success_url = reverse_lazy("reservation")
+    extra_context = {"active": "reservation"}
+
+    def form_valid(self, form):
+        obj = form.save()
+        _notify(
+            f"Neue Terminanfrage von {obj.name}",
+            (
+                f"Name: {obj.name}\nE-Mail: {obj.email}\nTelefon: {obj.phone or '–'}\n"
+                f"Art der Beratung: {obj.get_topic_display()}\nWunschtermin: {obj.preferred_datetime}\n\n"
+                f"Nachricht:\n{obj.message or '–'}"
+            ),
+        )
+        messages.success(
+            self.request,
+            "Vielen Dank für Ihre Terminanfrage! Wir melden uns zeitnah bei Ihnen, um den Termin zu bestätigen.",
+        )
+        return super().form_valid(form)

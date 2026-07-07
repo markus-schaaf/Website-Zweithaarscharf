@@ -19,9 +19,9 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 640px;">
+  <div class="container container--form">
     <div class="form-card">
-      <form method="post" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="form-errors">{{ form.non_field_errors }}</div>
@@ -57,7 +57,7 @@
             <label for="{{ form.price.id_for_label }}">Preis (ab, in &euro;) *</label>
             {{ form.price }}
             {{ form.price.errors }}
-            <p style="font-size: 0.8125rem; margin: 6px 0 0 0;">Bei konfigurierbaren Per&uuml;cken ist dies der Rohpreis der Grundausf&uuml;hrung &ndash; Aufpreise pflegen Sie unter <a href="{% url 'shop_manage:configurator_list' %}">Konfigurator-Aufpreise</a>.</p>
+            <p class="form-hint">Bei konfigurierbaren Per&uuml;cken ist dies der Rohpreis der Grundausf&uuml;hrung &ndash; Aufpreise pflegen Sie unter <a href="{% url 'shop_manage:configurator_list' %}">Konfigurator-Aufpreise</a>.</p>
           </div>
           <div class="field">
             <label for="{{ form.sort_order.id_for_label }}">Sortierung</label>
@@ -70,6 +70,17 @@
             <label for="{{ form.badge.id_for_label }}">Badge</label>
             {{ form.badge }}
             {{ form.badge.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.image.id_for_label }}">Produktbild</label>
+            {% if form.instance.image %}
+              <p class="form-hint mb-12">Aktuell: {{ form.instance.image.name }}</p>
+            {% endif %}
+            {{ form.image }}
+            {{ form.image.errors }}
+            <p class="form-hint">JPG/PNG/WebP &ndash; ohne Bild wird automatisch eine Illustration angezeigt.</p>
           </div>
         </div>
         <div class="form-row">
@@ -141,12 +152,12 @@
         <div class="form-row">
           <div class="field-checkbox">
             {{ form.is_active }}
-            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+            <label for="{{ form.is_active.id_for_label }}" class="label-plain">
               Produkt ist aktiv (inaktive Produkte sind im Shop unsichtbar)
             </label>
           </div>
         </div>
-        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+        <div class="form-row mb-0" class="btn-row">
           <button type="submit" class="btn btn-gold">Speichern</button>
           <a class="btn" href="{% url 'shop_manage:product_list' %}">Abbrechen</a>
         </div>

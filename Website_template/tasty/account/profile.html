@@ -14,7 +14,7 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 680px;">
+  <div class="container container--form">
     {% if messages %}
       <ul class="messages">
         {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
@@ -36,7 +36,7 @@
         <tr><th>Mitglied seit</th><td>{{ user.date_joined|date:"d.m.Y" }}</td></tr>
       </table>
 
-      <div style="margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+      <div class="btn-row mt-32">
         {% if user.can_view_users %}
           <a class="btn btn-gold" href="{% url 'accounts:user_list' %}">Nutzerverwaltung</a>
         {% endif %}

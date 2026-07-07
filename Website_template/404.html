@@ -1,0 +1,15 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Seite nicht gefunden &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Die angeforderte Seite wurde nicht gefunden.{% endblock %}
+
+{% block content %}
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Fehler 404</span>
+    <h1>Seite nicht <em>gefunden</em></h1>
+    <p>Die von Ihnen aufgerufene Seite existiert nicht oder wurde verschoben.</p>
+    <a href="{% url 'home' %}" class="btn btn-gold">Zur Startseite</a>
+  </div>
+</section>
+{% endblock %}

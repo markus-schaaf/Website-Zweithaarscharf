@@ -8,29 +8,50 @@
   <meta name="description" content="{% block description %}Zweithaar Schaaf &ndash; Echthaarper&uuml;cken in Premiumqualit&auml;t.{% endblock %}">
   <meta name="author" content="Zweithaar Schaaf">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Zweithaar Schaaf">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:title" content="{% block og_title %}Zweithaar Schaaf &mdash; Echthaarper&uuml;cken in Premiumqualit&auml;t{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Echthaarper&uuml;cken in Premiumqualit&auml;t &ndash; individuelle Beratung, handgefertigte Per&uuml;cken und einf&uuml;hlsamer Service.{% endblock %}">
+  <meta name="twitter:card" content="summary">
 
-  <link rel="stylesheet" href="{% static 'css/theme-2a.css' %}">
+  {% block structured_data %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HairSalon",
+    "name": "Zweithaar Schaaf",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
+    "description": "Fachgeschäft für Echthaarperücken, Toupets und Haarteile – individuelle Beratung und handwerkliche Qualität.",
+    "email": "info@zweithaarschaaf.de"
+  }
+  </script>
+  {% endblock %}
+
+  <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+
+  <link rel="stylesheet" href="{% static 'css/theme-2a.css' %}?v=3">
   {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
 
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
   <div id="page">
     {% include "tasty/_header.html" %}
 
-    <main>
+    <main id="main">
       {% block content %}{% endblock %}
     </main>
 
     {% include "tasty/_footer.html" %}
   </div>
 
-  <script src="{% static 'js/jquery.min.js' %}"></script>
-  <script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
   {% block extra_js_top %}{% endblock %}
-  <script src="{% static 'js/main.js' %}"></script>
-  <script src="{% static 'js/cart.js' %}"></script>
+  <script src="{% static 'js/main.js' %}?v=3"></script>
+  <script src="{% static 'js/cart.js' %}?v=2"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

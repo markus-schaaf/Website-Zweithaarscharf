@@ -3,14 +3,40 @@
    Minimalistischer Echthaarperücken-Shop
    ======================================================= */
 
+/* ---------- Selbst gehostete Schriften (DSGVO: kein Google-Fremdladen) ---------- */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url("../fonts/local/cormorant-garamond.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/local/cormorant-garamond-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url("../fonts/local/jost.woff2") format("woff2");
+}
+
 :root {
   --bg: #ffffff;
   --bg-alt: #faf8f4;
   --text: #1a1a1a;
   --text-secondary: #555555;
-  --gold: #b08d57;
+  --gold: #b08d57;          /* dekorativ: Flächen, Rahmen, große Headings */
+  --gold-text: #8a6a3f;     /* AA-konform (>= 4.5:1 auf Weiß) für Fließ-/Funktionstext */
   --gold-dark: #93733f;
   --gold-cream: #e7d5ac;
+  --error: #b3403f;
+  --placeholder: #767676;
   --black: #1a1a1a;
   --white: #ffffff;
   --border: rgba(0, 0, 0, 0.07);
@@ -28,6 +54,23 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Skip-Link: erst bei Tastaturfokus sichtbar */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 3000;
+  background: var(--black);
+  color: var(--white);
+  padding: 12px 20px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+  color: var(--white);
 }
 
 html {
@@ -53,7 +96,7 @@ img {
 }
 
 a {
-  color: var(--gold);
+  color: var(--gold-text);
   text-decoration: none;
   transition: color 0.25s ease;
 }
@@ -117,7 +160,7 @@ p { margin: 0 0 1.25rem 0; }
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
   margin-bottom: 14px;
 }
 
@@ -159,7 +202,7 @@ p { margin: 0 0 1.25rem 0; }
 }
 .btn-gold {
   background: var(--gold);
-  color: var(--white);
+  color: var(--black);
   border-color: var(--gold);
 }
 .btn-gold:hover, .btn-gold:focus {
@@ -188,11 +231,11 @@ p { margin: 0 0 1.25rem 0; }
 }
 .btn-outline-gold {
   background: transparent;
-  color: var(--gold);
+  color: var(--gold-text);
   border-color: var(--gold);
 }
 .btn-outline-gold:hover, .btn-outline-gold:focus {
-  background: var(--gold);
+  background: var(--gold-text);
   color: var(--white);
 }
 .btn-block { display: block; width: 100%; }
@@ -240,7 +283,7 @@ p { margin: 0 0 1.25rem 0; }
 }
 .badge-new {
   background: var(--gold);
-  color: var(--white);
+  color: var(--black);
 }
 .badge-popular {
   background: var(--black);
@@ -248,6 +291,18 @@ p { margin: 0 0 1.25rem 0; }
 }
 
 /* ---------- Placeholder image pattern ---------- */
+/* Echte Bilder in Platzhalter-Geometrie (Illustrationen/Fotos) */
+.img-tile {
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--ph-ratio, 4 / 5);
+  object-fit: cover;
+  background: var(--bg-alt);
+}
+.product-card__image .img-tile {
+  border-bottom: 1px solid var(--border);
+}
+
 .ph-image {
   position: relative;
   width: 100%;
@@ -370,7 +425,7 @@ p { margin: 0 0 1.25rem 0; }
 }
 .site-nav__links > ul > li.is-active > a,
 .site-nav__links > ul > li > a:hover {
-  color: var(--gold);
+  color: var(--gold-text);
   border-bottom-color: var(--gold);
 }
 .site-nav__actions {
@@ -392,7 +447,7 @@ p { margin: 0 0 1.25rem 0; }
   user-select: none;
   white-space: nowrap;
 }
-.nav-action--gold { color: var(--gold); }
+.nav-action--gold { color: var(--gold-text); }
 /* Klon-Quelle fuer das Off-Canvas-Menue: im Header selbst unsichtbar */
 .site-header .menu-2 { display: none; }
 
@@ -421,10 +476,15 @@ p { margin: 0 0 1.25rem 0; }
   text-transform: none;
 }
 .has-dropdown .dropdown li a:hover {
-  color: var(--gold);
+  color: var(--gold-text);
+}
+/* Dropdown per CSS öffnen (Maus und Tastatur), kein JS nötig */
+.has-dropdown:hover .dropdown,
+.has-dropdown:focus-within .dropdown {
+  display: block;
 }
 
-/* burger (mobile) */
+/* burger (mobile) — echtes <button>-Element */
 .fh5co-nav-toggle {
   display: none;
   position: fixed;
@@ -434,6 +494,10 @@ p { margin: 0 0 1.25rem 0; }
   width: 26px;
   height: 20px;
   transition: top 0.2s ease;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 body:has(.site-header.scrolled) .fh5co-nav-toggle {
   top: 1.625rem;
@@ -512,7 +576,7 @@ body.offcanvas #fh5co-offcanvas { transform: translateX(0); }
   text-transform: uppercase;
   color: var(--text);
 }
-#fh5co-offcanvas a:hover { color: var(--gold); }
+#fh5co-offcanvas a:hover { color: var(--gold-text); }
 #fh5co-offcanvas ul li > ul {
   padding-left: 16px;
   display: none;
@@ -579,7 +643,7 @@ body.offcanvas #page:after {
   font-family: var(--font-ui);
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--gold);
+  color: var(--gold-text);
   display: block;
   margin: 0 1.25rem 0.5rem 1.25rem;
 }
@@ -657,7 +721,7 @@ body.offcanvas #page:after {
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* ---------- Article / tip card ---------- */
@@ -666,7 +730,7 @@ body.offcanvas #page:after {
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
   margin-bottom: 12px;
   display: block;
 }
@@ -694,6 +758,7 @@ body.offcanvas #page:after {
   margin-bottom: 1.5rem;
 }
 .form-row--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+.field { position: relative; } /* Anker für Datetimepicker-Dropdown */
 .field label {
   display: block;
   font-family: var(--font-ui);
@@ -728,7 +793,7 @@ body.offcanvas #page:after {
 }
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #9a9a9a;
+  color: var(--placeholder);
 }
 .field-checkbox {
   display: flex;
@@ -749,7 +814,7 @@ body.offcanvas #page:after {
   padding: 40px;
   text-align: center;
 }
-.confirmation h3 { color: var(--gold); }
+.confirmation h3 { color: var(--gold-text); }
 
 /* ---------- Carousel (flexslider) ---------- */
 .feature-slider .flexslider {
@@ -838,13 +903,27 @@ body.offcanvas #page:after {
   color: var(--text-secondary);
   font-size: 14px;
 }
-.footer-links a:hover { color: var(--gold); }
+.footer-links a:hover { color: var(--gold-text); }
 .site-footer .copyright {
   border-top: 1px solid var(--border);
   padding-top: 24px;
   text-align: center;
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+.site-footer .copyright-legal {
+  display: inline-block;
+  margin-left: 12px;
+}
+
+.site-footer .copyright-legal a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.site-footer .copyright-legal a:hover {
+  color: var(--gold-dark);
 }
 
 /* ---------- Go to top ---------- */
@@ -891,6 +970,49 @@ body.offcanvas #page:after {
 .text-center { text-align: center; }
 .mb-0 { margin-bottom: 0 !important; }
 
+/* ---------- Utilities (ersetzen wiederkehrende Inline-Styles) ---------- */
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.mt-48 { margin-top: 48px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-40 { margin-bottom: 40px; }
+.text-right { text-align: right; }
+
+/* Schmalere Container-Varianten (Formulare, Prosa, Warenkorb) */
+.container--narrow { max-width: 35rem; }  /* 560px */
+.container--form { max-width: 40rem; }    /* 640px */
+.container--prose { max-width: 45rem; }   /* 720px */
+.container--wide { max-width: 56.25rem; } /* 900px */
+
+/* .split mit oben ausgerichteten Spalten */
+.split--top { align-items: start; }
+
+/* Horizontal scrollbare Tabellen-Wrapper */
+.table-scroll { overflow-x: auto; }
+
+/* Button-/Aktionszeile */
+.btn-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Checkbox-Label ohne Uppercase-Formatierung */
+.label-plain {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+/* Kleiner Hinweistext unter Feldern */
+.form-hint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 6px 0 0 0;
+}
+
 /* ---------- Konto / Auth ---------- */
 .field input[type="password"] {
   width: 100%;
@@ -920,7 +1042,7 @@ a.nav-action:hover,
 a.nav-action:focus,
 button.nav-action:hover,
 button.nav-action:focus {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 .messages {
   list-style: none;
@@ -935,7 +1057,7 @@ button.nav-action:focus {
   color: var(--text);
   margin-bottom: 10px;
 }
-.messages li.error { border-color: #b3403f; color: #b3403f; }
+.messages li.error { border-color: var(--error); color: var(--error); }
 .field .errorlist,
 .form-errors .errorlist {
   list-style: none;
@@ -943,9 +1065,17 @@ button.nav-action:focus {
   padding: 0;
   font-family: var(--font-ui);
   font-size: 13px;
-  color: #b3403f;
+  color: var(--error);
 }
 .form-errors { margin-bottom: 24px; }
+/* Honeypot-Feld: für Menschen unsichtbar, Bots füllen es aus */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
 .field .helptext {
   display: block;
   margin-top: 8px;
@@ -979,7 +1109,7 @@ button.nav-action:focus {
   color: var(--text-secondary);
 }
 .account-table .is-inactive td { opacity: 0.55; }
-.account-table a { color: var(--gold); }
+.account-table a { color: var(--gold-text); }
 .role-badge {
   display: inline-block;
   border: 1px solid var(--border);
@@ -989,7 +1119,7 @@ button.nav-action:focus {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.role-badge--admin { border-color: var(--gold); color: var(--gold); }
+.role-badge--admin { border-color: var(--gold); color: var(--gold-text); }
 .role-badge--allpower { border-color: var(--text); color: var(--text); }
 .role-badge--b2b { border-color: var(--gold-dark); color: var(--gold-dark); }
 
@@ -1004,7 +1134,7 @@ button.nav-action:focus {
   height: 1.75rem;
   border: 1px solid var(--gold);
   background: var(--white);
-  color: var(--gold);
+  color: var(--gold-text);
   font-family: var(--font-ui);
   font-size: 0.9375rem;
   line-height: 1;
@@ -1012,7 +1142,7 @@ button.nav-action:focus {
 }
 .qty-btn:hover,
 .qty-btn:focus {
-  background: var(--gold);
+  background: var(--gold-text);
   color: var(--white);
 }
 .qty-value {
@@ -1024,7 +1154,7 @@ button.nav-action:focus {
   color: var(--text-secondary);
   font-size: 0.8125rem;
 }
-.cart-table__remove:hover { color: #b3403f; }
+.cart-table__remove:hover { color: var(--error); }
 .cart-empty {
   text-align: center;
   padding: clamp(2.5rem, 6vw, 3.75rem) clamp(1.5rem, 4vw, 2.5rem);
@@ -1035,7 +1165,7 @@ button.nav-action:focus {
 .product-card__link { display: block; color: inherit; }
 .product-card__link:hover, .product-card__link:focus { color: inherit; }
 .product-card__link .product-card__name { transition: color 0.25s ease; }
-.product-card__link:hover .product-card__name { color: var(--gold); }
+.product-card__link:hover .product-card__name { color: var(--gold-text); }
 
 .product-detail { align-items: start; }
 .product-detail__gallery { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -1049,7 +1179,7 @@ button.nav-action:focus {
   font-family: var(--font-ui);
   font-size: 1.375rem;
   font-weight: 500;
-  color: var(--gold);
+  color: var(--gold-text);
   display: block;
   margin: 0.5rem 0 1.25rem 0;
 }
@@ -1120,7 +1250,7 @@ button.nav-action:focus {
 }
 .configurator__option input:checked + span {
   border-color: var(--gold);
-  color: var(--gold-dark);
+  color: var(--gold-text);
   background: rgba(176, 141, 87, 0.08);
 }
 .configurator__option input:focus-visible + span {
@@ -1146,7 +1276,7 @@ button.nav-action:focus {
   font-family: var(--font-ui);
   font-size: 1.5rem;
   font-weight: 500;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 .configurator__note {
   font-size: 0.8125rem;

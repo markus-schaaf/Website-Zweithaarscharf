@@ -1,0 +1,15 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Serverfehler &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Es ist ein interner Fehler aufgetreten.{% endblock %}
+
+{% block content %}
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Fehler 500</span>
+    <h1>Da ist etwas <em>schiefgelaufen</em></h1>
+    <p>Es ist ein interner Fehler aufgetreten. Bitte versuchen Sie es in wenigen Minuten erneut.</p>
+    <a href="{% url 'home' %}" class="btn btn-gold">Zur Startseite</a>
+  </div>
+</section>
+{% endblock %}

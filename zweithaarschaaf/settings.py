@@ -10,22 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# Konfiguration über Umgebungsvariablen (siehe .env.example).
+# Ohne gesetzte Variablen gelten Entwicklungs-Defaults.
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-yr1@55@pt!f6p$+-+vf52^jc7q!ou4x5ttbzoh2xjj3z4)274x'
+# SECURITY WARNING: In Produktion DJANGO_SECRET_KEY setzen — der Dev-Key ist öffentlich im Repo.
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-nur-fuer-lokale-entwicklung-8f2k4m9x1q7w3e5r",
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if h.strip()
+]
 
 
 # Application definition
@@ -37,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     "accounts",
     "shop",
     "pages",
@@ -45,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,6 +86,20 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "Website_template" / "tasty",
 ]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+if not DEBUG:
+    # Whitenoise: komprimierte, gehashte Dateinamen (Cache-Busting) in Produktion
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
+    }
+
+# Nutzer-Uploads (Produktbilder)
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 WSGI_APPLICATION = 'zweithaarschaaf.wsgi.application'
 
@@ -140,3 +163,35 @@ AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:profile"
 LOGOUT_REDIRECT_URL = "home"
+
+
+# E-Mail
+# Ohne gesetzte Umgebungsvariablen landen Mails im Konsolen-Log (Entwicklung).
+# Für den echten Versand DJANGO_EMAIL_HOST usw. setzen (siehe .env.example).
+
+EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_PORT = int(os.environ.get("DJANGO_EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("DJANGO_EMAIL_USE_TLS", "1") == "1"
+DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "info@zweithaarschaaf.de")
+
+# Empfängeradresse für Kontakt- und Terminanfragen
+CONTACT_RECIPIENT_EMAIL = os.environ.get("ZS_CONTACT_EMAIL", "info@zweithaarschaaf.de")
+
+
+# Sicherheits-Einstellungen für den Produktivbetrieb (HTTPS vorausgesetzt)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # nach erfolgreichem Betrieb erhöhen
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

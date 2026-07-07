@@ -49,9 +49,7 @@
       <div class="product-card">
         <div class="product-card__image">
           <span class="badge badge-popular">Beliebt</span>
-          <div class="ph-image">
-            <span class="ph-image__label">CLASSIC<br>FOTO FOLGT</span>
-          </div>
+          <img class="img-tile" src="{% static 'images/wigs/wig-classic.svg' %}" alt="Illustration der Per&uuml;cke Classic &ndash; schulterlanges, glattes Modell" loading="lazy">
         </div>
         <p class="product-card__name">Per&uuml;cke &bdquo;Classic&ldquo;</p>
         <span class="product-card__price">ab 890,-</span>
@@ -60,9 +58,7 @@
       <div class="product-card">
         <div class="product-card__image">
           <span class="badge badge-new">Neu</span>
-          <div class="ph-image">
-            <span class="ph-image__label">LONG LAYERS<br>FOTO FOLGT</span>
-          </div>
+          <img class="img-tile" src="{% static 'images/wigs/wig-long-layers.svg' %}" alt="Illustration der Per&uuml;cke Long Layers &ndash; langes, gestuftes Modell" loading="lazy">
         </div>
         <p class="product-card__name">Per&uuml;cke &bdquo;Long Layers&ldquo;</p>
         <span class="product-card__price">ab 1.190,-</span>
@@ -70,9 +66,7 @@
       </div>
       <div class="product-card">
         <div class="product-card__image">
-          <div class="ph-image">
-            <span class="ph-image__label">MASS KLASSIK<br>FOTO FOLGT</span>
-          </div>
+          <img class="img-tile" src="{% static 'images/wigs/wig-curly-volume.svg' %}" alt="Illustration der Ma&szlig;per&uuml;cke Klassik &ndash; individuell konfigurierbar" loading="lazy">
         </div>
         <p class="product-card__name">Ma&szlig;per&uuml;cke &bdquo;Klassik&ldquo;</p>
         <span class="product-card__price">Rohpreis ab 1.290,-</span>
@@ -80,9 +74,7 @@
       </div>
       <div class="product-card">
         <div class="product-card__image">
-          <div class="ph-image">
-            <span class="ph-image__label">BOB CHIC<br>FOTO FOLGT</span>
-          </div>
+          <img class="img-tile" src="{% static 'images/wigs/wig-bob-chic.svg' %}" alt="Illustration der Per&uuml;cke Bob Chic &ndash; kinnlanger, glatter Bob" loading="lazy">
         </div>
         <p class="product-card__name">Per&uuml;cke &bdquo;Bob Chic&ldquo;</p>
         <span class="product-card__price">ab 950,-</span>
@@ -90,7 +82,7 @@
       </div>
     </div>
 
-    <div class="text-center" style="margin-top: 48px;">
+    <div class="text-center mt-48">
       <a href="{% url 'wigs' %}" class="btn btn-outline">Alle Per&uuml;cken ansehen</a>
     </div>
   </div>
@@ -185,5 +177,15 @@
 {% endblock %}
 
 {% block extra_js %}
+  <script src="{% static 'js/jquery.min.js' %}"></script>
   <script src="{% static 'js/jquery.flexslider-min.js' %}"></script>
+  <script>
+    jQuery(function ($) {
+      $('#fh5co-slider-wrwap .flexslider').flexslider({
+        animation: 'fade',
+        slideshowSpeed: 5000,
+        directionNav: false
+      });
+    });
+  </script>
 {% endblock %}

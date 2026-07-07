@@ -44,6 +44,7 @@ class Product(models.Model):
     price = models.DecimalField("Preis (ab)", max_digits=8, decimal_places=2)
     badge = models.CharField("Badge", max_length=10, choices=Badge.choices, blank=True, default="")
     description = models.TextField("Beschreibung", blank=True)
+    image = models.ImageField("Produktbild", upload_to="products/", blank=True)
 
     # Produktattribute fuer die Detailseite (optional, je nach Kategorie relevant)
     hair_length = models.CharField("Haarlänge", max_length=60, blank=True, default="")
@@ -82,6 +83,18 @@ class Product(models.Model):
     @property
     def is_orderable(self):
         return not self.is_configurable
+
+    # Illustrations-Fallback je Kategorie, solange kein echtes Foto hochgeladen ist
+    PLACEHOLDER_IMAGES = {
+        Category.KONFIG: "images/wigs/wig-curly-volume.svg",
+        Category.BESTAND: "images/wigs/wig-classic.svg",
+        Category.ROHLING: "images/wigs/wig-long-layers.svg",
+    }
+
+    @property
+    def placeholder_image(self):
+        """Statischer Pfad einer Illustration, wenn kein Produktbild existiert (sonst None)."""
+        return self.PLACEHOLDER_IMAGES.get(self.category)
 
     @property
     def detail_attributes(self):

@@ -15,6 +15,7 @@ class ProductForm(forms.ModelForm):
             "price",
             "badge",
             "description",
+            "image",
             "hair_length",
             "hair_color",
             "hair_structure",

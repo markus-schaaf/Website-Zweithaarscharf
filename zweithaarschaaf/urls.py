@@ -15,14 +15,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.views.generic import TemplateView
 
+from pages.views import ContactView, ReservationView
 from shop.views import ProductDetailView, WigsView
+
+from .sitemaps import SITEMAPS
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="sitemap"),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+        name="robots",
+    ),
     path("konto/produkte/", include("shop.manage_urls")),
     path("konto/", include("accounts.urls")),
     path("warenkorb/", include("shop.urls")),
@@ -53,14 +65,7 @@ urlpatterns = [
         ),
         name="gallery",
     ),
-    path(
-        "beratungstermin/",
-        TemplateView.as_view(
-            template_name="tasty/reservation.html",
-            extra_context={"active": "reservation"},
-        ),
-        name="reservation",
-    ),
+    path("beratungstermin/", ReservationView.as_view(), name="reservation"),
     path(
         "ueber-uns/",
         TemplateView.as_view(
@@ -68,13 +73,10 @@ urlpatterns = [
         ),
         name="about",
     ),
-    path(
-        "kontakt/",
-        TemplateView.as_view(
-            template_name="tasty/contact.html", extra_context={"active": "contact"}
-        ),
-        name="contact",
-    ),
-    # path("pages/", include("pages.urls")),
+    path("kontakt/", ContactView.as_view(), name="contact"),
+    path("", include("pages.urls")),
     # path("trainings/", include("trainings.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

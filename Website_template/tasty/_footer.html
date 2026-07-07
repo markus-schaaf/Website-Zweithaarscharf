@@ -32,15 +32,21 @@
       <div class="footer-widget">
         <h4>Kontakt</h4>
         <ul class="footer-links">
+          {# TODO: Echte Adresse und Telefonnummer eintragen #}
           <li>Zweithaar Schaaf<br>Musterstra&szlig;e 1, 12345 Musterstadt</li>
-          <li><a href="tel://+4912345678">+49 123 456 78</a></li>
+          <li><a href="tel:+4912345678">+49 123 456 78</a></li>
           <li><a href="mailto:info@zweithaarschaaf.de">info@zweithaarschaaf.de</a></li>
         </ul>
       </div>
     </div>
 
     <div class="copyright">
-      &copy; 2026 Zweithaar Schaaf. Alle Rechte vorbehalten.
+      &copy; {% now "Y" %} Zweithaar Schaaf. Alle Rechte vorbehalten.
+      <span class="copyright-legal">
+        <a href="{% url 'pages:impressum' %}">Impressum</a>
+        &middot;
+        <a href="{% url 'pages:datenschutz' %}">Datenschutz</a>
+      </span>
     </div>
   </div>
 </footer>

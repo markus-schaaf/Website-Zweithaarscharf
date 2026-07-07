@@ -19,7 +19,7 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 640px;">
+  <div class="container container--form">
     <div class="form-card">
       <form method="post" novalidate>
         {% csrf_token %}
@@ -43,12 +43,12 @@
         <div class="form-row">
           <div class="field-checkbox">
             {{ form.is_active }}
-            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+            <label for="{{ form.is_active.id_for_label }}" class="label-plain">
               Gruppe ist aktiv (inaktive Gruppen erscheinen nicht im Konfigurator)
             </label>
           </div>
         </div>
-        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+        <div class="form-row mb-0" class="btn-row">
           <button type="submit" class="btn btn-gold">Speichern</button>
           <a class="btn" href="{% url 'shop_manage:configurator_list' %}">Abbrechen</a>
         </div>

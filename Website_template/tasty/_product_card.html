@@ -1,9 +1,15 @@
-<div class="product-card">
+{% load static %}<div class="product-card">
   <a href="{% url 'product_detail' p.slug %}" class="product-card__link">
     <div class="product-card__image">
       {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
       {% if p.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
-      <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
+      {% if p.image %}
+        <img class="img-tile" src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+      {% elif p.placeholder_image %}
+        <img class="img-tile" src="{% static p.placeholder_image %}" alt="Illustration: {{ p.name }}" loading="lazy">
+      {% else %}
+        <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
+      {% endif %}
     </div>
     <p class="product-card__name">{{ p.name }}</p>
   </a>

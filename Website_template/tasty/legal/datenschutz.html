@@ -1,0 +1,60 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}Datenschutzerkl&auml;rung &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Datenschutzerkl&auml;rung von Zweithaar Schaaf &ndash; Informationen zur Verarbeitung personenbezogener Daten gem&auml;&szlig; DSGVO.{% endblock %}
+{% block body_class %}page-legal{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Rechtliches</span>
+    <h1>Datenschutzerkl&auml;rung</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container container--prose">
+
+    <h2>1. Verantwortlicher</h2>
+    {# TODO: Echte Firmendaten eintragen (identisch mit Impressum) #}
+    <p>
+      Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:<br><br>
+      Zweithaar Schaaf<br>
+      [Inhaber/in &ndash; TODO]<br>
+      [Stra&szlig;e Hausnummer &ndash; TODO]<br>
+      [PLZ Ort &ndash; TODO]<br>
+      E-Mail: <a href="mailto:info@zweithaarschaaf.de">info@zweithaarschaaf.de</a>
+    </p>
+
+    <h2>2. Allgemeines zur Datenverarbeitung</h2>
+    <p>Wir verarbeiten personenbezogene Daten unserer Besucherinnen und Besucher grunds&auml;tzlich nur, soweit dies zur Bereitstellung einer funktionsf&auml;higen Website sowie unserer Inhalte und Leistungen erforderlich ist. Rechtsgrundlagen sind insbesondere Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a (Einwilligung), lit.&nbsp;b (Vertrag bzw. Vertragsanbahnung) und lit.&nbsp;f (berechtigtes Interesse) DSGVO.</p>
+
+    <h2>3. Server-Logdaten</h2>
+    <p>Beim Aufruf dieser Website werden durch den Hosting-Anbieter automatisch Informationen in sogenannten Server-Logfiles gespeichert (z.&nbsp;B. IP-Adresse, Datum und Uhrzeit des Zugriffs, aufgerufene Seite, verwendeter Browser). Diese Daten dienen der Sicherstellung eines st&ouml;rungsfreien Betriebs sowie der Verbesserung und Absicherung unseres Angebots (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO) und werden nicht mit anderen Datenquellen zusammengef&uuml;hrt.</p>
+
+    <h2>4. Cookies</h2>
+    <p>Diese Website verwendet ausschlie&szlig;lich technisch notwendige Cookies. Dazu geh&ouml;ren das Sitzungs-Cookie (Session) f&uuml;r angemeldete Benutzerkonten sowie das CSRF-Cookie zum Schutz von Formularen vor Missbrauch. Diese Cookies sind f&uuml;r den Betrieb der Website erforderlich (&sect;&nbsp;25 Abs.&nbsp;2 Nr.&nbsp;2 TDDDG, Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO) und ben&ouml;tigen keine Einwilligung. Es findet kein Tracking zu Werbe- oder Analysezwecken statt.</p>
+    <p>Legen Sie Produkte in den Warenkorb, ohne angemeldet zu sein, werden diese ausschlie&szlig;lich lokal in Ihrem Browser gespeichert (localStorage) und nicht an uns &uuml;bertragen.</p>
+
+    <h2>5. Kontakt- und Terminanfragen</h2>
+    <p>Wenn Sie uns &uuml;ber das Kontaktformular oder das Formular zur Terminanfrage kontaktieren, verarbeiten wir die von Ihnen angegebenen Daten (z.&nbsp;B. Name, E-Mail-Adresse, Telefonnummer, Wunschtermin, Inhalt Ihrer Nachricht) ausschlie&szlig;lich zur Bearbeitung Ihrer Anfrage (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO). Ihre Angaben werden in unserem System gespeichert und per E-Mail an uns &uuml;bermittelt. Die Daten werden gel&ouml;scht, sobald sie f&uuml;r die Bearbeitung nicht mehr erforderlich sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
+
+    <h2>6. Benutzerkonto</h2>
+    <p>Wenn Sie ein Kundenkonto anlegen, verarbeiten wir die bei der Registrierung angegebenen Daten (E-Mail-Adresse, Name, bei Gesch&auml;ftskunden zus&auml;tzlich Firmendaten) zur Bereitstellung des Kontos und der damit verbundenen Funktionen wie dem Warenkorb (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO). Sie k&ouml;nnen die L&ouml;schung Ihres Kontos jederzeit verlangen.</p>
+
+    <h2>7. Schriftarten</h2>
+    <p>Diese Website nutzt zur einheitlichen Darstellung eigene Schriftarten, die lokal auf unserem Server eingebunden sind. Es findet dabei keine Verbindung zu Servern von Drittanbietern (z.&nbsp;B. Google Fonts) statt; Ihre IP-Adresse wird hierf&uuml;r nicht an Dritte &uuml;bertragen.</p>
+
+    <h2>8. Ihre Rechte</h2>
+    <p>Sie haben gegen&uuml;ber uns folgende Rechte hinsichtlich der Sie betreffenden personenbezogenen Daten: Recht auf Auskunft (Art.&nbsp;15 DSGVO), Berichtigung (Art.&nbsp;16 DSGVO), L&ouml;schung (Art.&nbsp;17 DSGVO), Einschr&auml;nkung der Verarbeitung (Art.&nbsp;18 DSGVO), Daten&uuml;bertragbarkeit (Art.&nbsp;20 DSGVO) sowie Widerspruch gegen die Verarbeitung (Art.&nbsp;21 DSGVO). Erteilte Einwilligungen k&ouml;nnen Sie jederzeit mit Wirkung f&uuml;r die Zukunft widerrufen.</p>
+    <p>Ihnen steht zudem ein Beschwerderecht bei einer Datenschutz-Aufsichtsbeh&ouml;rde zu, insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts oder des Orts des mutma&szlig;lichen Versto&szlig;es.</p>
+
+    <h2>9. Stand dieser Erkl&auml;rung</h2>
+    <p>Diese Datenschutzerkl&auml;rung hat den Stand {% now "F Y" %} und wird bei Bedarf angepasst.</p>
+
+  </div>
+</section>
+
+{% endblock %}

@@ -21,13 +21,13 @@
       </ul>
     {% endif %}
 
-    <div style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+    <div class="btn-row mb-24">
       <a class="btn btn-gold" href="{% url 'shop_manage:product_create' %}">Neues Produkt</a>
       <a class="btn" href="{% url 'shop_manage:configurator_list' %}">Konfigurator-Aufpreise</a>
       <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
     </div>
 
-    <div class="form-card" style="overflow-x: auto;">
+    <div class="form-card" class="table-scroll">
       <table class="account-table">
         <thead>
           <tr>

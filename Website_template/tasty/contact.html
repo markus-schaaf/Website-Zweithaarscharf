@@ -17,7 +17,7 @@
 
 <section class="section">
   <div class="container">
-    <div class="split" style="align-items: start;">
+    <div class="split split--top">
       <div>
         <h2>Kontaktdaten</h2>
         <ul class="info-list">
@@ -32,67 +32,46 @@
         <h2>Nachricht senden</h2>
         <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir antworten Ihnen so schnell wie m&ouml;glich.</p>
 
-        <!--
-          Hinweis: Dieses Formular ist aktuell nicht an ein Backend angebunden.
-          Beim Absenden wird lediglich eine Best&auml;tigung im Browser angezeigt (siehe Skript am Seitenende).
-          F&uuml;r den echten Versand wird sp&auml;ter ein POST-Endpunkt (z.B. Django-View inkl. E-Mail-Versand) ben&ouml;tigt.
-        -->
-        <form id="form-wrap" novalidate>
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'contact' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
           <div class="form-row">
             <div class="field">
-              <label for="name">Ihr Name *</label>
-              <input type="text" id="name" name="name" autocomplete="name" required>
+              <label for="{{ form.name.id_for_label }}">Ihr Name *</label>
+              {{ form.name }}
+              {{ form.name.errors }}
             </div>
           </div>
           <div class="form-row">
             <div class="field">
-              <label for="email">Ihre E-Mail-Adresse *</label>
-              <input type="email" id="email" name="email" autocomplete="email" required>
+              <label for="{{ form.email.id_for_label }}">Ihre E-Mail-Adresse *</label>
+              {{ form.email }}
+              {{ form.email.errors }}
             </div>
           </div>
           <div class="form-row">
             <div class="field">
-              <label for="message">Ihre Nachricht *</label>
-              <textarea id="message" name="message" rows="6" required></textarea>
+              <label for="{{ form.message.id_for_label }}">Ihre Nachricht *</label>
+              {{ form.message }}
+              {{ form.message.errors }}
             </div>
           </div>
           <div class="form-row mb-0">
             <button type="submit" class="btn btn-gold btn-block">Nachricht senden</button>
           </div>
         </form>
-
-        <div id="form-confirmation" class="confirmation" style="display: none;">
-          <h3>Vielen Dank!</h3>
-          <p class="mb-0">Ihre Nachricht wurde erfasst. Da noch kein Versand angebunden ist, meldet sich unser Team derzeit noch manuell telefonisch oder per E-Mail bei Ihnen.</p>
-        </div>
       </div>
     </div>
   </div>
 </section>
 
-{% endblock %}
-
-{% block extra_js %}
-  <script>
-    // Kein Backend angebunden: simuliert nur eine Best&auml;tigung im Browser.
-    (function () {
-      var form = document.getElementById('form-wrap');
-      var confirmation = document.getElementById('form-confirmation');
-      if (!form || !confirmation) { return; }
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (form.checkValidity && !form.checkValidity()) {
-          if (form.reportValidity) { form.reportValidity(); }
-          return;
-        }
-        var name = document.getElementById('name').value.trim();
-        if (name) {
-          confirmation.querySelector('h3').textContent = 'Vielen Dank, ' + name + '!';
-        }
-        form.style.display = 'none';
-        confirmation.style.display = 'block';
-        confirmation.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-    })();
-  </script>
 {% endblock %}

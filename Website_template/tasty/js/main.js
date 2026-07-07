@@ -1,208 +1,96 @@
-;(function () {
-	
-	'use strict';
+/* Zweithaar Schaaf — Navigation & Scroll-Verhalten (Vanilla JS, ohne jQuery) */
+(function () {
+  'use strict';
 
-	var isMobile = {
-		Android: function() {
-			return navigator.userAgent.match(/Android/i);
-		},
-			BlackBerry: function() {
-			return navigator.userAgent.match(/BlackBerry/i);
-		},
-			iOS: function() {
-			return navigator.userAgent.match(/iPhone|iPad|iPod/i);
-		},
-			Opera: function() {
-			return navigator.userAgent.match(/Opera Mini/i);
-		},
-			Windows: function() {
-			return navigator.userAgent.match(/IEMobile/i);
-		},
-			any: function() {
-			return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
-		}
-	};
+  /* ---------- Off-Canvas-Navigation (mobil) ---------- */
+  function buildOffcanvas() {
+    var page = document.getElementById('page');
+    if (!page || document.getElementById('fh5co-offcanvas')) { return; }
 
-	var mobileMenuOutsideClick = function() {
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'fh5co-nav-toggle js-fh5co-nav-toggle';
+    toggle.setAttribute('aria-label', 'Menü öffnen oder schließen');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'fh5co-offcanvas');
+    toggle.innerHTML = '<i></i>';
 
-		$(document).click(function (e) {
-	    var container = $("#fh5co-offcanvas, .js-fh5co-nav-toggle");
-	    if (!container.is(e.target) && container.has(e.target).length === 0) {
+    var panel = document.createElement('nav');
+    panel.id = 'fh5co-offcanvas';
+    panel.setAttribute('aria-label', 'Mobile Navigation');
 
-	    	if ( $('body').hasClass('offcanvas') ) {
+    ['.menu-1 > ul', '.menu-2 > ul'].forEach(function (selector) {
+      var source = document.querySelector(selector);
+      if (!source) { return; }
+      var clone = source.cloneNode(true);
+      clone.querySelectorAll('li').forEach(function (li) {
+        li.classList.remove('has-dropdown');
+      });
+      // Unterpunkte im Off-Canvas immer ausgeklappt anzeigen
+      clone.querySelectorAll('li > ul').forEach(function (ul) {
+        ul.parentElement.classList.add('offcanvas-has-dropdown', 'active');
+      });
+      panel.appendChild(clone);
+    });
 
-    			$('body').removeClass('offcanvas');
-    			$('.js-fh5co-nav-toggle').removeClass('active');
-				
-	    	}
-	    
-	    	
-	    }
-		});
+    page.prepend(panel);
+    page.prepend(toggle);
 
-	};
+    function close() {
+      document.body.classList.remove('offcanvas', 'overflow');
+      toggle.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    function open() {
+      document.body.classList.add('offcanvas', 'overflow');
+      toggle.classList.add('active');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
 
+    toggle.addEventListener('click', function () {
+      if (document.body.classList.contains('offcanvas')) { close(); } else { open(); }
+    });
+    document.addEventListener('click', function (event) {
+      if (!document.body.classList.contains('offcanvas')) { return; }
+      if (!panel.contains(event.target) && !toggle.contains(event.target)) { close(); }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { close(); }
+    });
+    // Nur schließen, wenn zur Desktop-Navigation gewechselt wird (66em ~ 1056px);
+    // mobile Browser feuern resize schon beim Ein-/Ausblenden der URL-Leiste
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 1056) { close(); }
+    });
+  }
 
-	var offcanvasMenu = function() {
+  /* ---------- Scroll-Effekte: Header-Schatten + Go-to-top ---------- */
+  function initScrollFx() {
+    var header = document.querySelector('.fh5co-nav');
+    var topWrap = document.querySelector('.js-top');
 
-		$('#page').prepend('<div id="fh5co-offcanvas" />');
-		$('#page').prepend('<a href="#" class="js-fh5co-nav-toggle fh5co-nav-toggle"><i></i></a>');
-		var clone1 = $('.menu-1 > ul').clone();
-		$('#fh5co-offcanvas').append(clone1);
-		var clone2 = $('.menu-2 > ul').clone();
-		$('#fh5co-offcanvas').append(clone2);
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY;
+      if (topWrap) { topWrap.classList.toggle('active', y > 200); }
+      if (header) { header.classList.toggle('scrolled', y > 100); }
+    }, { passive: true });
 
-		$('#fh5co-offcanvas .has-dropdown').addClass('offcanvas-has-dropdown');
-		$('#fh5co-offcanvas')
-			.find('li')
-			.removeClass('has-dropdown');
+    var goTop = document.querySelector('.js-gotop');
+    if (goTop) {
+      goTop.addEventListener('click', function (event) {
+        event.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  }
 
-		// Hover dropdown menu on mobile
-		$('.offcanvas-has-dropdown').mouseenter(function(){
-			var $this = $(this);
-
-			$this
-				.addClass('active')
-				.find('ul')
-				.slideDown(500, 'easeOutExpo');				
-		}).mouseleave(function(){
-
-			var $this = $(this);
-			$this
-				.removeClass('active')
-				.find('ul')
-				.slideUp(500, 'easeOutExpo');				
-		});
-
-
-		$(window).resize(function(){
-
-			if ( $('body').hasClass('offcanvas') ) {
-
-    			$('body').removeClass('offcanvas');
-    			$('.js-fh5co-nav-toggle').removeClass('active');
-				
-	    	}
-		});
-	};
-
-
-	var burgerMenu = function() {
-
-		$('body').on('click', '.js-fh5co-nav-toggle', function(event){
-			var $this = $(this);
-
-
-			if ( $('body').hasClass('overflow offcanvas') ) {
-				$('body').removeClass('overflow offcanvas');
-			} else {
-				$('body').addClass('overflow offcanvas');
-			}
-			$this.toggleClass('active');
-			event.preventDefault();
-
-		});
-	};
-
-	var dropdown = function() {
-
-		$('.has-dropdown').mouseenter(function(){
-
-			var $this = $(this);
-			$this
-				.find('.dropdown')
-				.css('display', 'block')
-				.addClass('animated-fast fadeInUpMenu');
-
-		}).mouseleave(function(){
-			var $this = $(this);
-
-			$this
-				.find('.dropdown')
-				.css('display', 'none')
-				.removeClass('animated-fast fadeInUpMenu');
-		});
-
-	};
-
-
-	var goToTop = function() {
-
-		$('.js-gotop').on('click', function(event){
-			
-			event.preventDefault();
-
-			$('html, body').animate({
-				scrollTop: $('html').offset().top
-			}, 500, 'easeInOutExpo');
-			
-			return false;
-		});
-
-		$(window).scroll(function(){
-
-			var $win = $(window);
-			if ($win.scrollTop() > 200) {
-				$('.js-top').addClass('active');
-			} else {
-				$('.js-top').removeClass('active');
-			}
-
-			if ( $win.scrollTop() > 100 ) {
-				$('.fh5co-nav').addClass('scrolled');
-			} else {
-				$('.fh5co-nav').removeClass('scrolled');
-			}
-
-		});
-	
-	};
-
-
-	var sliderMain = function() {
-		
-	  	$('#fh5co-slider-wrwap .flexslider').flexslider({
-			animation: "fade",
-			slideshowSpeed: 5000,
-			directionNav: true,
-			start: function(){
-				setTimeout(function(){
-					$('.slider-text').removeClass('animated fadeInUp');
-					$('.flex-active-slide').find('.slider-text').addClass('animated fadeInUp');
-				}, 500);
-			},
-			before: function(){
-				setTimeout(function(){
-					$('.slider-text').removeClass('animated fadeInUp');
-					$('.flex-active-slide').find('.slider-text').addClass('animated fadeInUp');
-				}, 500);
-			}
-
-	  	});
-
-	  	$('#fh5co-slider-wrwap .flexslider .slides > li').css('height', $(window).height());	
-	  	$(window).resize(function(){
-	  		$('#fh5co-slider-wrwap .flexslider .slides > li').css('height', $(window).height());	
-	  	});
-
-	  	
-	};
-
-	var DateTimePickerFunc = function() {
-		if ($('#taskdatetime').length > 0) {
-			$('#taskdatetime').datetimepicker();
-		}
-	}
-
-	$(function(){
-		mobileMenuOutsideClick();
-		offcanvasMenu();
-		burgerMenu();
-		sliderMain();
-		dropdown();
-		goToTop();
-		DateTimePickerFunc();
-	});
-
-
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      buildOffcanvas();
+      initScrollFx();
+    });
+  } else {
+    buildOffcanvas();
+    initScrollFx();
+  }
 }());

@@ -13,7 +13,7 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 560px;">
+  <div class="container container--narrow">
     <div class="form-card">
       <h2>Sind Sie sicher?</h2>
       <p>
@@ -22,7 +22,7 @@
       </p>
       <form method="post">
         {% csrf_token %}
-        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+        <div class="form-row mb-0" class="btn-row">
           <button type="submit" class="btn btn-gold">Endg&uuml;ltig l&ouml;schen</button>
           <a class="btn" href="{% url 'shop_manage:configurator_list' %}">Abbrechen</a>
         </div>

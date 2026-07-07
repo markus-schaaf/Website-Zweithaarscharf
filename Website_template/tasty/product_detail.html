@@ -4,7 +4,30 @@
 
 {% block title %}{{ product.name }} &mdash; Zweithaar Schaaf{% endblock %}
 {% block description %}{{ product.description|truncatechars:150 }}{% endblock %}
+{% block og_title %}{{ product.name }} &mdash; Zweithaar Schaaf{% endblock %}
+{% block og_description %}{{ product.description|truncatechars:150 }}{% endblock %}
 {% block body_class %}page-wigs{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "description": "{{ product.description|truncatechars:200|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+  {% if product.image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}",{% endif %}
+  "brand": { "@type": "Brand", "name": "Zweithaar Schaaf" },
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ product.price|stringformat:'.2f' }}",
+    "priceCurrency": "EUR",
+    "availability": "https://schema.org/InStock",
+    "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 
@@ -15,14 +38,15 @@
     <div class="split product-detail">
 
       <div class="product-detail__gallery">
-        <div class="ph-image">
-          <span class="ph-image__label">{{ product.label }}<br>FOTO FOLGT</span>
-        </div>
-        <div class="product-detail__thumbs">
-          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
-          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
-          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
-        </div>
+        {% if product.image %}
+          <img class="img-tile" src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% elif product.placeholder_image %}
+          <img class="img-tile" src="{% static product.placeholder_image %}" alt="Illustration: {{ product.name }}">
+        {% else %}
+          <div class="ph-image">
+            <span class="ph-image__label">{{ product.label }}<br>FOTO FOLGT</span>
+          </div>
+        {% endif %}
       </div>
 
       <div>

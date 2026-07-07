@@ -14,7 +14,7 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 560px;">
+  <div class="container container--narrow">
     <div class="form-card">
       <h2>{{ object.first_name }} {{ object.last_name }}</h2>
       <p class="text-muted">Registriert am {{ object.date_joined|date:"d.m.Y" }}</p>
@@ -33,12 +33,12 @@
         <div class="form-row">
           <div class="field-checkbox">
             {{ form.is_active }}
-            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+            <label for="{{ form.is_active.id_for_label }}" class="label-plain">
               Konto ist aktiv (deaktivierte Konten k&ouml;nnen sich nicht anmelden)
             </label>
           </div>
         </div>
-        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+        <div class="form-row mb-0" class="btn-row">
           <button type="submit" class="btn btn-gold">Speichern</button>
           <a class="btn" href="{% url 'accounts:user_list' %}">Abbrechen</a>
         </div>

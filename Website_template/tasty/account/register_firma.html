@@ -14,7 +14,7 @@
 </section>
 
 <section class="section section--tight">
-  <div class="container" style="max-width: 640px;">
+  <div class="container container--form">
     <div class="form-card">
       <h2>Ihre Firmendaten</h2>
       <form method="post" novalidate>
@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <h3 style="margin-top: 2rem;">Ansprechpartner</h3>
+        <h3 class="mt-32">Ansprechpartner</h3>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.first_name.id_for_label }}">Vorname *</label>
@@ -100,7 +100,7 @@
           <button type="submit" class="btn btn-gold btn-block">Gesch&auml;ftskonto erstellen</button>
         </div>
       </form>
-      <p class="text-muted" style="margin-top: 24px; margin-bottom: 0;">
+      <p class="text-muted mt-24 mb-0">
         Privatkunde? <a href="{% url 'accounts:register' %}">Zur normalen Registrierung</a><br>
         Bereits registriert? <a href="{% url 'accounts:login' %}">Zur Anmeldung</a>
       </p>

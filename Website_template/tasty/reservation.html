@@ -53,12 +53,10 @@
 
 <section class="section section-alt">
   <div class="container">
-    <div class="split" style="align-items: start;">
+    <div class="split split--top">
       <div>
-        <div class="ph-image" style="--ph-ratio: 4/5;">
-          <span class="ph-image__label">BERATUNGSGESPR&Auml;CH<br>FOTO FOLGT</span>
-        </div>
-        <div style="margin-top: 32px;">
+        <img class="img-tile" style="--ph-ratio: 400/340;" src="{% static 'images/consultation/consultation-scene.svg' %}" alt="Illustration eines pers&ouml;nlichen Beratungsgespr&auml;chs" loading="lazy">
+        <div class="mt-32">
           <h2>Gut zu wissen</h2>
           <ul class="info-list">
             <li>Dauer: ca. 60 Minuten</li>
@@ -74,68 +72,69 @@
         <h2>Termin anfragen</h2>
         <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir melden uns zeitnah bei Ihnen, um den Termin zu best&auml;tigen.</p>
 
-        <!--
-          Hinweis: Dieses Formular ist aktuell nicht an ein Backend angebunden.
-          Beim Absenden wird lediglich eine Best&auml;tigung im Browser angezeigt (siehe Skript am Seitenende).
-          F&uuml;r den echten Versand wird sp&auml;ter ein POST-Endpunkt (z.B. Django-View inkl. E-Mail-Versand) ben&ouml;tigt.
-        -->
-        <form id="form-wrap" novalidate>
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'reservation' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
           <div class="form-row">
             <div class="field">
-              <label for="fullname">Vor- und Nachname *</label>
-              <input type="text" id="fullname" name="fullname" autocomplete="name" required>
+              <label for="{{ form.name.id_for_label }}">Vor- und Nachname *</label>
+              {{ form.name }}
+              {{ form.name.errors }}
             </div>
           </div>
           <div class="form-row form-row--2">
             <div class="field">
-              <label for="email">E-Mail-Adresse *</label>
-              <input type="email" id="email" name="email" autocomplete="email" required>
+              <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
+              {{ form.email }}
+              {{ form.email.errors }}
             </div>
             <div class="field">
-              <label for="phone">Telefonnummer</label>
-              <input type="tel" id="phone" name="phone" autocomplete="tel">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="field">
-              <label for="topic">Art der Beratung *</label>
-              <select id="topic" name="topic" required>
-                <option value="" selected disabled>Bitte ausw&auml;hlen&hellip;</option>
-                <option value="massanfertigung">Ma&szlig;anfertigung (konfigurierbare Per&uuml;cke)</option>
-                <option value="bestandsperuecke">Per&uuml;cke aus dem Bestand</option>
-                <option value="toupet">Haarteil</option>
-                <option value="pflege">Pflegeberatung</option>
-                <option value="sonstiges">Sonstiges</option>
-              </select>
+              <label for="{{ form.phone.id_for_label }}">Telefonnummer</label>
+              {{ form.phone }}
+              {{ form.phone.errors }}
             </div>
           </div>
           <div class="form-row">
             <div class="field">
-              <label for="taskdatetime">Wunschtermin (Datum &amp; Uhrzeit) *</label>
-              <input type="text" name="task-datetime" id="taskdatetime" placeholder="TT.MM.JJJJ, HH:MM" autocomplete="off" required>
+              <label for="{{ form.topic.id_for_label }}">Art der Beratung *</label>
+              {{ form.topic }}
+              {{ form.topic.errors }}
             </div>
           </div>
           <div class="form-row">
             <div class="field">
-              <label for="message">Ihre Nachricht / W&uuml;nsche</label>
-              <textarea id="message" name="message" rows="4" placeholder="z. B. Wunschfarbe, Wunschl&auml;nge, Anlass oder Fragen an uns"></textarea>
+              <label for="{{ form.preferred_datetime.id_for_label }}">Wunschtermin (Datum &amp; Uhrzeit) *</label>
+              {{ form.preferred_datetime }}
+              {{ form.preferred_datetime.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.message.id_for_label }}">Ihre Nachricht / W&uuml;nsche</label>
+              {{ form.message }}
+              {{ form.message.errors }}
             </div>
           </div>
           <div class="form-row">
             <div class="field-checkbox">
-              <input type="checkbox" id="privacy" name="privacy" required>
-              <label for="privacy" style="text-transform:none;letter-spacing:normal;font-weight:400;">Ich habe die <a href="#">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *</label>
+              {{ form.consent }}
+              <label for="{{ form.consent.id_for_label }}" class="label-plain">Ich habe die <a href="{% url 'pages:datenschutz' %}" target="_blank">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *</label>
             </div>
+            {{ form.consent.errors }}
           </div>
           <div class="form-row mb-0">
             <button type="submit" class="btn btn-gold btn-block">Termin anfragen</button>
           </div>
         </form>
-
-        <div id="form-confirmation" class="confirmation" style="display: none;">
-          <h3>Vielen Dank!</h3>
-          <p class="mb-0">Ihre Anfrage wurde erfasst. Da noch kein Buchungssystem angebunden ist, meldet sich unser Team derzeit noch manuell telefonisch oder per E-Mail bei Ihnen zur Terminbest&auml;tigung.</p>
-        </div>
       </div>
     </div>
   </div>
@@ -144,28 +143,16 @@
 {% endblock %}
 
 {% block extra_js %}
+  <script src="{% static 'js/jquery.min.js' %}"></script>
   <script src="{% static 'js/moment.min.js' %}"></script>
   <script src="{% static 'js/bootstrap-datetimepicker.js' %}"></script>
   <script>
-    // Kein Backend angebunden: simuliert nur eine Best&auml;tigung im Browser.
-    (function () {
-      var form = document.getElementById('form-wrap');
-      var confirmation = document.getElementById('form-confirmation');
-      if (!form || !confirmation) { return; }
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (form.checkValidity && !form.checkValidity()) {
-          if (form.reportValidity) { form.reportValidity(); }
-          return;
-        }
-        var name = document.getElementById('fullname').value.trim();
-        if (name) {
-          confirmation.querySelector('h3').textContent = 'Vielen Dank, ' + name + '!';
-        }
-        form.style.display = 'none';
-        confirmation.style.display = 'block';
-        confirmation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    jQuery(function ($) {
+      $('#id_preferred_datetime').datetimepicker({
+        format: 'DD.MM.YYYY, HH:mm',
+        stepping: 15,
+        useCurrent: false
       });
-    })();
+    });
   </script>
 {% endblock %}
