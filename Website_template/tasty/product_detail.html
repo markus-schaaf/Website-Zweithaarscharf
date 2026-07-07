@@ -1,0 +1,119 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+{% load shop_extras %}
+
+{% block title %}{{ product.name }} &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}{{ product.description|truncatechars:150 }}{% endblock %}
+{% block body_class %}page-wigs{% endblock %}
+
+{% block content %}
+
+<section class="section">
+  <div class="container">
+    <p style="margin-bottom: 1.5rem;"><a href="{% url 'wigs' %}">&larr; Zur&uuml;ck zum Shop</a></p>
+
+    <div class="split product-detail">
+
+      <div class="product-detail__gallery">
+        <div class="ph-image">
+          <span class="ph-image__label">{{ product.label }}<br>FOTO FOLGT</span>
+        </div>
+        <div class="product-detail__thumbs">
+          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
+          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
+          <div class="ph-image"><span class="ph-image__label">FOTO<br>FOLGT</span></div>
+        </div>
+      </div>
+
+      <div>
+        <span class="eyebrow">{{ product.get_category_display }}</span>
+        <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          {{ product.name }}
+          {% if product.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
+          {% if product.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+        </h1>
+
+        {% if product.is_configurable %}
+          <span class="product-detail__price">Rohpreis {{ product.price|euro }}</span>
+          <p class="product-detail__price-note">Grundausf&uuml;hrung &ndash; der endg&uuml;ltige Preis richtet sich nach Ihrer Konfiguration.</p>
+        {% else %}
+          <span class="product-detail__price">{{ product.price|euro }}</span>
+        {% endif %}
+
+        <p>{{ product.description }}</p>
+
+        {% if product.detail_attributes %}
+          <table class="attr-table">
+            <tbody>
+              {% for label, value in product.detail_attributes %}
+                <tr>
+                  <th scope="row">{{ label }}</th>
+                  <td>{{ value|linebreaksbr }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+
+        {% if product.is_configurable %}
+
+          <div class="configurator" id="configurator">
+            {% for group in option_groups %}
+              {% if group.options.all %}
+                <fieldset class="configurator__group">
+                  <legend>{{ group.name }}</legend>
+                  <div class="configurator__options">
+                    {% for opt in group.options.all %}
+                      <label class="configurator__option">
+                        <input type="radio" name="cfg-{{ group.id }}" value="{{ opt.id }}"
+                               data-surcharge="{{ opt.surcharge|stringformat:'f' }}"
+                               {% if forloop.first %}checked{% endif %}>
+                        <span>{{ opt.name }}{% if opt.surcharge %} (+ {{ opt.surcharge|euro }}){% endif %}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </fieldset>
+              {% endif %}
+            {% endfor %}
+
+            <div class="configurator__estimate">
+              <span class="configurator__estimate-label">Gesch&auml;tzter Preis</span>
+              <span class="configurator__estimate-price" id="estimated-price"
+                    data-base-price="{{ product.price|stringformat:'f' }}">{{ product.price|euro }}</span>
+              <p class="configurator__note">
+                Unverbindliche Preissch&auml;tzung. Der endg&uuml;ltige Preis wird im pers&ouml;nlichen
+                Beratungstermin festgelegt &ndash; dort wird Ihre Per&uuml;cke individuell f&uuml;r Sie
+                angefertigt und angepasst.
+              </p>
+              <a class="btn btn-gold" href="{% url 'reservation' %}">Termin vereinbaren</a>
+            </div>
+          </div>
+
+        {% else %}
+
+          <button type="button" class="btn btn-gold js-add-to-cart" data-product-id="{{ product.id }}">In den Warenkorb</button>
+
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% if product.is_configurable %}
+<section class="cta-band">
+  <div class="container">
+    <h2>Pers&ouml;nliche Beratung inklusive</h2>
+    <p>Jede Ma&szlig;anfertigung beginnt mit einem pers&ouml;nlichen Termin: Wir nehmen Ma&szlig;, beraten zu Farbe, L&auml;nge und Montur &ndash; und fertigen Ihre Per&uuml;cke individuell f&uuml;r Sie an.</p>
+    <a href="{% url 'reservation' %}" class="btn btn-gold">Beratungstermin vereinbaren</a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if product.is_configurable %}
+<script src="{% static 'js/configurator.js' %}"></script>
+{% endif %}
+{% endblock %}

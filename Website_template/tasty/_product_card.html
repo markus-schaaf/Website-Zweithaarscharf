@@ -1,11 +1,21 @@
 <div class="product-card">
-  <div class="product-card__image">
-    {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
-    {% if p.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
-    <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
-  </div>
-  <p class="product-card__name">{{ p.name }}</p>
-  <span class="product-card__price">ab {{ p.price_display }},-</span>
+  <a href="{% url 'product_detail' p.slug %}" class="product-card__link">
+    <div class="product-card__image">
+      {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
+      {% if p.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+      <div class="ph-image"><span class="ph-image__label">{{ p.label }}<br>FOTO FOLGT</span></div>
+    </div>
+    <p class="product-card__name">{{ p.name }}</p>
+  </a>
+  {% if p.is_configurable %}
+    <span class="product-card__price">Rohpreis ab {{ p.price_display }},-</span>
+  {% else %}
+    <span class="product-card__price">ab {{ p.price_display }},-</span>
+  {% endif %}
   <p class="product-card__desc">{{ p.description }}</p>
-  <button type="button" class="btn btn-gold product-card__btn js-add-to-cart" data-product-id="{{ p.id }}">In den Warenkorb</button>
+  {% if p.is_orderable %}
+    <button type="button" class="btn btn-gold product-card__btn js-add-to-cart" data-product-id="{{ p.id }}">In den Warenkorb</button>
+  {% else %}
+    <a class="btn btn-gold product-card__btn" href="{% url 'product_detail' p.slug %}">Konfigurieren</a>
+  {% endif %}
 </div>

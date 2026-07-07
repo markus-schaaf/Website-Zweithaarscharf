@@ -2,11 +2,19 @@ import json
 from functools import wraps
 
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import TemplateView
+from django.views.generic import DetailView, TemplateView
 
-from .models import MAX_QTY, Cart, CartItem, Product
+from .models import (
+    MAX_QTY,
+    Cart,
+    CartItem,
+    ConfiguratorGroup,
+    ConfiguratorOption,
+    Product,
+)
 from .templatetags.shop_extras import euro
 
 
@@ -39,9 +47,16 @@ def _clamp_qty(value):
         return 1
 
 
+def _orderable(qs):
+    """Konfigurierbare Perücken sind nicht bestellbar (nur Beratungstermin)."""
+    return qs.exclude(category=Product.Category.KONFIG)
+
+
 def _get_product(data, user):
     try:
-        return Product.objects.visible_for(user).get(pk=int(data.get("product_id")))
+        return _orderable(Product.objects.visible_for(user)).get(
+            pk=int(data.get("product_id"))
+        )
     except (Product.DoesNotExist, TypeError, ValueError):
         return None
 
@@ -55,12 +70,35 @@ class WigsView(TemplateView):
         context.update(
             {
                 "active": "wigs",
-                "damen_products": products.filter(category=Product.Category.DAMEN),
-                "herren_products": products.filter(category=Product.Category.HERREN),
+                "konfig_products": products.filter(category=Product.Category.KONFIG),
+                "bestand_products": products.filter(category=Product.Category.BESTAND),
                 "pflege_products": products.filter(category=Product.Category.PFLEGE),
                 "rohling_products": products.filter(category=Product.Category.ROHLING),
             }
         )
+        return context
+
+
+class ProductDetailView(DetailView):
+    template_name = "tasty/product_detail.html"
+    context_object_name = "product"
+
+    def get_queryset(self):
+        # Unsichtbare Produkte (inaktiv, fremde Zielgruppe) ergeben ein 404.
+        return Product.objects.visible_for(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active"] = "wigs"
+        if self.object.is_configurable:
+            context["option_groups"] = ConfiguratorGroup.objects.filter(
+                is_active=True
+            ).prefetch_related(
+                Prefetch(
+                    "options",
+                    queryset=ConfiguratorOption.objects.filter(is_active=True),
+                )
+            )
         return context
 
 
@@ -90,7 +128,7 @@ def api_products(request):
             "price": float(p.price),
             "price_display": p.price_display,
         }
-        for p in Product.objects.visible_for(request.user)
+        for p in _orderable(Product.objects.visible_for(request.user))
     }
     return JsonResponse({"products": products})
 
@@ -214,7 +252,9 @@ def api_merge(request):
     with transaction.atomic():
         for product_id, quantity in data["items"].items():
             try:
-                product = Product.objects.visible_for(request.user).get(pk=int(product_id))
+                product = _orderable(Product.objects.visible_for(request.user)).get(
+                    pk=int(product_id)
+                )
             except (Product.DoesNotExist, TypeError, ValueError):
                 continue
             quantity = _clamp_qty(quantity)

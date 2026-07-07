@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.text import slugify
 
-from .models import Product
+from .models import ConfiguratorGroup, ConfiguratorOption, Product
 
 
 class ProductForm(forms.ModelForm):
@@ -15,9 +15,21 @@ class ProductForm(forms.ModelForm):
             "price",
             "badge",
             "description",
+            "hair_length",
+            "hair_color",
+            "hair_structure",
+            "cap_type",
+            "hair_origin",
+            "care_notes",
+            "content_amount",
+            "usage_notes",
             "is_active",
             "sort_order",
         )
+        widgets = {
+            "care_notes": forms.Textarea(attrs={"rows": 3}),
+            "usage_notes": forms.Textarea(attrs={"rows": 3}),
+        }
 
     def save(self, commit=True):
         product = super().save(commit=False)
@@ -33,3 +45,15 @@ class ProductForm(forms.ModelForm):
         if commit:
             product.save()
         return product
+
+
+class ConfiguratorGroupForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguratorGroup
+        fields = ("name", "sort_order", "is_active")
+
+
+class ConfiguratorOptionForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguratorOption
+        fields = ("group", "name", "surcharge", "sort_order", "is_active")

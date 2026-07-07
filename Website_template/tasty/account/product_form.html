@@ -57,6 +57,7 @@
             <label for="{{ form.price.id_for_label }}">Preis (ab, in &euro;) *</label>
             {{ form.price }}
             {{ form.price.errors }}
+            <p style="font-size: 0.8125rem; margin: 6px 0 0 0;">Bei konfigurierbaren Per&uuml;cken ist dies der Rohpreis der Grundausf&uuml;hrung &ndash; Aufpreise pflegen Sie unter <a href="{% url 'shop_manage:configurator_list' %}">Konfigurator-Aufpreise</a>.</p>
           </div>
           <div class="field">
             <label for="{{ form.sort_order.id_for_label }}">Sortierung</label>
@@ -78,6 +79,65 @@
             {{ form.description.errors }}
           </div>
         </div>
+
+        <h2 style="margin: 24px 0 8px 0;">Per&uuml;cken-Eigenschaften</h2>
+        <p style="font-size: 0.8125rem; margin: 0 0 16px 0;">F&uuml;r Per&uuml;cken, Haarteile und Rohlinge &ndash; wird auf der Produkt-Detailseite angezeigt. Nicht ben&ouml;tigte Felder einfach leer lassen.</p>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.hair_length.id_for_label }}">Haarl&auml;nge</label>
+            {{ form.hair_length }}
+            {{ form.hair_length.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.hair_color.id_for_label }}">Haarfarbe</label>
+            {{ form.hair_color }}
+            {{ form.hair_color.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.hair_structure.id_for_label }}">Haarstruktur</label>
+            {{ form.hair_structure }}
+            {{ form.hair_structure.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.cap_type.id_for_label }}">Monturart</label>
+            {{ form.cap_type }}
+            {{ form.cap_type.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.hair_origin.id_for_label }}">Haarherkunft</label>
+            {{ form.hair_origin }}
+            {{ form.hair_origin.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.care_notes.id_for_label }}">Pflegehinweise</label>
+            {{ form.care_notes }}
+            {{ form.care_notes.errors }}
+          </div>
+        </div>
+
+        <h2 style="margin: 24px 0 8px 0;">Pflegeprodukt-Angaben</h2>
+        <p style="font-size: 0.8125rem; margin: 0 0 16px 0;">Nur f&uuml;r Pflegeprodukte und Zubeh&ouml;r relevant.</p>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.content_amount.id_for_label }}">Inhalt / Menge</label>
+            {{ form.content_amount }}
+            {{ form.content_amount.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.usage_notes.id_for_label }}">Anwendung</label>
+            {{ form.usage_notes }}
+            {{ form.usage_notes.errors }}
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="field-checkbox">
             {{ form.is_active }}

@@ -18,12 +18,12 @@
 <section class="section">
   <div class="container">
     <div class="section-heading section-heading--left" style="margin-bottom: 40px;">
-      <h2>Damenper&uuml;cken</h2>
-      <p>Von nat&uuml;rlich-dezent bis volumin&ouml;s &ndash; jedes Modell besteht aus 100&nbsp;% sortenreinem Echthaar und wird auf Wunsch individuell in L&auml;nge, Farbe und Ansatz angepasst.</p>
+      <h2>Ma&szlig;anfertigung &ndash; konfigurierbare Echthaarper&uuml;cken</h2>
+      <p>Ihre Per&uuml;cke, ganz nach Ihren W&uuml;nschen: L&auml;nge, Farbe, Haardicke und Montur w&auml;hlen Sie selbst. Die angezeigten Preise sind Rohpreise der Grundausf&uuml;hrung &ndash; die Anfertigung erfolgt nach einem pers&ouml;nlichen Beratungstermin.</p>
     </div>
 
     <div class="grid grid-4">
-      {% for p in damen_products %}
+      {% for p in konfig_products %}
         {% include "tasty/_product_card.html" %}
       {% endfor %}
     </div>
@@ -33,12 +33,12 @@
 <section class="section section-alt">
   <div class="container">
     <div class="section-heading section-heading--left" style="margin-bottom: 40px;">
-      <h2>Herrenper&uuml;cken &amp; Toupets</h2>
-      <p>Dezente L&ouml;sungen f&uuml;r einen nat&uuml;rlichen Haaransatz &ndash; von der Vollper&uuml;cke bis zum punktuellen Toupet.</p>
+      <h2>Sofort verf&uuml;gbar &ndash; Per&uuml;cken im Bestand</h2>
+      <p>Fertig konfigurierte Echthaarper&uuml;cken aus unserem Bestand &ndash; jedes Modell besteht aus 100&nbsp;% sortenreinem Echthaar und ist direkt bestellbar.</p>
     </div>
 
     <div class="grid grid-4">
-      {% for p in herren_products %}
+      {% for p in bestand_products %}
         {% include "tasty/_product_card.html" %}
       {% endfor %}
     </div>

@@ -21,10 +21,10 @@ class ProductQuerySet(models.QuerySet):
 
 class Product(models.Model):
     class Category(models.TextChoices):
-        DAMEN = "damen", "Damen"
-        HERREN = "herren", "Herren"
-        PFLEGE = "pflege", "Pflege"
-        ROHLING = "rohling", "Rohlinge"
+        KONFIG = "konfig", "Echthaarperücken konfigurierbar"
+        BESTAND = "bestand", "Echthaarperücken im Bestand"
+        PFLEGE = "pflege", "Pflegeprodukte"
+        ROHLING = "rohling", "Rohlinge (B2B)"
 
     class Audience(models.TextChoices):
         B2C = "b2c", "Alle Kunden"
@@ -44,6 +44,17 @@ class Product(models.Model):
     price = models.DecimalField("Preis (ab)", max_digits=8, decimal_places=2)
     badge = models.CharField("Badge", max_length=10, choices=Badge.choices, blank=True, default="")
     description = models.TextField("Beschreibung", blank=True)
+
+    # Produktattribute fuer die Detailseite (optional, je nach Kategorie relevant)
+    hair_length = models.CharField("Haarlänge", max_length=60, blank=True, default="")
+    hair_color = models.CharField("Haarfarbe", max_length=80, blank=True, default="")
+    hair_structure = models.CharField("Haarstruktur", max_length=60, blank=True, default="")
+    cap_type = models.CharField("Monturart", max_length=80, blank=True, default="")
+    hair_origin = models.CharField("Haarherkunft", max_length=80, blank=True, default="")
+    care_notes = models.TextField("Pflegehinweise", blank=True, default="")
+    content_amount = models.CharField("Inhalt / Menge", max_length=40, blank=True, default="")
+    usage_notes = models.TextField("Anwendung", blank=True, default="")
+
     is_active = models.BooleanField("Aktiv", default=True)
     sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,6 +73,77 @@ class Product(models.Model):
     def price_display(self):
         """Ganze Euro mit deutschem Tausenderpunkt, z. B. '1.190'."""
         return f"{int(self.price):,}".replace(",", ".")
+
+    @property
+    def is_configurable(self):
+        """Konfigurierbare Perücken: nur Rohpreis, Kauf nur nach Beratungstermin."""
+        return self.category == self.Category.KONFIG
+
+    @property
+    def is_orderable(self):
+        return not self.is_configurable
+
+    @property
+    def detail_attributes(self):
+        """(Label, Wert)-Paare fuer die Detailseite — nur befuellte Felder."""
+        if self.category == self.Category.PFLEGE:
+            field_names = ("content_amount", "usage_notes")
+        else:
+            field_names = (
+                "hair_length",
+                "hair_color",
+                "hair_structure",
+                "cap_type",
+                "hair_origin",
+                "care_notes",
+            )
+        rows = []
+        for field_name in field_names:
+            value = getattr(self, field_name)
+            if value:
+                rows.append((self._meta.get_field(field_name).verbose_name, value))
+        return rows
+
+
+class ConfiguratorGroup(models.Model):
+    """Merkmal des Perücken-Konfigurators, z. B. 'Haarlänge'."""
+
+    name = models.CharField("Name", max_length=60, unique=True)
+    sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
+    is_active = models.BooleanField("Aktiv", default=True)
+
+    class Meta:
+        verbose_name = "Konfigurator-Gruppe"
+        verbose_name_plural = "Konfigurator-Gruppen"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.name
+
+
+class ConfiguratorOption(models.Model):
+    """Auswahl innerhalb einer Gruppe, z. B. '50 cm' mit Aufpreis."""
+
+    group = models.ForeignKey(
+        ConfiguratorGroup, on_delete=models.CASCADE, related_name="options"
+    )
+    name = models.CharField("Bezeichnung", max_length=80)
+    surcharge = models.DecimalField(
+        "Aufpreis", max_digits=8, decimal_places=2, default=Decimal("0")
+    )
+    sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
+    is_active = models.BooleanField("Aktiv", default=True)
+
+    class Meta:
+        verbose_name = "Konfigurator-Option"
+        verbose_name_plural = "Konfigurator-Optionen"
+        ordering = ["group", "sort_order", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["group", "name"], name="uniq_group_option")
+        ]
+
+    def __str__(self):
+        return f"{self.group.name}: {self.name}"
 
 
 class Cart(models.Model):

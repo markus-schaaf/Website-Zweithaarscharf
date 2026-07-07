@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Cart, CartItem, Product
+from .models import Cart, CartItem, ConfiguratorGroup, ConfiguratorOption, Product
 
 
 @admin.register(Product)
@@ -10,6 +10,18 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "label")
     prepopulated_fields = {"slug": ("label",)}
     list_editable = ("is_active", "sort_order")
+
+
+class ConfiguratorOptionInline(admin.TabularInline):
+    model = ConfiguratorOption
+    extra = 0
+
+
+@admin.register(ConfiguratorGroup)
+class ConfiguratorGroupAdmin(admin.ModelAdmin):
+    list_display = ("name", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    inlines = [ConfiguratorOptionInline]
 
 
 class CartItemInline(admin.TabularInline):

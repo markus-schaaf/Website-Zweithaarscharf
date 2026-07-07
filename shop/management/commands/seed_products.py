@@ -3,50 +3,85 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 
-from shop.models import Product
+from shop.models import ConfiguratorGroup, ConfiguratorOption, Product
 from zweithaarschaaf.demo_products import (
-    DAMEN_PRODUCTS,
-    HERREN_PRODUCTS,
+    BESTAND_PRODUCTS,
+    CONFIGURATOR_GROUPS,
+    KONFIG_PRODUCTS,
     PFLEGE_PRODUCTS,
     ROHLING_PRODUCTS,
+)
+
+ATTRIBUTE_FIELDS = (
+    "hair_length",
+    "hair_color",
+    "hair_structure",
+    "cap_type",
+    "hair_origin",
+    "care_notes",
+    "content_amount",
+    "usage_notes",
 )
 
 
 class Command(BaseCommand):
     help = (
-        "Schreibt die Demo-Produkte aus demo_products.py idempotent in die "
-        "Datenbank (bestehende Produkte werden nicht überschrieben)."
+        "Schreibt die Demo-Produkte und den Konfigurator-Katalog aus "
+        "demo_products.py idempotent in die Datenbank (bestehende "
+        "Einträge werden nicht überschrieben)."
     )
 
     def handle(self, *args, **options):
         created_count = 0
         for category, products in (
-            (Product.Category.DAMEN, DAMEN_PRODUCTS),
-            (Product.Category.HERREN, HERREN_PRODUCTS),
+            (Product.Category.KONFIG, KONFIG_PRODUCTS),
+            (Product.Category.BESTAND, BESTAND_PRODUCTS),
             (Product.Category.PFLEGE, PFLEGE_PRODUCTS),
             (Product.Category.ROHLING, ROHLING_PRODUCTS),
         ):
             for index, entry in enumerate(products):
                 slug = slugify(f"{category}-{entry['label']}")
+                defaults = {
+                    "name": entry["display_name"],
+                    "label": entry["label"],
+                    "category": category,
+                    "audience": entry.get("audience", Product.Audience.B2C),
+                    "price": Decimal(entry["price"].replace(".", "")),
+                    "badge": entry["badge"] or "",
+                    "description": entry["desc"],
+                    "sort_order": index,
+                    "is_active": True,
+                }
+                for field in ATTRIBUTE_FIELDS:
+                    defaults[field] = entry.get(field, "")
                 product, created = Product.objects.get_or_create(
-                    slug=slug,
-                    defaults={
-                        "name": entry["display_name"],
-                        "label": entry["label"],
-                        "category": category,
-                        "audience": entry.get("audience", Product.Audience.B2C),
-                        "price": Decimal(entry["price"].replace(".", "")),
-                        "badge": entry["badge"] or "",
-                        "description": entry["desc"],
-                        "sort_order": index,
-                        "is_active": True,
-                    },
+                    slug=slug, defaults=defaults
                 )
                 if created:
                     created_count += 1
                 status = "angelegt" if created else "bereits vorhanden"
                 self.stdout.write(f"{slug}: {status}")
+
+        option_count = 0
+        for group_index, group_entry in enumerate(CONFIGURATOR_GROUPS):
+            group, _ = ConfiguratorGroup.objects.get_or_create(
+                name=group_entry["name"], defaults={"sort_order": group_index}
+            )
+            for option_index, (name, surcharge) in enumerate(group_entry["options"]):
+                _, created = ConfiguratorOption.objects.get_or_create(
+                    group=group,
+                    name=name,
+                    defaults={
+                        "surcharge": Decimal(surcharge),
+                        "sort_order": option_index,
+                    },
+                )
+                if created:
+                    option_count += 1
+
         self.stdout.write(
-            f"Fertig: {created_count} neu angelegt, "
-            f"{Product.objects.count()} Produkte insgesamt."
+            f"Fertig: {created_count} Produkte neu angelegt "
+            f"({Product.objects.count()} insgesamt), "
+            f"{option_count} Konfigurator-Optionen neu angelegt "
+            f"({ConfiguratorOption.objects.count()} insgesamt)."
         )

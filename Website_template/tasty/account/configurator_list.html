@@ -1,0 +1,75 @@
+{% extends "tasty/_base.html" %}
+{% load shop_extras %}
+
+{% block title %}Konfigurator-Aufpreise &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Konfigurator-<em>Aufpreise</em></h1>
+    <p>Merkmale und Aufpreise f&uuml;r die konfigurierbaren Echthaarper&uuml;cken pflegen.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div style="margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;">
+      <a class="btn btn-gold" href="{% url 'shop_manage:group_create' %}">Neue Gruppe</a>
+      <a class="btn btn-gold" href="{% url 'shop_manage:option_create' %}">Neue Option</a>
+      <a class="btn" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktverwaltung</a>
+    </div>
+
+    {% for gruppe in gruppen %}
+      <div class="form-card" style="overflow-x: auto; margin-bottom: 24px;">
+        <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 12px;">
+          <h2 style="margin: 0;">{{ gruppe.name }}{% if not gruppe.is_active %} <span class="role-badge">inaktiv</span>{% endif %}</h2>
+          <a href="{% url 'shop_manage:group_edit' gruppe.pk %}">Gruppe bearbeiten</a>
+          <a href="{% url 'shop_manage:option_create' %}?gruppe={{ gruppe.pk }}">Option hinzuf&uuml;gen</a>
+        </div>
+        <table class="account-table">
+          <thead>
+            <tr>
+              <th>Bezeichnung</th>
+              <th>Aufpreis</th>
+              <th>Sortierung</th>
+              <th>Aktiv</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for option in gruppe.options.all %}
+              <tr{% if not option.is_active %} class="is-inactive"{% endif %}>
+                <td>{{ option.name }}</td>
+                <td>{% if option.surcharge %}+ {{ option.surcharge|euro }}{% else %}ohne Aufpreis{% endif %}</td>
+                <td>{{ option.sort_order }}</td>
+                <td>{% if option.is_active %}Ja{% else %}Nein{% endif %}</td>
+                <td>
+                  <a href="{% url 'shop_manage:option_edit' option.pk %}">Bearbeiten</a>
+                  &nbsp;&middot;&nbsp;
+                  <a href="{% url 'shop_manage:option_delete' option.pk %}">L&ouml;schen</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">Noch keine Optionen in dieser Gruppe.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% empty %}
+      <div class="form-card">
+        <p>Noch keine Konfigurator-Gruppen angelegt. Legen Sie zuerst eine Gruppe (z.&nbsp;B. &bdquo;Haarl&auml;nge&ldquo;) an.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

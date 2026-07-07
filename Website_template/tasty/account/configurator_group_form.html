@@ -1,0 +1,60 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{% if object %}Gruppe bearbeiten{% else %}Neue Gruppe{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Konfigurator</span>
+    {% if object %}
+      <h1>Gruppe <em>bearbeiten</em></h1>
+      <p>{{ object.name }}</p>
+    {% else %}
+      <h1>Neue <em>Gruppe</em></h1>
+      <p>Legen Sie ein neues Merkmal f&uuml;r den Konfigurator an, z.&nbsp;B. &bdquo;Haarl&auml;nge&ldquo;.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container" style="max-width: 640px;">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">Name *</label>
+            {{ form.name }}
+            {{ form.name.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.sort_order.id_for_label }}">Sortierung</label>
+            {{ form.sort_order }}
+            {{ form.sort_order.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-checkbox">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="text-transform:none;letter-spacing:normal;font-weight:400;">
+              Gruppe ist aktiv (inaktive Gruppen erscheinen nicht im Konfigurator)
+            </label>
+          </div>
+        </div>
+        <div class="form-row mb-0" style="display: flex; gap: 16px;">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'shop_manage:configurator_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

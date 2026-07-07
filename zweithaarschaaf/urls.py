@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from shop.views import WigsView
+from shop.views import ProductDetailView, WigsView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -34,6 +34,11 @@ urlpatterns = [
         name="home",
     ),
     path("peruecken/", WigsView.as_view(), name="wigs"),
+    path(
+        "peruecken/<slug:slug>/",
+        ProductDetailView.as_view(),
+        name="product_detail",
+    ),
     path(
         "leistungen/",
         TemplateView.as_view(
