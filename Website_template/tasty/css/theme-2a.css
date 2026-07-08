@@ -266,6 +266,96 @@ p { margin: 0 0 1.25rem 0; }
   border-color: var(--black);
   color: var(--white);
 }
+.pill--sm {
+  padding: 7px 15px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Shop-Toolbar (Kategorie-Tabs, Filter, Sortierung) ---------- */
+.is-hidden { display: none !important; }
+/* Shop-Bereich nutzt mehr Bildschirmbreite als der Standard-Container */
+.page-wigs [data-shop] .container { max-width: min(100rem, 94vw); }
+/* auto-fill (nicht auto-fit): leere Spalten bleiben erhalten, damit die
+   Kartengroesse bei wenigen Treffern konstant bleibt */
+.page-wigs [data-shop-grid] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+.shop-toolbar { margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem); }
+.shop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.shop-tabs .pill { padding: 11px 24px; font-size: 12px; }
+.shop-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  align-items: flex-start;
+}
+.filter-group { min-width: 0; }
+.filter-group__label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.filter-group__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.shop-toolbar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.shop-count {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.shop-count [data-shop-count] { color: var(--text); font-weight: 600; }
+.shop-reset {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--gold-text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.shop-reset:hover { color: var(--gold-dark); }
+.shop-sort {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.shop-sort label { margin-bottom: 0; white-space: nowrap; }
+.shop-sort select { width: auto; padding: 10px 14px; font-size: 14px; }
+.shop-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+.product-card.is-hidden { display: none; }
+@media screen and (max-width: 40em) {
+  .shop-sort { margin-left: 0; width: 100%; }
+  .shop-sort select { flex: 1; }
+}
 
 /* ---------- Badges ---------- */
 .badge {
@@ -347,8 +437,8 @@ p { margin: 0 0 1.25rem 0; }
 }
 
 /* ---------- Header / Nav ----------
-   Aufbau: Announce-Bar / zentrierte Marke / Navigationszeile
-   (Menuelinks buendig links, Aktionen buendig rechts)      */
+   Desktop: eine Zeile - Menuelinks buendig links, Marke mittig,
+   Aktionen buendig rechts. Mobil: eigene Marken-Zeile + Burger. */
 .site-header {
   position: sticky;
   top: 0;
@@ -364,8 +454,14 @@ p { margin: 0 0 1.25rem 0; }
 }
 .site-brand {
   text-align: center;
+}
+.site-brand--mobile {
+  display: none;
   padding: clamp(0.875rem, 2vw, 1.25rem) var(--container-pad);
   border-bottom: 1px solid var(--border);
+}
+.site-brand--inline {
+  justify-self: center;
 }
 .site-brand a {
   font-family: var(--font-heading);
@@ -378,29 +474,35 @@ p { margin: 0 0 1.25rem 0; }
 .site-brand a span {
   color: var(--gold);
 }
+.site-brand--inline a {
+  font-size: clamp(1.25rem, 0.85rem + 1vw, 1.85rem);
+  letter-spacing: 0.14em;
+}
+/* Volle Breite, damit die Links am linken Rand stehen */
 .nav-container {
-  max-width: var(--container-w);
-  margin: 0 auto;
   padding: 0 var(--container-pad);
 }
+/* Drei-Spalten-Grid: gleich breite Aussenspalten halten die Marke
+   exakt in der Seitenmitte; reicht der Platz nicht, brechen die
+   Menuelinks links um, die Marke bleibt zentriert. */
 .site-nav {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(1rem, 2.5vw, 2rem);
-  padding: 0.875rem 0;
+  column-gap: clamp(1rem, 2vw, 2rem);
+  padding: clamp(0.875rem, 1.5vw, 1.125rem) 0;
   border-bottom: 1px solid var(--border);
 }
 .site-nav__links {
-  flex: 1 1 auto;
+  justify-self: start;
   min-width: 0;
 }
 .site-nav__links > ul {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: clamp(0.75rem, 0.25rem + 1.2vw, 1.5rem);
+  flex-wrap: wrap;
+  gap: 0.375rem clamp(0.75rem, 0.25rem + 1.2vw, 1.5rem);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -414,7 +516,7 @@ p { margin: 0 0 1.25rem 0; }
   display: inline-block;
   padding: 0.375em 0;
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
+  font-size: clamp(0.8125rem, 0.5rem + 0.42vw, 0.9375rem);
   font-weight: 400;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -428,8 +530,27 @@ p { margin: 0 0 1.25rem 0; }
   color: var(--gold-text);
   border-bottom-color: var(--gold);
 }
+/* Shop-Link als goldener Button hervorgehoben */
+.site-nav__links > ul > li > a.nav-link--shop {
+  padding: 0.375em 1.1em;
+  background: var(--gold);
+  color: var(--white);
+  font-weight: 500;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -8px rgba(176, 141, 87, 0.9);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.site-nav__links > ul > li > a.nav-link--shop:hover,
+.site-nav__links > ul > li.is-active > a.nav-link--shop {
+  background: var(--gold-dark);
+  color: var(--white);
+  box-shadow: 0 8px 18px -8px rgba(147, 115, 63, 0.95);
+  transform: translateY(-1px);
+}
 .site-nav__actions {
-  flex: 0 0 auto;
+  justify-self: end;
+  min-width: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -438,7 +559,7 @@ p { margin: 0 0 1.25rem 0; }
 }
 .nav-action {
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
+  font-size: clamp(0.8125rem, 0.5rem + 0.42vw, 0.9375rem);
   font-weight: 400;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -452,36 +573,72 @@ p { margin: 0 0 1.25rem 0; }
 .site-header .menu-2 { display: none; }
 
 /* dropdown */
+/* Pfeil-Indikator: zeigt an, dass ein Menuepunkt Unterseiten hat */
+.site-nav__links > ul > li.has-dropdown > a::after {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-left: 0.5em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-0.2em) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+.site-nav__links > ul > li.has-dropdown:hover > a::after,
+.site-nav__links > ul > li.has-dropdown:focus-within > a::after {
+  transform: translateY(0.05em) rotate(225deg);
+}
 .has-dropdown .dropdown {
-  display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   left: 50%;
-  transform: translateX(-50%);
-  min-width: 200px;
+  min-width: 230px;
   background: var(--white);
   border: 1px solid var(--border-soft);
-  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.18);
-  padding: 14px 0;
+  border-top: 2px solid var(--gold);
+  box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.28);
+  padding: 10px 0;
   margin: 0;
   list-style: none;
   z-index: 600;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+/* Unsichtbare Bruecke ueber den Abstand, damit das Menue beim Ueberfahren nicht zuklappt */
+.has-dropdown .dropdown::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
 }
 .has-dropdown .dropdown li a {
   display: block;
-  padding: 8px 22px;
-  font-size: 13px;
+  padding: 10px 22px;
+  font-size: 14px;
   letter-spacing: 0.04em;
   color: var(--text);
   text-transform: none;
+  border-left: 2px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, padding-left 0.15s ease;
 }
-.has-dropdown .dropdown li a:hover {
+.has-dropdown .dropdown li a:hover,
+.has-dropdown .dropdown li a:focus {
   color: var(--gold-text);
+  background: var(--bg-alt);
+  border-left-color: var(--gold);
+  padding-left: 26px;
 }
 /* Dropdown per CSS öffnen (Maus und Tastatur), kein JS nötig */
 .has-dropdown:hover .dropdown,
 .has-dropdown:focus-within .dropdown {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* burger (mobile) — echtes <button>-Element */
@@ -527,9 +684,11 @@ body:has(.site-header.scrolled) .fh5co-nav-toggle {
 .fh5co-nav-toggle.active i::before { top: 0; transform: rotate(45deg); background: var(--text); }
 .fh5co-nav-toggle.active i::after { top: 0; transform: rotate(-45deg); background: var(--text); }
 
-/* Unterhalb ~1056px: Navigation kollabiert ins Off-Canvas-Menue */
-@media screen and (max-width: 66em) {
+/* Unterhalb ~1216px: Navigation kollabiert ins Off-Canvas-Menue,
+   Marke bekommt wieder eine eigene Zeile */
+@media screen and (max-width: 76em) {
   .site-nav { display: none; }
+  .site-brand--mobile { display: block; }
   .fh5co-nav-toggle { display: block; }
 }
 
@@ -550,7 +709,7 @@ body:has(.site-header.scrolled) .fh5co-nav-toggle {
   transition: transform 0.4s ease;
 }
 body.offcanvas #fh5co-offcanvas { transform: translateX(0); }
-@media screen and (max-width: 66em) {
+@media screen and (max-width: 76em) {
   #fh5co-offcanvas { display: block; }
 }
 /* zweite Liste (Konto/Warenkorb) im Off-Canvas absetzen */
@@ -577,6 +736,7 @@ body.offcanvas #fh5co-offcanvas { transform: translateX(0); }
   color: var(--text);
 }
 #fh5co-offcanvas a:hover { color: var(--gold-text); }
+#fh5co-offcanvas a.nav-link--shop { color: var(--gold-text); font-weight: 600; }
 #fh5co-offcanvas ul li > ul {
   padding-left: 16px;
   display: none;
@@ -633,7 +793,7 @@ body.offcanvas #page:after {
 }
 .product-card__name {
   font-family: var(--font-ui);
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   font-weight: 500;
   letter-spacing: 0.03em;
   margin: 1.125rem 1.25rem 0.25rem 1.25rem;
@@ -641,14 +801,14 @@ body.offcanvas #page:after {
 }
 .product-card__price {
   font-family: var(--font-ui);
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   font-weight: 500;
   color: var(--gold-text);
   display: block;
   margin: 0 1.25rem 0.5rem 1.25rem;
 }
 .product-card__desc {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
   margin: 0 1.25rem 1.25rem 1.25rem;
   flex-grow: 1;
@@ -656,6 +816,55 @@ body.offcanvas #page:after {
 .product-card__btn {
   margin: auto 1.25rem 1.25rem 1.25rem;
   padding: 0.875em 1em;
+}
+
+/* ---------- Produkt-Diashow (Homepage): Karten schweben langsam durch ---------- */
+.product-marquee {
+  overflow: hidden;
+  /* weiche Kanten links/rechts */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+}
+.product-marquee__track {
+  display: flex;
+  width: max-content;
+}
+.product-marquee__group {
+  display: flex;
+  gap: var(--grid-gap);
+  padding-right: var(--grid-gap);
+  /* Karten duerfen beim Hover-Anheben nicht abgeschnitten werden */
+  padding-top: 6px;
+  padding-bottom: 24px;
+}
+.product-marquee .product-card {
+  width: clamp(15rem, 22vw, 17.5rem);
+  flex-shrink: 0;
+}
+/* Animation erst aktiv, wenn JS die zweite Kartengruppe geklont hat */
+.product-marquee.is-ready .product-marquee__track {
+  animation: product-marquee-scroll 45s linear infinite;
+}
+/* Pause, sobald die Nutzerin ein Produkt ansieht, auswaehlt oder fokussiert */
+.product-marquee:hover .product-marquee__track,
+.product-marquee:focus-within .product-marquee__track,
+.product-marquee.is-paused .product-marquee__track {
+  animation-play-state: paused;
+}
+@keyframes product-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* Ohne Animation (reduzierte Bewegung oder Touch-Steuerung): normal scrollbar */
+.product-marquee.is-static {
+  overflow-x: auto;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.product-marquee.is-static .product-marquee__track { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .product-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .product-marquee.is-ready .product-marquee__track { animation: none; }
 }
 
 /* ---------- Feature / step cards ---------- */
@@ -1163,6 +1372,14 @@ button.nav-action:focus {
 
 /* ---------- Produkt-Detailseite ---------- */
 .product-card__link { display: block; color: inherit; }
+/* Ganze Karte klickbar: Link ueberdeckt die Karte, Button liegt darueber */
+.product-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.product-card .product-card__btn { position: relative; z-index: 2; }
 .product-card__link:hover, .product-card__link:focus { color: inherit; }
 .product-card__link .product-card__name { transition: color 0.25s ease; }
 .product-card__link:hover .product-card__name { color: var(--gold-text); }

@@ -27,10 +27,25 @@ class AppointmentRequest(models.Model):
         PFLEGE = "pflege", "Pflegeberatung"
         SONSTIGES = "sonstiges", "Sonstiges"
 
+    class Mode(models.TextChoices):
+        PRAESENZ = "praesenz", "Präsenz-Beratung"
+        DIGITAL = "digital", "Digitale Beratung"
+
+    class Channel(models.TextChoices):
+        WHATSAPP = "whatsapp", "WhatsApp-Videoanruf"
+        ZOOM = "zoom", "Zoom"
+        ABSPRACHE = "absprache", "Nach Absprache"
+
     name = models.CharField("Name", max_length=120)
     email = models.EmailField("E-Mail")
     phone = models.CharField("Telefon", max_length=50, blank=True)
     topic = models.CharField("Art der Beratung", max_length=30, choices=Topic.choices)
+    mode = models.CharField(
+        "Beratungsform", max_length=20, choices=Mode.choices, default=Mode.PRAESENZ
+    )
+    channel = models.CharField(
+        "Video-Kanal", max_length=20, choices=Channel.choices, blank=True
+    )
     preferred_datetime = models.CharField("Wunschtermin", max_length=100)
     message = models.TextField("Nachricht", blank=True)
     consent = models.BooleanField("Datenschutz-Einwilligung", default=False)

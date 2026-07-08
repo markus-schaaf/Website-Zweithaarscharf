@@ -1,0 +1,158 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}Pr&auml;senz-Beratung buchen &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Vereinbaren Sie Ihren pers&ouml;nlichen, kostenlosen Beratungstermin vor Ort bei Zweithaar Schaaf &ndash; mit Anprobe in diskreter Atmosph&auml;re.{% endblock %}
+{% block body_class %}page-reservation{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Beratungstermin</span>
+    <h1>Pr&auml;senz-Beratung <em>im Studio</em></h1>
+    <p>Pers&ouml;nlich vor Ort, unverbindlich und ganz auf Sie abgestimmt.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="section-heading">
+      <h2>So l&auml;uft Ihre Beratung vor Ort ab</h2>
+      <p>Drei einfache Schritte bis zur Per&uuml;cke, die wirklich zu Ihnen passt.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9h16M8 3v3M16 3v3"/></svg>
+        </div>
+        <h3>1. Termin w&auml;hlen</h3>
+        <p>Sie f&uuml;llen das Formular aus und nennen uns Ihren Wunschtermin sowie das gew&uuml;nschte Beratungsthema.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v11H9l-4 4V5Z"/></svg>
+        </div>
+        <h3>2. Pers&ouml;nliches Gespr&auml;ch</h3>
+        <p>Wir besprechen in Ruhe Ihre W&uuml;nsche &ndash; von Haarfarbe und L&auml;nge bis zu Passform und Budget.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 13c1 1.4 2.2 2 3.5 2s2.5-.6 3.5-2"/><circle cx="9" cy="10" r=".6" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".6" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3>3. Anprobe &amp; Wohlf&uuml;hlen</h3>
+        <p>Sie probieren Modelle direkt an und entscheiden in Ruhe, ohne jede Verpflichtung.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="split split--top">
+      <div>
+        <img class="img-tile" style="--ph-ratio: 400/340;" src="{% static 'images/consultation/consultation-scene.svg' %}" alt="Illustration eines pers&ouml;nlichen Beratungsgespr&auml;chs" loading="lazy">
+        <div class="mt-32">
+          <h2>Gut zu wissen</h2>
+          <ul class="info-list">
+            <li>Dauer: ca. 60 Minuten</li>
+            <li>Kostenlos &amp; unverbindlich</li>
+            <li>Gerne auch mit Begleitung</li>
+            <li>Diskrete, ruhige Atmosph&auml;re</li>
+          </ul>
+          <p class="text-muted">Sie erhalten nach Ihrer Anfrage eine R&uuml;ckmeldung von uns zur Terminbest&auml;tigung. Lieber von zu Hause aus? Dann buchen Sie unsere <a href="{% url 'reservation_digital' %}">digitale Beratung</a>.</p>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>Pr&auml;senz-Termin anfragen</h2>
+        <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir melden uns zeitnah bei Ihnen, um den Termin zu best&auml;tigen.</p>
+
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'reservation_praesenz' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.name.id_for_label }}">Vor- und Nachname *</label>
+              {{ form.name }}
+              {{ form.name.errors }}
+            </div>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
+              {{ form.email }}
+              {{ form.email.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.phone.id_for_label }}">Telefonnummer</label>
+              {{ form.phone }}
+              {{ form.phone.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.topic.id_for_label }}">Art der Beratung *</label>
+              {{ form.topic }}
+              {{ form.topic.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.preferred_datetime.id_for_label }}">Wunschtermin (Datum &amp; Uhrzeit) *</label>
+              {{ form.preferred_datetime }}
+              {{ form.preferred_datetime.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.message.id_for_label }}">Ihre Nachricht / W&uuml;nsche</label>
+              {{ form.message }}
+              {{ form.message.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-checkbox">
+              {{ form.consent }}
+              <label for="{{ form.consent.id_for_label }}" class="label-plain">Ich habe die <a href="{% url 'pages:datenschutz' %}" target="_blank">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *</label>
+            </div>
+            {{ form.consent.errors }}
+          </div>
+          <div class="form-row mb-0">
+            <button type="submit" class="btn btn-gold btn-block">Termin anfragen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/moment.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap-datetimepicker.js' %}"></script>
+  <script>
+    jQuery(function ($) {
+      $('#id_preferred_datetime').datetimepicker({
+        format: 'DD.MM.YYYY, HH:mm',
+        stepping: 15,
+        useCurrent: false
+      });
+    });
+  </script>
+{% endblock %}

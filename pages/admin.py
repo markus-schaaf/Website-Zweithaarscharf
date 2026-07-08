@@ -13,14 +13,16 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.register(AppointmentRequest)
 class AppointmentRequestAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "topic", "preferred_datetime", "created_at", "is_processed")
-    list_filter = ("is_processed", "topic")
+    list_display = ("name", "email", "mode", "topic", "preferred_datetime", "created_at", "is_processed")
+    list_filter = ("is_processed", "mode", "topic")
     search_fields = ("name", "email", "message")
     readonly_fields = (
         "name",
         "email",
         "phone",
         "topic",
+        "mode",
+        "channel",
         "preferred_datetime",
         "message",
         "consent",

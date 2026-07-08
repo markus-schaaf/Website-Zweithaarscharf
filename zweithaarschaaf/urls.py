@@ -22,8 +22,13 @@ from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from pages.views import ContactView, ReservationView
-from shop.views import ProductDetailView, WigsView
+from pages.views import (
+    ContactView,
+    DigitalReservationView,
+    PraesenzReservationView,
+    ReservationView,
+)
+from shop.views import HomeView, ProductDetailView, WigsView
 
 from .sitemaps import SITEMAPS
 
@@ -38,13 +43,7 @@ urlpatterns = [
     path("konto/produkte/", include("shop.manage_urls")),
     path("konto/", include("accounts.urls")),
     path("warenkorb/", include("shop.urls")),
-    path(
-        "",
-        TemplateView.as_view(
-            template_name="tasty/index.html", extra_context={"active": "home"}
-        ),
-        name="home",
-    ),
+    path("", HomeView.as_view(), name="home"),
     path("peruecken/", WigsView.as_view(), name="wigs"),
     path(
         "peruecken/<slug:slug>/",
@@ -66,6 +65,16 @@ urlpatterns = [
         name="gallery",
     ),
     path("beratungstermin/", ReservationView.as_view(), name="reservation"),
+    path(
+        "beratungstermin/praesenz/",
+        PraesenzReservationView.as_view(),
+        name="reservation_praesenz",
+    ),
+    path(
+        "beratungstermin/digital/",
+        DigitalReservationView.as_view(),
+        name="reservation_digital",
+    ),
     path(
         "ueber-uns/",
         TemplateView.as_view(

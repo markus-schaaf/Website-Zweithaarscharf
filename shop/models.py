@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 
 from django.conf import settings
@@ -74,6 +75,63 @@ class Product(models.Model):
     def price_display(self):
         """Ganze Euro mit deutschem Tausenderpunkt, z. B. '1.190'."""
         return f"{int(self.price):,}".replace(",", ".")
+
+    @property
+    def price_int(self):
+        """Ganzzahliger Preis fuer data-price (clientseitige Sortierung)."""
+        return int(self.price)
+
+    # --- Normalisierte Filtergruppen (aus Freitextfeldern abgeleitet) ---
+    # Reihenfolge in COLOR_KEYWORDS ist relevant: braun vor rot, damit
+    # Mischtoene wie "Rotbraun" als braun gruppiert werden.
+    COLOR_KEYWORDS = (
+        ("grau", "grau"),
+        ("silber", "grau"),
+        ("schwarz", "schwarz"),
+        ("blond", "blond"),
+        ("champagner", "blond"),
+        ("braun", "braun"),
+        ("kastanien", "braun"),
+        ("espresso", "braun"),
+        ("karamell", "braun"),
+        ("asch", "braun"),
+        ("kupfer", "rot"),
+        ("mahagoni", "rot"),
+        ("rosegold", "rot"),
+        ("roségold", "rot"),
+        ("rot", "rot"),
+    )
+
+    @property
+    def structure_group(self):
+        s = self.hair_structure.lower()
+        if "lockig" in s:
+            return "lockig"
+        if "gewellt" in s:
+            return "gewellt"
+        if "glatt" in s:
+            return "glatt"
+        return ""
+
+    @property
+    def color_group(self):
+        c = self.hair_color.lower()
+        for keyword, group in self.COLOR_KEYWORDS:
+            if keyword in c:
+                return group
+        return ""
+
+    @property
+    def length_group(self):
+        match = re.search(r"(\d+)", self.hair_length)
+        if not match:
+            return ""
+        cm = int(match.group(1))
+        if cm <= 25:
+            return "kurz"
+        if cm <= 45:
+            return "mittel"
+        return "lang"
 
     @property
     def is_configurable(self):

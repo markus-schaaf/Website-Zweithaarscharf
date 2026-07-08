@@ -15,67 +15,78 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section--tight" data-shop>
   <div class="container">
-    <div class="section-heading section-heading--left mb-40">
-      <h2>Ma&szlig;anfertigung &ndash; konfigurierbare Echthaarper&uuml;cken</h2>
-      <p>Ihre Per&uuml;cke, ganz nach Ihren W&uuml;nschen: L&auml;nge, Farbe, Haardicke und Montur w&auml;hlen Sie selbst. Die angezeigten Preise sind Rohpreise der Grundausf&uuml;hrung &ndash; die Anfertigung erfolgt nach einem pers&ouml;nlichen Beratungstermin.</p>
+    <div class="shop-toolbar">
+      <div class="shop-tabs" role="tablist" aria-label="Produktkategorien">
+        <button type="button" class="pill is-active" data-cat="all" aria-pressed="true">Alle</button>
+        {% for c in shop_categories %}
+          <button type="button" class="pill" data-cat="{{ c.value }}" data-has-attrs="{{ c.has_attrs|yesno:'true,false' }}" aria-pressed="false">{{ c.label }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="shop-filters">
+        {% if shop_colors %}
+          <div class="filter-group" data-filter-group="color">
+            <span class="filter-group__label">Farbe</span>
+            <div class="filter-group__chips">
+              {% for f in shop_colors %}
+                <button type="button" class="pill pill--sm" data-group="color" data-value="{{ f.value }}" aria-pressed="false">{{ f.label }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        {% if shop_lengths %}
+          <div class="filter-group" data-filter-group="length">
+            <span class="filter-group__label">L&auml;nge</span>
+            <div class="filter-group__chips">
+              {% for f in shop_lengths %}
+                <button type="button" class="pill pill--sm" data-group="length" data-value="{{ f.value }}" aria-pressed="false">{{ f.label }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        {% if shop_structures %}
+          <div class="filter-group" data-filter-group="structure">
+            <span class="filter-group__label">Struktur</span>
+            <div class="filter-group__chips">
+              {% for f in shop_structures %}
+                <button type="button" class="pill pill--sm" data-group="structure" data-value="{{ f.value }}" aria-pressed="false">{{ f.label }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        <div class="filter-group" data-filter-group="highlight">
+          <span class="filter-group__label">Highlights</span>
+          <div class="filter-group__chips">
+            <button type="button" class="pill pill--sm" data-group="highlight" data-value="new" aria-pressed="false">Neu</button>
+            <button type="button" class="pill pill--sm" data-group="highlight" data-value="popular" aria-pressed="false">Beliebt</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="shop-toolbar__meta">
+        <span class="shop-count"><span data-shop-count>{{ products|length }}</span> Modelle</span>
+        <button type="button" class="shop-reset is-hidden" data-shop-reset>Filter zur&uuml;cksetzen</button>
+        <div class="field shop-sort">
+          <label for="shop-sort">Sortieren</label>
+          <select id="shop-sort" data-shop-sort>
+            <option value="recommended">Empfohlen</option>
+            <option value="price-asc">Preis aufsteigend</option>
+            <option value="price-desc">Preis absteigend</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-4">
-      {% for p in konfig_products %}
+    <div class="grid grid-4" data-shop-grid>
+      {% for p in products %}
         {% include "tasty/_product_card.html" %}
       {% endfor %}
     </div>
+    <p class="shop-empty is-hidden" data-shop-empty>Keine Produkte f&uuml;r diese Auswahl. Bitte passen Sie die Filter an.</p>
   </div>
 </section>
-
-<section class="section section-alt">
-  <div class="container">
-    <div class="section-heading section-heading--left mb-40">
-      <h2>Sofort verf&uuml;gbar &ndash; Per&uuml;cken im Bestand</h2>
-      <p>Fertig konfigurierte Echthaarper&uuml;cken aus unserem Bestand &ndash; jedes Modell besteht aus 100&nbsp;% sortenreinem Echthaar und ist direkt bestellbar.</p>
-    </div>
-
-    <div class="grid grid-4">
-      {% for p in bestand_products %}
-        {% include "tasty/_product_card.html" %}
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-{% if pflege_products %}
-<section class="section">
-  <div class="container">
-    <div class="section-heading section-heading--left mb-40">
-      <h2>Pflege &amp; Zubeh&ouml;r</h2>
-      <p>Alles f&uuml;r die richtige Pflege Ihres Zweithaars &ndash; von mildem Spezialshampoo bis zum Per&uuml;ckenst&auml;nder.</p>
-    </div>
-    <div class="grid grid-4">
-      {% for p in pflege_products %}
-        {% include "tasty/_product_card.html" %}
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
-
-{% if rohling_products %}
-<section class="section section-alt">
-  <div class="container">
-    <div class="section-heading section-heading--left mb-40">
-      <h2>Rohlinge f&uuml;r Gesch&auml;ftskunden</h2>
-      <p>Exklusiv f&uuml;r B2B-Kunden: unbehandelte Echthaar-Rohlinge in verschiedenen L&auml;ngen und Farben &ndash; f&uuml;r Konfektion und Ma&szlig;anfertigung.</p>
-    </div>
-    <div class="grid grid-4">
-      {% for p in rohling_products %}
-        {% include "tasty/_product_card.html" %}
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
 
 <section class="section">
   <div class="container">
@@ -103,4 +114,8 @@
   </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/shop-filter.js' %}?v=1"></script>
 {% endblock %}

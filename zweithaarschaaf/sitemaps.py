@@ -15,6 +15,8 @@ class StaticViewSitemap(Sitemap):
             "services",
             "gallery",
             "reservation",
+            "reservation_praesenz",
+            "reservation_digital",
             "about",
             "contact",
             "pages:impressum",

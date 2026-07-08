@@ -45,42 +45,17 @@
       <p>Ob Ma&szlig;anfertigung, Modell aus dem Bestand oder Haarteil &ndash; jedes St&uuml;ck wird aus feinstem Echthaar gefertigt und individuell angepasst. Ein kleiner Auszug aus unserem Sortiment:</p>
     </div>
 
-    <div class="grid grid-4">
-      <div class="product-card">
-        <div class="product-card__image">
-          <span class="badge badge-popular">Beliebt</span>
-          <img class="img-tile" src="{% static 'images/wigs/wig-classic.svg' %}" alt="Illustration der Per&uuml;cke Classic &ndash; schulterlanges, glattes Modell" loading="lazy">
+    {% if home_products %}
+      <div class="product-marquee" data-marquee>
+        <div class="product-marquee__track">
+          <div class="product-marquee__group">
+            {% for p in home_products %}
+              {% include "tasty/_product_card.html" %}
+            {% endfor %}
+          </div>
         </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Classic&ldquo;</p>
-        <span class="product-card__price">ab 890,-</span>
-        <p class="product-card__desc">Zeitloses, schulterlanges Modell mit nat&uuml;rlichem Ansatz und glattem Haar.</p>
       </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <span class="badge badge-new">Neu</span>
-          <img class="img-tile" src="{% static 'images/wigs/wig-long-layers.svg' %}" alt="Illustration der Per&uuml;cke Long Layers &ndash; langes, gestuftes Modell" loading="lazy">
-        </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Long Layers&ldquo;</p>
-        <span class="product-card__price">ab 1.190,-</span>
-        <p class="product-card__desc">Volumin&ouml;ses Langhaarmodell mit fein gestuften Str&auml;hnen.</p>
-      </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <img class="img-tile" src="{% static 'images/wigs/wig-curly-volume.svg' %}" alt="Illustration der Ma&szlig;per&uuml;cke Klassik &ndash; individuell konfigurierbar" loading="lazy">
-        </div>
-        <p class="product-card__name">Ma&szlig;per&uuml;cke &bdquo;Klassik&ldquo;</p>
-        <span class="product-card__price">Rohpreis ab 1.290,-</span>
-        <p class="product-card__desc">Individuell konfigurierbare Echthaarper&uuml;cke &ndash; L&auml;nge, Farbe und Montur nach Wunsch.</p>
-      </div>
-      <div class="product-card">
-        <div class="product-card__image">
-          <img class="img-tile" src="{% static 'images/wigs/wig-bob-chic.svg' %}" alt="Illustration der Per&uuml;cke Bob Chic &ndash; kinnlanger, glatter Bob" loading="lazy">
-        </div>
-        <p class="product-card__name">Per&uuml;cke &bdquo;Bob Chic&ldquo;</p>
-        <span class="product-card__price">ab 950,-</span>
-        <p class="product-card__desc">Kinnlanger, glatter Bob mit klarer Kontur.</p>
-      </div>
-    </div>
+    {% endif %}
 
     <div class="text-center mt-48">
       <a href="{% url 'wigs' %}" class="btn btn-outline">Alle Per&uuml;cken ansehen</a>

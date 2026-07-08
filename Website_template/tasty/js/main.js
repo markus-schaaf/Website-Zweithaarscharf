@@ -57,10 +57,10 @@
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') { close(); }
     });
-    // Nur schließen, wenn zur Desktop-Navigation gewechselt wird (66em ~ 1056px);
+    // Nur schließen, wenn zur Desktop-Navigation gewechselt wird (76em ~ 1216px);
     // mobile Browser feuern resize schon beim Ein-/Ausblenden der URL-Leiste
     window.addEventListener('resize', function () {
-      if (window.innerWidth > 1056) { close(); }
+      if (window.innerWidth > 1216) { close(); }
     });
   }
 
@@ -84,13 +84,56 @@
     }
   }
 
+  /* ---------- Produkt-Diashow (Homepage): Endlosschleife, pausiert bei Interaktion ---------- */
+  function initProductMarquee() {
+    var marquee = document.querySelector('[data-marquee]');
+    if (!marquee) { return; }
+    var track = marquee.querySelector('.product-marquee__track');
+    var group = marquee.querySelector('.product-marquee__group');
+    if (!track || !group || group.children.length < 2) { return; }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      marquee.classList.add('is-static');
+      return;
+    }
+
+    // Kartengruppe klonen, bis die Schleife breiter als der Viewport ist
+    // (Klone sind reine Optik: fuer Screenreader und Tastatur ausgeblendet)
+    function addClone() {
+      var clone = group.cloneNode(true);
+      clone.setAttribute('aria-hidden', 'true');
+      clone.querySelectorAll('a, button').forEach(function (el) {
+        el.setAttribute('tabindex', '-1');
+      });
+      track.appendChild(clone);
+    }
+    var safety = 6;
+    while (track.scrollWidth < marquee.offsetWidth * 2 && safety-- > 0) {
+      addClone();
+    }
+    // translateX(-50%) ist nur bei gerader Gruppenanzahl nahtlos
+    if (track.children.length % 2 === 1) { addClone(); }
+
+    // Tempo an die Breite koppeln (~30 px/s), damit es immer langsam schwebt
+    track.style.animationDuration = Math.round(track.scrollWidth / 2 / 30) + 's';
+    marquee.classList.add('is-ready');
+
+    // Touch: Nutzerin uebernimmt die Steuerung, Diashow wird scrollbar
+    marquee.addEventListener('touchstart', function () {
+      marquee.classList.remove('is-ready');
+      marquee.classList.add('is-static');
+    }, { passive: true, once: true });
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       buildOffcanvas();
       initScrollFx();
+      initProductMarquee();
     });
   } else {
     buildOffcanvas();
     initScrollFx();
+    initProductMarquee();
   }
 }());

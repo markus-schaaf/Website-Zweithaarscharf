@@ -51,3 +51,12 @@ class AppointmentForm(HoneypotMixin, forms.ModelForm):
                 }
             ),
         }
+
+
+class DigitalAppointmentForm(AppointmentForm):
+    class Meta(AppointmentForm.Meta):
+        fields = ("name", "email", "phone", "topic", "channel", "preferred_datetime", "message", "consent")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["channel"].required = True

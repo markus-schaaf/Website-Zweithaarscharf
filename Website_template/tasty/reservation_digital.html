@@ -1,0 +1,166 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}Digitale Beratung buchen &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Vereinbaren Sie Ihre kostenlose digitale Beratung per Videoanruf bei Zweithaar Schaaf &ndash; bequem von zu Hause, per WhatsApp oder Zoom.{% endblock %}
+{% block body_class %}page-reservation{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Beratungstermin</span>
+    <h1>Digitale Beratung <em>per Videoanruf</em></h1>
+    <p>Bequem von zu Hause &ndash; pers&ouml;nlich, unverbindlich und diskret.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="section-heading">
+      <h2>So funktioniert Ihre digitale Beratung</h2>
+      <p>Drei einfache Schritte &ndash; ein Smartphone oder Computer mit Kamera gen&uuml;gt.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9h16M8 3v3M16 3v3"/></svg>
+        </div>
+        <h3>1. Termin anfragen</h3>
+        <p>Sie f&uuml;llen das Formular aus und w&auml;hlen Ihren Wunschtermin sowie Ihren bevorzugten Video-Kanal.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v12H4z"/><path d="M8 20h8M12 16v4"/></svg>
+        </div>
+        <h3>2. Best&auml;tigung erhalten</h3>
+        <p>Wir best&auml;tigen Ihren Termin und senden Ihnen den Video-Link bzw. rufen Sie zur vereinbarten Zeit an.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5 21 7v10l-5-3.5"/></svg>
+        </div>
+        <h3>3. Beratung von zu Hause</h3>
+        <p>Wir besprechen Ihre W&uuml;nsche per Videoanruf &ndash; von Haarfarbe und L&auml;nge bis zu Passform und Budget.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="split split--top">
+      <div>
+        <img class="img-tile" style="--ph-ratio: 400/340;" src="{% static 'images/consultation/consultation-scene.svg' %}" alt="Illustration einer Videoberatung" loading="lazy">
+        <div class="mt-32">
+          <h2>Gut zu wissen</h2>
+          <ul class="info-list">
+            <li>Dauer: ca. 30&ndash;45 Minuten</li>
+            <li>Kostenlos &amp; unverbindlich</li>
+            <li>Per WhatsApp-Videoanruf oder Zoom</li>
+            <li>Keine besondere Technik n&ouml;tig &ndash; ein Smartphone gen&uuml;gt</li>
+            <li>Tipp: Tageslicht hilft bei der Farbberatung</li>
+          </ul>
+          <p class="text-muted">Sie erhalten nach Ihrer Anfrage eine R&uuml;ckmeldung von uns zur Terminbest&auml;tigung. Sie m&ouml;chten lieber vorbeikommen? Dann buchen Sie unsere <a href="{% url 'reservation_praesenz' %}">Pr&auml;senz-Beratung</a>.</p>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>Digitale Beratung anfragen</h2>
+        <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir melden uns zeitnah bei Ihnen, um Termin und Video-Link zu best&auml;tigen.</p>
+
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'reservation_digital' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.name.id_for_label }}">Vor- und Nachname *</label>
+              {{ form.name }}
+              {{ form.name.errors }}
+            </div>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
+              {{ form.email }}
+              {{ form.email.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.phone.id_for_label }}">Telefonnummer</label>
+              {{ form.phone }}
+              {{ form.phone.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.topic.id_for_label }}">Art der Beratung *</label>
+              {{ form.topic }}
+              {{ form.topic.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.channel.id_for_label }}">Bevorzugter Video-Kanal *</label>
+              {{ form.channel }}
+              {{ form.channel.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.preferred_datetime.id_for_label }}">Wunschtermin (Datum &amp; Uhrzeit) *</label>
+              {{ form.preferred_datetime }}
+              {{ form.preferred_datetime.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="{{ form.message.id_for_label }}">Ihre Nachricht / W&uuml;nsche</label>
+              {{ form.message }}
+              {{ form.message.errors }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-checkbox">
+              {{ form.consent }}
+              <label for="{{ form.consent.id_for_label }}" class="label-plain">Ich habe die <a href="{% url 'pages:datenschutz' %}" target="_blank">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *</label>
+            </div>
+            {{ form.consent.errors }}
+          </div>
+          <div class="form-row mb-0">
+            <button type="submit" class="btn btn-gold btn-block">Beratung anfragen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/moment.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap-datetimepicker.js' %}"></script>
+  <script>
+    jQuery(function ($) {
+      $('#id_preferred_datetime').datetimepicker({
+        format: 'DD.MM.YYYY, HH:mm',
+        stepping: 15,
+        useCurrent: false
+      });
+    });
+  </script>
+{% endblock %}

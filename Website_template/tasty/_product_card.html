@@ -1,4 +1,4 @@
-{% load static %}<div class="product-card">
+{% load static %}<div class="product-card" data-category="{{ p.category }}" data-color="{{ p.color_group }}" data-length="{{ p.length_group }}" data-structure="{{ p.structure_group }}" data-badge="{{ p.badge }}" data-price="{{ p.price_int }}">
   <a href="{% url 'product_detail' p.slug %}" class="product-card__link">
     <div class="product-card__image">
       {% if p.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}

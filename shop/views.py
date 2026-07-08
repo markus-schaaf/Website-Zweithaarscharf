@@ -2,7 +2,7 @@ import json
 from functools import wraps
 
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Case, IntegerField, Prefetch, Value, When
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView, TemplateView
@@ -61,19 +61,85 @@ def _get_product(data, user):
         return None
 
 
-class WigsView(TemplateView):
-    template_name = "tasty/menu.html"
+class HomeView(TemplateView):
+    template_name = "tasty/index.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         products = Product.objects.visible_for(self.request.user)
+        context["active"] = "home"
+        context["home_products"] = products.exclude(
+            category=Product.Category.ROHLING
+        )[:8]
+        return context
+
+
+class WigsView(TemplateView):
+    template_name = "tasty/menu.html"
+
+    # Kurze Tab-Labels + ob die Kategorie Haar-Filter (Farbe/Laenge/Struktur) hat
+    CATEGORY_TABS = (
+        (Product.Category.KONFIG, "Maßanfertigung", False),
+        (Product.Category.BESTAND, "Im Bestand", True),
+        (Product.Category.PFLEGE, "Pflege & Zubehör", False),
+        (Product.Category.ROHLING, "Rohlinge (B2B)", True),
+    )
+    COLOR_LABELS = (
+        ("blond", "Blond"),
+        ("braun", "Braun"),
+        ("rot", "Rot"),
+        ("grau", "Grau"),
+        ("schwarz", "Schwarz"),
+    )
+    LENGTH_LABELS = (
+        ("kurz", "Kurz (bis 25 cm)"),
+        ("mittel", "Mittel (25–45 cm)"),
+        ("lang", "Lang (ab 45 cm)"),
+    )
+    STRUCTURE_LABELS = (
+        ("glatt", "Glatt"),
+        ("gewellt", "Gewellt"),
+        ("lockig", "Lockig"),
+    )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        products = list(
+            Product.objects.visible_for(self.request.user)
+            .annotate(
+                badge_rank=Case(
+                    When(badge=Product.Badge.POPULAR, then=Value(0)),
+                    When(badge=Product.Badge.NEW, then=Value(1)),
+                    default=Value(2),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("badge_rank", "category", "sort_order", "id")
+        )
+
+        present_categories = {p.category for p in products}
+        categories = [
+            {"value": value, "label": label, "has_attrs": has_attrs}
+            for value, label, has_attrs in self.CATEGORY_TABS
+            if value in present_categories
+        ]
+
+        def _facets(attr, labels):
+            present = {getattr(p, attr) for p in products}
+            return [
+                {"value": value, "label": label}
+                for value, label in labels
+                if value in present
+            ]
+
         context.update(
             {
                 "active": "wigs",
-                "konfig_products": products.filter(category=Product.Category.KONFIG),
-                "bestand_products": products.filter(category=Product.Category.BESTAND),
-                "pflege_products": products.filter(category=Product.Category.PFLEGE),
-                "rohling_products": products.filter(category=Product.Category.ROHLING),
+                "products": products,
+                "shop_categories": categories,
+                "shop_colors": _facets("color_group", self.COLOR_LABELS),
+                "shop_lengths": _facets("length_group", self.LENGTH_LABELS),
+                "shop_structures": _facets("structure_group", self.STRUCTURE_LABELS),
             }
         )
         return context
