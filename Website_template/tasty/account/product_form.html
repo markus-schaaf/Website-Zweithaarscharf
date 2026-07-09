@@ -95,40 +95,38 @@
         <p style="font-size: 0.8125rem; margin: 0 0 16px 0;">F&uuml;r Per&uuml;cken, Haarteile und Rohlinge &ndash; wird auf der Produkt-Detailseite angezeigt. Nicht ben&ouml;tigte Felder einfach leer lassen.</p>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.hair_length.id_for_label }}">Haarl&auml;nge</label>
+            <label for="{{ form.hair_length.id_for_label }}">L&auml;nge</label>
             {{ form.hair_length }}
             {{ form.hair_length.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.hair_color.id_for_label }}">Haarfarbe</label>
+            <label for="{{ form.hair_size.id_for_label }}">Gr&ouml;&szlig;e</label>
+            {{ form.hair_size }}
+            {{ form.hair_size.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.hair_structure.id_for_label }}">Schnitt</label>
+            {{ form.hair_structure }}
+            {{ form.hair_structure.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.hair_color.id_for_label }}">Farbe</label>
             {{ form.hair_color }}
             {{ form.hair_color.errors }}
           </div>
         </div>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.hair_structure.id_for_label }}">Haarstruktur</label>
-            {{ form.hair_structure }}
-            {{ form.hair_structure.errors }}
+            <label for="{{ form.hair_density.id_for_label }}">Dichte</label>
+            {{ form.hair_density }}
+            {{ form.hair_density.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.cap_type.id_for_label }}">Monturart</label>
+            <label for="{{ form.cap_type.id_for_label }}">Montur</label>
             {{ form.cap_type }}
             {{ form.cap_type.errors }}
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="{{ form.hair_origin.id_for_label }}">Haarherkunft</label>
-            {{ form.hair_origin }}
-            {{ form.hair_origin.errors }}
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="{{ form.care_notes.id_for_label }}">Pflegehinweise</label>
-            {{ form.care_notes }}
-            {{ form.care_notes.errors }}
           </div>
         </div>
 

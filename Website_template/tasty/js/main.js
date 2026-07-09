@@ -68,11 +68,23 @@
   function initScrollFx() {
     var header = document.querySelector('.fh5co-nav');
     var topWrap = document.querySelector('.js-top');
+    var toggle = document.querySelector('.js-fh5co-nav-toggle');
+    var announce = document.querySelector('.announce-bar');
+
+    // Banner scrollt im normalen Fluss weg; der fixierte Burger wandert um genau
+    // die weggescrollte Bannerhoehe mit nach oben, damit er auf der Markenzeile bleibt.
+    var barH = announce ? announce.offsetHeight : 0;
+    window.addEventListener('resize', function () {
+      if (announce) { barH = announce.offsetHeight; }
+    });
 
     window.addEventListener('scroll', function () {
       var y = window.scrollY;
       if (topWrap) { topWrap.classList.toggle('active', y > 200); }
       if (header) { header.classList.toggle('scrolled', y > 100); }
+      if (toggle) {
+        toggle.style.transform = 'translateY(-' + Math.min(y, barH) + 'px)';
+      }
     }, { passive: true });
 
     var goTop = document.querySelector('.js-gotop');

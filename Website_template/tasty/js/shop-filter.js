@@ -13,7 +13,7 @@
   var emptyEl = root.querySelector('[data-shop-empty]');
   var resetEl = root.querySelector('[data-shop-reset]');
   var sortEl = root.querySelector('[data-shop-sort]');
-  var hairGroups = ['color', 'length', 'structure'];
+  var hairGroups = ['color', 'length', 'structure', 'size', 'density', 'montur'];
 
   // Ausgangsreihenfolge merken (Sortierung "Empfohlen")
   var initialOrder = cards.slice();
@@ -21,7 +21,10 @@
   var state = {
     cat: 'all',
     sort: 'recommended',
-    filters: { color: new Set(), length: new Set(), structure: new Set(), highlight: new Set() }
+    filters: {
+      color: new Set(), length: new Set(), structure: new Set(),
+      size: new Set(), density: new Set(), montur: new Set(), highlight: new Set()
+    }
   };
 
   function hasActiveFilters() {

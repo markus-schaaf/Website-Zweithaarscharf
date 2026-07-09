@@ -21,6 +21,7 @@ class StaticViewSitemap(Sitemap):
             "contact",
             "pages:impressum",
             "pages:datenschutz",
+            "pages:retoure",
         ]
 
     def location(self, item):

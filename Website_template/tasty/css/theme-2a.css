@@ -290,7 +290,37 @@ p { margin: 0 0 1.25rem 0; }
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
-.shop-tabs .pill { padding: 11px 24px; font-size: 12px; }
+/* Kategorie-Tabs betont: groessere Karten mit Piktogramm ueber dem Label */
+.shop-icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.shop-tabs { gap: 12px; }
+.shop-tabs .pill {
+  flex-direction: column;
+  gap: 8px;
+  min-width: 6.5rem;
+  padding: 15px 18px;
+  border-radius: 14px;
+  border-color: var(--border);
+  font-size: 12.5px;
+  line-height: 1.2;
+  text-align: center;
+}
+.shop-tabs .pill:hover, .shop-tabs .pill.is-active {
+  box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.5);
+}
+.shop-tab__icon {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 40em) {
+  .shop-tabs { gap: 8px; }
+  .shop-tabs .pill { min-width: 4.75rem; padding: 12px 10px; font-size: 11px; }
+  .shop-tab__icon { width: 24px; height: 24px; }
+}
 .shop-filters {
   display: flex;
   flex-wrap: wrap;
@@ -448,9 +478,6 @@ p { margin: 0 0 1.25rem 0; }
 }
 .site-header.scrolled {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-.site-header.scrolled .announce-bar {
-  display: none;
 }
 .site-brand {
   text-align: center;
@@ -618,8 +645,8 @@ p { margin: 0 0 1.25rem 0; }
 }
 .has-dropdown .dropdown li a {
   display: block;
-  padding: 10px 22px;
-  font-size: 14px;
+  padding: 11px 22px;
+  font-size: 15.5px;
   letter-spacing: 0.04em;
   color: var(--text);
   text-transform: none;
@@ -655,9 +682,6 @@ p { margin: 0 0 1.25rem 0; }
   border: 0;
   padding: 0;
   cursor: pointer;
-}
-body:has(.site-header.scrolled) .fh5co-nav-toggle {
-  top: 1.625rem;
 }
 .fh5co-nav-toggle i {
   position: absolute;

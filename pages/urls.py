@@ -7,4 +7,5 @@ app_name = "pages"
 urlpatterns = [
     path("impressum/", views.ImpressumView.as_view(), name="impressum"),
     path("datenschutz/", views.DatenschutzView.as_view(), name="datenschutz"),
+    path("retoure/", views.RetoureView.as_view(), name="retoure"),
 ]

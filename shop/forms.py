@@ -17,18 +17,17 @@ class ProductForm(forms.ModelForm):
             "description",
             "image",
             "hair_length",
-            "hair_color",
+            "hair_size",
             "hair_structure",
+            "hair_color",
+            "hair_density",
             "cap_type",
-            "hair_origin",
-            "care_notes",
             "content_amount",
             "usage_notes",
             "is_active",
             "sort_order",
         )
         widgets = {
-            "care_notes": forms.Textarea(attrs={"rows": 3}),
             "usage_notes": forms.Textarea(attrs={"rows": 3}),
         }
 

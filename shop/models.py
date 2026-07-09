@@ -25,6 +25,8 @@ class Product(models.Model):
         KONFIG = "konfig", "Echthaarperücken konfigurierbar"
         BESTAND = "bestand", "Echthaarperücken im Bestand"
         PFLEGE = "pflege", "Pflegeprodukte"
+        ZUBEHOER = "zubehoer", "Perücken Zubehör"
+        TOPHOLDER = "topholder", "Top Holder"
         ROHLING = "rohling", "Rohlinge (B2B)"
 
     class Audience(models.TextChoices):
@@ -48,10 +50,12 @@ class Product(models.Model):
     image = models.ImageField("Produktbild", upload_to="products/", blank=True)
 
     # Produktattribute fuer die Detailseite (optional, je nach Kategorie relevant)
-    hair_length = models.CharField("Haarlänge", max_length=60, blank=True, default="")
-    hair_color = models.CharField("Haarfarbe", max_length=80, blank=True, default="")
-    hair_structure = models.CharField("Haarstruktur", max_length=60, blank=True, default="")
-    cap_type = models.CharField("Monturart", max_length=80, blank=True, default="")
+    hair_length = models.CharField("Länge", max_length=60, blank=True, default="")
+    hair_size = models.CharField("Größe", max_length=60, blank=True, default="")
+    hair_color = models.CharField("Farbe", max_length=80, blank=True, default="")
+    hair_structure = models.CharField("Schnitt", max_length=60, blank=True, default="")
+    hair_density = models.CharField("Dichte", max_length=60, blank=True, default="")
+    cap_type = models.CharField("Montur", max_length=80, blank=True, default="")
     hair_origin = models.CharField("Haarherkunft", max_length=80, blank=True, default="")
     care_notes = models.TextField("Pflegehinweise", blank=True, default="")
     content_amount = models.CharField("Inhalt / Menge", max_length=40, blank=True, default="")
@@ -102,6 +106,15 @@ class Product(models.Model):
         ("rot", "rot"),
     )
 
+    # Montur-Filtergruppen: Reihenfolge = Priorität (Sondermerkmal vor Tresse).
+    MONTUR_KEYWORDS = (
+        ("vollmontur", "vollmontur"),
+        ("monofilament", "monofilament"),
+        ("film", "film"),
+        ("integration", "integration"),
+        ("tresse", "tresse"),
+    )
+
     @property
     def structure_group(self):
         s = self.hair_structure.lower()
@@ -134,6 +147,37 @@ class Product(models.Model):
         return "lang"
 
     @property
+    def size_group(self):
+        # Nur plausible Kopfumfänge gruppieren; Tressenlängen o. Ä. ignorieren.
+        match = re.search(r"(\d+)", self.hair_size)
+        if not match:
+            return ""
+        cm = int(match.group(1))
+        if cm < 48 or cm > 64:
+            return ""
+        if cm < 54:
+            return "klein"
+        if cm < 56:
+            return "mittel"
+        return "gross"
+
+    @property
+    def density_group(self):
+        d = self.hair_density.lower()
+        for value in ("leicht", "mittel", "voll"):
+            if value in d:
+                return value
+        return ""
+
+    @property
+    def montur_group(self):
+        c = self.cap_type.lower()
+        for keyword, group in self.MONTUR_KEYWORDS:
+            if keyword in c:
+                return group
+        return ""
+
+    @property
     def is_configurable(self):
         """Konfigurierbare Perücken: nur Rohpreis, Kauf nur nach Beratungstermin."""
         return self.category == self.Category.KONFIG
@@ -164,16 +208,21 @@ class Product(models.Model):
     @property
     def detail_attributes(self):
         """(Label, Wert)-Paare fuer die Detailseite — nur befuellte Felder."""
-        if self.category == self.Category.PFLEGE:
+        accessory = {
+            self.Category.PFLEGE,
+            self.Category.ZUBEHOER,
+            self.Category.TOPHOLDER,
+        }
+        if self.category in accessory:
             field_names = ("content_amount", "usage_notes")
         else:
             field_names = (
                 "hair_length",
-                "hair_color",
+                "hair_size",
                 "hair_structure",
+                "hair_color",
+                "hair_density",
                 "cap_type",
-                "hair_origin",
-                "care_notes",
             )
         rows = []
         for field_name in field_names:

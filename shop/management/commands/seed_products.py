@@ -10,15 +10,17 @@ from zweithaarschaaf.demo_products import (
     KONFIG_PRODUCTS,
     PFLEGE_PRODUCTS,
     ROHLING_PRODUCTS,
+    TOPHOLDER_PRODUCTS,
+    ZUBEHOER_PRODUCTS,
 )
 
 ATTRIBUTE_FIELDS = (
     "hair_length",
+    "hair_size",
     "hair_color",
     "hair_structure",
+    "hair_density",
     "cap_type",
-    "hair_origin",
-    "care_notes",
     "content_amount",
     "usage_notes",
 )
@@ -37,6 +39,8 @@ class Command(BaseCommand):
             (Product.Category.KONFIG, KONFIG_PRODUCTS),
             (Product.Category.BESTAND, BESTAND_PRODUCTS),
             (Product.Category.PFLEGE, PFLEGE_PRODUCTS),
+            (Product.Category.ZUBEHOER, ZUBEHOER_PRODUCTS),
+            (Product.Category.TOPHOLDER, TOPHOLDER_PRODUCTS),
             (Product.Category.ROHLING, ROHLING_PRODUCTS),
         ):
             for index, entry in enumerate(products):
@@ -54,12 +58,13 @@ class Command(BaseCommand):
                 }
                 for field in ATTRIBUTE_FIELDS:
                     defaults[field] = entry.get(field, "")
-                product, created = Product.objects.get_or_create(
+                # Demodaten: bestehende Zeilen werden aktualisiert (Werte auffrischen).
+                _, created = Product.objects.update_or_create(
                     slug=slug, defaults=defaults
                 )
                 if created:
                     created_count += 1
-                status = "angelegt" if created else "bereits vorhanden"
+                status = "angelegt" if created else "aktualisiert"
                 self.stdout.write(f"{slug}: {status}")
 
         option_count = 0

@@ -20,6 +20,10 @@ class DatenschutzView(TemplateView):
     template_name = "tasty/legal/datenschutz.html"
 
 
+class RetoureView(TemplateView):
+    template_name = "tasty/retoure.html"
+
+
 def _notify(subject, body):
     """E-Mail an die Geschäftsadresse; Fehler dürfen die Anfrage nicht verwerfen."""
     try:

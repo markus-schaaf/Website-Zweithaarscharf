@@ -1,0 +1,91 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}Retoure &amp; R&uuml;ckgabe &mdash; Zweithaar Schaaf{% endblock %}
+{% block description %}Retoure bei Zweithaar Schaaf &ndash; kostenlose R&uuml;cksendung f&uuml;r Bestands- und Zubeh&ouml;rartikel, so einfach geht der Ablauf.{% endblock %}
+{% block body_class %}page-legal{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Service</span>
+    <h1>Retoure &amp; R&uuml;ckgabe</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container container--prose">
+
+    <p>Ihre Zufriedenheit steht bei uns an erster Stelle. Sollte ein Artikel einmal
+    nicht passen oder gefallen, k&ouml;nnen Sie ihn unkompliziert und in den meisten
+    F&auml;llen kostenlos an uns zur&uuml;cksenden. Auf dieser Seite erfahren Sie, wie
+    das Schritt f&uuml;r Schritt funktioniert.</p>
+
+    <h2>Kostenlose R&uuml;cksendung</h2>
+    <p>Per&uuml;cken aus unserem Bestand, Haarteile sowie Pflege- und Zubeh&ouml;rartikel
+    k&ouml;nnen Sie innerhalb von <strong>14 Tagen</strong> nach Erhalt zur&uuml;ckgeben.
+    Die Kosten der R&uuml;cksendung &uuml;bernehmen wir &ndash; ein Retourenlabel stellen
+    wir Ihnen kostenfrei zur Verf&uuml;gung.</p>
+
+    <h2>Ausnahme: Pers&ouml;nlich angefertigte Per&uuml;cken</h2>
+    <p>Ma&szlig;anfertigungen und individuell f&uuml;r Sie konfigurierte Per&uuml;cken
+    sind von der R&uuml;ckgabe ausgenommen, da sie eigens nach Ihren W&uuml;nschen
+    gefertigt werden und sich nicht weiterverwenden lassen. Diese Per&uuml;cken entstehen
+    ohnehin erst nach einem pers&ouml;nlichen Beratungstermin. Sollte etwas nicht optimal
+    sitzen, k&uuml;mmern wir uns nat&uuml;rlich um die Anpassung &ndash; sprechen Sie uns
+    einfach direkt an.</p>
+
+    <h2>Zustand der Ware</h2>
+    <p>Damit wir einen Artikel zur&uuml;cknehmen k&ouml;nnen, sollte er unbenutzt und im
+    urspr&uuml;nglichen Zustand sein &ndash; mit anh&auml;ngenden Etiketten und
+    m&ouml;glichst in der Originalverpackung. Aus Hygienegr&uuml;nden bitten wir Sie,
+    Per&uuml;cken und Haarteile lediglich kurz anzuprobieren.</p>
+
+    <h2>So funktioniert Ihre Retoure</h2>
+    <ol>
+      <li>Melden Sie Ihre R&uuml;cksendung innerhalb von 14 Tagen per E-Mail an
+      <a href="mailto:info@zweithaarschaaf.de">info@zweithaarschaaf.de</a> &ndash; mit
+      Ihrem Namen und der Bestellnummer.</li>
+      <li>Sie erhalten von uns einen Retourenschein und ein kostenloses Versandlabel
+      per E-Mail.</li>
+      <li>Verpacken Sie den Artikel sicher, am besten im Originalkarton.</li>
+      <li>Senden Sie das Paket mit dem beigelegten Label zur&uuml;ck &ndash; f&uuml;r Sie
+      kostenfrei.</li>
+      <li>Nach Pr&uuml;fung der Ware erstatten wir Ihnen den Betrag innerhalb von
+      14 Tagen.</li>
+    </ol>
+
+    <h2>Erstattung</h2>
+    <p>Die Erstattung erfolgt nach Eingang und Pr&uuml;fung der R&uuml;cksendung
+    &uuml;ber dasselbe Zahlungsmittel, das Sie bei der Bestellung verwendet haben.
+    Bei Fragen zum Stand Ihrer Retoure melden wir uns gerne bei Ihnen.</p>
+
+    <h2>R&uuml;cksendeadresse</h2>
+    {# TODO: Echte R&uuml;cksendeadresse eintragen #}
+    <p>
+      Zweithaar Schaaf<br>
+      [Stra&szlig;e Hausnummer &ndash; TODO]<br>
+      [PLZ Ort &ndash; TODO]
+    </p>
+    <p>Bitte senden Sie Artikel erst nach R&uuml;cksprache und mit dem von uns
+    bereitgestellten Label zur&uuml;ck, damit die R&uuml;cksendung f&uuml;r Sie
+    kostenfrei bleibt und wir Ihr Paket zuordnen k&ouml;nnen.</p>
+
+    <h2>Gesch&auml;ftskunden (B2B)</h2>
+    <p>F&uuml;r Gro&szlig;handels- und B2B-Bestellungen (z.&nbsp;B. Rohlinge) gelten die
+    individuell mit Ihnen vereinbarten Konditionen.</p>
+
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="container">
+    <h2>Fragen zur Retoure?</h2>
+    <p>Wir helfen Ihnen gerne pers&ouml;nlich weiter &ndash; schreiben Sie uns oder
+    nutzen Sie unser Kontaktformular.</p>
+    <a href="{% url 'contact' %}" class="btn btn-gold">Zum Kontakt</a>
+  </div>
+</section>
+
+{% endblock %}

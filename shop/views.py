@@ -81,7 +81,9 @@ class WigsView(TemplateView):
     CATEGORY_TABS = (
         (Product.Category.KONFIG, "Maßanfertigung", False),
         (Product.Category.BESTAND, "Im Bestand", True),
-        (Product.Category.PFLEGE, "Pflege & Zubehör", False),
+        (Product.Category.PFLEGE, "Pflege", False),
+        (Product.Category.ZUBEHOER, "Zubehör", False),
+        (Product.Category.TOPHOLDER, "Top Holder", False),
         (Product.Category.ROHLING, "Rohlinge (B2B)", True),
     )
     COLOR_LABELS = (
@@ -100,6 +102,23 @@ class WigsView(TemplateView):
         ("glatt", "Glatt"),
         ("gewellt", "Gewellt"),
         ("lockig", "Lockig"),
+    )
+    SIZE_LABELS = (
+        ("klein", "Klein (bis 54 cm)"),
+        ("mittel", "Mittel (54–56 cm)"),
+        ("gross", "Groß (ab 56 cm)"),
+    )
+    DENSITY_LABELS = (
+        ("leicht", "Leicht"),
+        ("mittel", "Mittel"),
+        ("voll", "Voll"),
+    )
+    MONTUR_LABELS = (
+        ("tresse", "Tresse"),
+        ("monofilament", "Monofilament"),
+        ("film", "Filmansatz"),
+        ("vollmontur", "Vollmontur"),
+        ("integration", "Integration"),
     )
 
     def get_context_data(self, **kwargs):
@@ -140,6 +159,9 @@ class WigsView(TemplateView):
                 "shop_colors": _facets("color_group", self.COLOR_LABELS),
                 "shop_lengths": _facets("length_group", self.LENGTH_LABELS),
                 "shop_structures": _facets("structure_group", self.STRUCTURE_LABELS),
+                "shop_sizes": _facets("size_group", self.SIZE_LABELS),
+                "shop_densities": _facets("density_group", self.DENSITY_LABELS),
+                "shop_monturs": _facets("montur_group", self.MONTUR_LABELS),
             }
         )
         return context
