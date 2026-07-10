@@ -28,53 +28,33 @@
       <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
     </div>
 
-    <div class="form-card table-scroll">
-      <table class="account-table">
-        <thead>
-          <tr>
-            <th>Bild</th>
-            <th>Name</th>
-            <th>Kategorie</th>
-            <th>Zielgruppe</th>
-            <th>Preis</th>
-            <th>Badge</th>
-            <th>Aktiv</th>
-            <th>Sortierung</th>
-            <th>Aktionen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in produkte %}
-            <tr{% if not p.is_active %} class="is-inactive"{% endif %}>
-              <td class="account-table__thumb">
-                {% if p.image %}
-                  <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
-                {% elif p.placeholder_image %}
-                  <img src="{% static p.placeholder_image %}" alt="Illustration: {{ p.name }}" loading="lazy">
-                {% else %}
-                  <span class="account-table__noimg">&ndash;</span>
-                {% endif %}
-              </td>
-              <td><a href="{% url 'shop_manage:product_edit' p.pk %}">{{ p.name }}</a></td>
-              <td>{{ p.get_category_display }}</td>
-              <td>
-                <span class="role-badge{% if p.audience == 'b2b' %} role-badge--b2b{% endif %}">
-                  {{ p.get_audience_display }}
-                </span>
-              </td>
-              <td>ab {{ p.price_display }},- &euro;</td>
-              <td>{% if p.badge %}{{ p.get_badge_display }}{% else %}&ndash;{% endif %}</td>
-              <td>{% if p.is_active %}Ja{% else %}Nein{% endif %}</td>
-              <td>{{ p.sort_order }}</td>
-              <td>
-                <a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a>
-                &middot;
-                <a href="{% url 'shop_manage:product_3d' p.pk %}">3D</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="manage-grid">
+      {% for p in produkte %}
+        <article class="manage-card{% if not p.is_active %} manage-card--inactive{% endif %}">
+          <a class="manage-card__img" href="{% url 'shop_manage:product_edit' p.pk %}">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+            {% elif p.placeholder_image %}
+              <img src="{% static p.placeholder_image %}" alt="Illustration: {{ p.name }}" loading="lazy">
+            {% endif %}
+            {% if not p.is_active %}<span class="manage-card__status">Inaktiv</span>{% endif %}
+          </a>
+          <div class="manage-card__body">
+            <h3 class="manage-card__name">{{ p.name }}</h3>
+            <p class="manage-card__meta">{{ p.get_category_display }} &middot; ab {{ p.price_display }},- &euro;</p>
+            <p class="manage-card__badges">
+              <span class="role-badge{% if p.audience == 'b2b' %} role-badge--b2b{% endif %}">{{ p.get_audience_display }}</span>
+              {% if p.badge %}<span class="role-badge">{{ p.get_badge_display }}</span>{% endif %}
+              <span class="manage-card__order">Pos. {{ p.sort_order }}</span>
+            </p>
+            <p class="manage-card__actions">
+              <a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a>
+              <a href="{% url 'shop_manage:product_edit' p.pk %}#produktbild">Bild</a>
+              <a href="{% url 'shop_manage:product_3d' p.pk %}">3D</a>
+            </p>
+          </div>
+        </article>
+      {% endfor %}
     </div>
   </div>
 </section>
