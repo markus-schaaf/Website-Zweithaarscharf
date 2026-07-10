@@ -5,10 +5,6 @@
 {% block description %}Zweithaar Schaaf &ndash; Echthaarper&uuml;cken in Premiumqualit&auml;t. Individuelle Beratung, handgefertigte Per&uuml;cken und einf&uuml;hlsamer Service.{% endblock %}
 {% block body_class %}page-home{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/flexslider.css' %}">
-{% endblock %}
-
 {% block content %}
 
 <section class="hero">
@@ -23,9 +19,7 @@
 <section class="section">
   <div class="container">
     <div class="split">
-      <div class="ph-image" style="--ph-ratio: 1;">
-        <span class="ph-image__label">ZWEITHAAR SCHAAF<br>FOTO FOLGT</span>
-      </div>
+      <img class="img-tile" style="--ph-ratio: 1;" src="{% static 'images/ueber-uns.jpg' %}" alt="Blick in unser Studio: handgefertigte Echthaarper&uuml;cke beim Styling" loading="lazy">
       <div>
         <span class="eyebrow">&Uuml;ber uns</span>
         <h2>&Uuml;ber Zweithaar Schaaf</h2>
@@ -84,32 +78,29 @@
       <span class="eyebrow">Warum Zweithaar Schaaf</span>
       <h2>Qualit&auml;t &amp; Handwerk</h2>
     </div>
-    <div id="fh5co-slider-wrwap">
-      <div class="flexslider">
-        <ul class="slides">
-          <li>
-            <div class="slide-inner">
-              <span class="eyebrow">Material</span>
-              <h3>100&nbsp;% Echthaar</h3>
-              <p>Nur sortenreines, sorgf&auml;ltig ausgew&auml;hltes Echthaar sorgt f&uuml;r einen nat&uuml;rlichen Glanz und eine Haptik, die sich wie Ihr eigenes Haar anf&uuml;hlt.</p>
-            </div>
-          </li>
-          <li>
-            <div class="slide-inner">
-              <span class="eyebrow">Service</span>
-              <h3>Individuelle Beratung</h3>
-              <p>In einem pers&ouml;nlichen Termin ermitteln wir gemeinsam Farbe, Struktur und Schnitt &ndash; f&uuml;r ein Ergebnis, das perfekt zu Ihnen passt.</p>
-            </div>
-          </li>
-          <li>
-            <div class="slide-inner">
-              <span class="eyebrow">Nachsorge</span>
-              <h3>Pflege &amp; Service</h3>
-              <p>Auch nach dem Kauf sind wir f&uuml;r Sie da: professionelle Pflege, Anpassungen und Auffrischungen halten Ihre Per&uuml;cke lange sch&ouml;n.</p>
-            </div>
-          </li>
-        </ul>
+    <div class="feature-rotator" data-rotator>
+      <div class="feature-rotator__slide is-active">
+        <div class="slide-inner">
+          <span class="eyebrow">Material</span>
+          <h3>100&nbsp;% Echthaar</h3>
+          <p>Nur sortenreines, sorgf&auml;ltig ausgew&auml;hltes Echthaar sorgt f&uuml;r einen nat&uuml;rlichen Glanz und eine Haptik, die sich wie Ihr eigenes Haar anf&uuml;hlt.</p>
+        </div>
       </div>
+      <div class="feature-rotator__slide">
+        <div class="slide-inner">
+          <span class="eyebrow">Service</span>
+          <h3>Individuelle Beratung</h3>
+          <p>In einem pers&ouml;nlichen Termin ermitteln wir gemeinsam Farbe, Struktur und Schnitt &ndash; f&uuml;r ein Ergebnis, das perfekt zu Ihnen passt.</p>
+        </div>
+      </div>
+      <div class="feature-rotator__slide">
+        <div class="slide-inner">
+          <span class="eyebrow">Nachsorge</span>
+          <h3>Pflege &amp; Service</h3>
+          <p>Auch nach dem Kauf sind wir f&uuml;r Sie da: professionelle Pflege, Anpassungen und Auffrischungen halten Ihre Per&uuml;cke lange sch&ouml;n.</p>
+        </div>
+      </div>
+      <div class="feature-rotator__dots"></div>
     </div>
   </div>
 </section>
@@ -152,15 +143,5 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script src="{% static 'js/jquery.min.js' %}"></script>
-  <script src="{% static 'js/jquery.flexslider-min.js' %}"></script>
-  <script>
-    jQuery(function ($) {
-      $('#fh5co-slider-wrwap .flexslider').flexslider({
-        animation: 'fade',
-        slideshowSpeed: 5000,
-        directionNav: false
-      });
-    });
-  </script>
+  <script src="{% static 'js/feature-rotator.js' %}?v=2"></script>
 {% endblock %}

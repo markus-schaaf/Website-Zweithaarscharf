@@ -13,6 +13,7 @@
   var emptyEl = root.querySelector('[data-shop-empty]');
   var resetEl = root.querySelector('[data-shop-reset]');
   var sortEl = root.querySelector('[data-shop-sort]');
+  var summaryLabel = root.querySelector('[data-filter-summary-label]');
   var hairGroups = ['color', 'length', 'structure', 'size', 'density', 'montur'];
 
   // Ausgangsreihenfolge merken (Sortierung "Empfohlen")
@@ -64,6 +65,22 @@
     ordered.forEach(function (card) { grid.appendChild(card); });
 
     if (countEl) { countEl.textContent = String(visible.length); }
+    if (summaryLabel) {
+      var chipCount = 0;
+      Object.keys(state.filters).forEach(function (g) { chipCount += state.filters[g].size; });
+      summaryLabel.textContent = chipCount ? 'Filter anzeigen (' + chipCount + ')' : 'Filter anzeigen';
+    }
+    // Aktive Filter als Tags neben dem Toggle (auch im eingeklappten Zustand sichtbar)
+    var activeEl = root.querySelector('[data-active-filters]');
+    if (activeEl) {
+      activeEl.innerHTML = '';
+      root.querySelectorAll('[data-group].is-active').forEach(function (activeChip) {
+        var tag = document.createElement('span');
+        tag.className = 'pill--tag';
+        tag.textContent = activeChip.textContent;
+        activeEl.appendChild(tag);
+      });
+    }
     if (emptyEl) { emptyEl.classList.toggle('is-hidden', visible.length > 0); }
     if (resetEl) { resetEl.classList.toggle('is-hidden', !hasActiveFilters()); }
   }

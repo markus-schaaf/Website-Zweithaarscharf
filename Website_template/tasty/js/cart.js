@@ -74,6 +74,11 @@
     document.querySelectorAll('#cart-count, [data-cart-count]').forEach(function (el) {
       el.textContent = count;
     });
+    /* Header-Badge bei 0 ausblenden (nicht den Off-Canvas-Text "Warenkorb (n)") */
+    var n = parseInt(count, 10) || 0;
+    document.querySelectorAll('.nav-cart__badge').forEach(function (el) {
+      el.classList.toggle('nav-cart__badge--empty', n === 0);
+    });
   }
 
   /* ---------- In den Warenkorb ---------- */
@@ -231,7 +236,10 @@
         total += line;
         return (
           '<tr data-product-id="' + p.id + '">' +
-          '<td class="cart-table__name">' + p.name + '</td>' +
+          '<td class="cart-table__img"><a href="' + p.url + '">' +
+          (p.image ? '<img src="' + p.image + '" alt="" loading="lazy">' : '') +
+          '</a></td>' +
+          '<td class="cart-table__name"><a href="' + p.url + '">' + p.name + '</a></td>' +
           '<td data-label="Einzelpreis">ab ' + p.price_display + ',- €</td>' +
           '<td data-label="Menge"><span class="qty-controls">' +
           '<button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">−</button>' +
@@ -247,9 +255,9 @@
       container.innerHTML =
         '<div class="form-card table-scroll">' +
         '<table class="account-table cart-table" id="cart-anon-table">' +
-        '<thead><tr><th>Produkt</th><th>Einzelpreis</th><th>Menge</th><th>Zwischensumme</th><th></th></tr></thead>' +
+        '<thead><tr><th></th><th>Produkt</th><th>Einzelpreis</th><th>Menge</th><th>Zwischensumme</th><th></th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
-        '<tfoot><tr><th colspan="3" style="text-align: right;">Gesamtsumme</th>' +
+        '<tfoot><tr><th colspan="4" style="text-align: right;">Gesamtsumme</th>' +
         '<th id="cart-total">' + euroFormat.format(total) + '</th><th></th></tr></tfoot>' +
         '</table>' +
         '<p class="text-muted" style="margin-top: 20px; margin-bottom: 0;">' +

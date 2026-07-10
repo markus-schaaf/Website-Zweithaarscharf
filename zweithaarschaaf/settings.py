@@ -34,6 +34,10 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+# Im Dev-Modus alle Hosts erlauben (z.B. Zugriff vom Handy im WLAN)
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["*"]
+
 
 # Application definition
 

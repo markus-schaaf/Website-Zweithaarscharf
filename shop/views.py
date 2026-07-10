@@ -4,6 +4,8 @@ from functools import wraps
 from django.db import transaction
 from django.db.models import Case, IntegerField, Prefetch, Value, When
 from django.http import JsonResponse
+from django.templatetags.static import static
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView, TemplateView
 
@@ -215,6 +217,8 @@ def api_products(request):
             "audience": p.audience,
             "price": float(p.price),
             "price_display": p.price_display,
+            "image": p.image.url if p.image else (static(p.placeholder_image) if p.placeholder_image else None),
+            "url": reverse("product_detail", args=[p.slug]),
         }
         for p in _orderable(Product.objects.visible_for(request.user))
     }
