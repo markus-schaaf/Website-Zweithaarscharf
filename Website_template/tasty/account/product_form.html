@@ -83,6 +83,25 @@
             <p class="form-hint">JPG/PNG/WebP &ndash; ohne Bild wird automatisch eine Illustration angezeigt.</p>
           </div>
         </div>
+        {% if form.instance.pk %}
+        <div class="form-row">
+          <div class="field">
+            <label for="extra-images">Weitere Bilder (Galerie)</label>
+            {% if form.instance.images.all %}
+              <div class="extra-images">
+                {% for img in form.instance.images.all %}
+                  <label class="extra-images__item">
+                    <img src="{{ img.image.url }}" alt="" loading="lazy">
+                    <span><input type="checkbox" name="delete_images" value="{{ img.pk }}"> L&ouml;schen</span>
+                  </label>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <input type="file" id="extra-images" name="extra_images" multiple accept="image/*">
+            <p class="form-hint">Mehrfachauswahl m&ouml;glich &ndash; wird als Galerie auf der Produktseite gezeigt.</p>
+          </div>
+        </div>
+        {% endif %}
         <div class="form-row">
           <div class="field">
             <label for="{{ form.description.id_for_label }}">Beschreibung</label>

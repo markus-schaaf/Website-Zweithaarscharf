@@ -7,7 +7,13 @@ from .models import (
     ConfiguratorOption,
     Product,
     Product3DAsset,
+    ProductImage,
 )
+
+
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 0
 
 
 @admin.register(Product)
@@ -17,6 +23,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "label")
     prepopulated_fields = {"slug": ("label",)}
     list_editable = ("is_active", "sort_order")
+    inlines = [ProductImageInline]
 
 
 # Nur zur Fehlersuche — gepflegt wird das 3D-Modell in der eigenen

@@ -132,7 +132,7 @@
       .then(function (resp) {
         localStorage.removeItem(STORAGE_KEY);
         setBadge(resp.count);
-        if (document.getElementById('cart-anon-root') || document.getElementById('cart-table')) {
+        if (document.getElementById('cart-anon-root') || document.getElementById('cart-items')) {
           window.location.reload();
         }
       })
@@ -144,8 +144,8 @@
   /* ---------- Warenkorb-Seite: eingeloggt ---------- */
 
   function bindAuthCartPage() {
-    var table = document.getElementById('cart-table');
-    if (!table) { return; }
+    var list = document.getElementById('cart-items');
+    if (!list) { return; }
 
     function rowQty(row) {
       return parseInt(row.querySelector('.qty-value').textContent, 10) || 0;
@@ -161,15 +161,16 @@
         row.querySelector('.qty-value').textContent = resp.quantity;
         row.querySelector('.js-line-total').textContent = resp.line_total_display;
       }
-      if (!table.querySelector('tbody tr')) {
-        table.closest('.form-card').style.display = 'none';
+      if (!list.querySelector('.cart-item')) {
+        var box = document.getElementById('cart-box');
+        if (box) { box.style.display = 'none'; }
         var empty = document.getElementById('cart-empty');
         if (empty) { empty.style.display = ''; }
       }
     }
 
-    table.addEventListener('click', function (event) {
-      var row = event.target.closest('tr[data-product-id]');
+    list.addEventListener('click', function (event) {
+      var row = event.target.closest('.cart-item[data-product-id]');
       if (!row) { return; }
       var productId = row.dataset.productId;
 
@@ -229,44 +230,49 @@
       }
 
       var total = 0;
-      var rows = ids.map(function (id) {
+      var cards = ids.map(function (id) {
         var p = products[id];
         var qty = cart.items[id];
         var line = p.price * qty;
         total += line;
         return (
-          '<tr data-product-id="' + p.id + '">' +
-          '<td class="cart-table__img"><a href="' + p.url + '">' +
+          '<article class="cart-item" data-product-id="' + p.id + '">' +
+          '<a class="cart-item__img" href="' + p.url + '">' +
           (p.image ? '<img src="' + p.image + '" alt="" loading="lazy">' : '') +
-          '</a></td>' +
-          '<td class="cart-table__name"><a href="' + p.url + '">' + p.name + '</a></td>' +
-          '<td data-label="Einzelpreis">ab ' + p.price_display + ',- €</td>' +
-          '<td data-label="Menge"><span class="qty-controls">' +
+          '</a>' +
+          '<div class="cart-item__info">' +
+          '<a class="cart-item__name" href="' + p.url + '">' + p.name + '</a>' +
+          '<p class="cart-item__meta">Einzelpreis: ab ' + p.price_display + ',- €</p>' +
+          '<span class="qty-controls">' +
           '<button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">−</button>' +
           '<span class="qty-value">' + qty + '</span>' +
           '<button type="button" class="qty-btn js-qty-plus" aria-label="Menge erhöhen">+</button>' +
-          '</span></td>' +
-          '<td data-label="Zwischensumme" class="js-line-total">' + euroFormat.format(line) + '</td>' +
-          '<td class="cart-table__actions"><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>' +
-          '</tr>'
+          '</span></div>' +
+          '<div class="cart-item__side">' +
+          '<span class="cart-item__total js-line-total">' + euroFormat.format(line) + '</span>' +
+          '<a href="#" class="cart-item__remove js-remove">Entfernen</a>' +
+          '</div></article>'
         );
       }).join('');
 
       container.innerHTML =
-        '<div class="form-card table-scroll">' +
-        '<table class="account-table cart-table" id="cart-anon-table">' +
-        '<thead><tr><th></th><th>Produkt</th><th>Einzelpreis</th><th>Menge</th><th>Zwischensumme</th><th></th></tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-        '<tfoot><tr><th colspan="4" style="text-align: right;">Gesamtsumme</th>' +
-        '<th id="cart-total">' + euroFormat.format(total) + '</th><th></th></tr></tfoot>' +
-        '</table>' +
-        '<p class="text-muted" style="margin-top: 20px; margin-bottom: 0;">' +
+        '<div class="cart-layout" id="cart-box">' +
+        '<div class="cart-items" id="cart-items">' + cards + '</div>' +
+        '<aside class="cart-summary">' +
+        '<h2 class="cart-summary__title">Zusammenfassung</h2>' +
+        '<div class="cart-summary__row"><span>Gesamtsumme</span>' +
+        '<strong id="cart-total">' + euroFormat.format(total) + '</strong></div>' +
+        '<p class="cart-summary__hint text-muted">' +
         'Alle Preise sind „ab“-Richtwerte für die Grundausführung – ' +
         'der endgültige Preis wird im Beratungsgespräch festgelegt.</p>' +
-        '</div>';
+        (container.dataset.reservationUrl
+          ? '<a class="btn btn-gold" href="' + container.dataset.reservationUrl + '">Beratungstermin vereinbaren</a>'
+          : '') +
+        '<a class="btn btn-outline" href="' + container.dataset.shopUrl + '">Weiter stöbern</a>' +
+        '</aside></div>';
 
-      container.querySelector('tbody').addEventListener('click', function (event) {
-        var row = event.target.closest('tr[data-product-id]');
+      container.querySelector('.cart-items').addEventListener('click', function (event) {
+        var row = event.target.closest('.cart-item[data-product-id]');
         if (!row) { return; }
         var id = row.dataset.productId;
         var current = readCart();

@@ -51,7 +51,19 @@
           </model-viewer>
           <p class="form-hint" style="text-align: center;">360&deg;-Ansicht: mit Maus oder Finger drehen, Scrollen/Pinch zum Zoomen</p>
         {% elif product.image %}
-          <img class="img-tile" src="{{ product.image.url }}" alt="{{ product.name }}">
+          <img class="img-tile" id="gallery-main" src="{{ product.image.url }}" alt="{{ product.name }}">
+          {% if product.images.all %}
+            <div class="gallery-thumbs" data-gallery-thumbs>
+              <button type="button" class="gallery-thumb is-active" data-full="{{ product.image.url }}">
+                <img src="{{ product.image.url }}" alt="" loading="lazy">
+              </button>
+              {% for extra in product.images.all %}
+                <button type="button" class="gallery-thumb" data-full="{{ extra.image.url }}">
+                  <img src="{{ extra.image.url }}" alt="" loading="lazy">
+                </button>
+              {% endfor %}
+            </div>
+          {% endif %}
         {% elif product.placeholder_image %}
           <img class="img-tile" src="{% static product.placeholder_image %}" alt="Illustration: {{ product.name }}">
         {% else %}
@@ -154,5 +166,22 @@
 {% endif %}
 {% if product.public_3d_asset %}
 <script type="module" src="{% static 'js/vendor/model-viewer.min.js' %}"></script>
+{% endif %}
+{% if product.images.all %}
+<script>
+(function () {
+  var thumbs = document.querySelector('[data-gallery-thumbs]');
+  var main = document.getElementById('gallery-main');
+  if (!thumbs || !main) { return; }
+  thumbs.addEventListener('click', function (event) {
+    var btn = event.target.closest('.gallery-thumb');
+    if (!btn) { return; }
+    main.src = btn.dataset.full;
+    thumbs.querySelectorAll('.gallery-thumb').forEach(function (t) {
+      t.classList.toggle('is-active', t === btn);
+    });
+  });
+}());
+</script>
 {% endif %}
 {% endblock %}

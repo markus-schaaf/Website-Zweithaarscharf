@@ -14,7 +14,13 @@ from .forms import (
     Product3DAssetForm,
     ProductForm,
 )
-from .models import ConfiguratorGroup, ConfiguratorOption, Product, Product3DAsset
+from .models import (
+    ConfiguratorGroup,
+    ConfiguratorOption,
+    Product,
+    Product3DAsset,
+    ProductImage,
+)
 from .tasks import generate_3d_model
 
 User = get_user_model()
@@ -50,6 +56,12 @@ class ProduktBearbeitenView(RoleRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        # Galeriebilder: angehakte loeschen, neue anlegen
+        delete_ids = self.request.POST.getlist("delete_images")
+        if delete_ids:
+            form.instance.images.filter(pk__in=delete_ids).delete()
+        for f in self.request.FILES.getlist("extra_images"):
+            ProductImage.objects.create(product=form.instance, image=f)
         messages.success(self.request, f"Produkt „{form.instance.name}“ wurde gespeichert.")
         return response
 

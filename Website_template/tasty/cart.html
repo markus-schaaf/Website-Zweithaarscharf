@@ -19,56 +19,46 @@
     {% if user.is_authenticated %}
 
       {% if cart_items %}
-        <div class="form-card table-scroll">
-          <table class="account-table cart-table" id="cart-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Produkt</th>
-                <th>Einzelpreis</th>
-                <th>Menge</th>
-                <th>Zwischensumme</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in cart_items %}
-              <tr data-product-id="{{ item.product_id }}">
-                <td class="cart-table__img">
-                  <a href="{% url 'product_detail' item.product.slug %}">
-                    {% if item.product.image %}
-                      <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
-                    {% elif item.product.placeholder_image %}
-                      <img src="{% static item.product.placeholder_image %}" alt="Illustration: {{ item.product.name }}" loading="lazy">
-                    {% endif %}
-                  </a>
-                </td>
-                <td class="cart-table__name"><a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a></td>
-                <td data-label="Einzelpreis">ab {{ item.product.price_display }},- &euro;</td>
-                <td data-label="Menge">
-                  <span class="qty-controls">
-                    <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
-                    <span class="qty-value">{{ item.quantity }}</span>
-                    <button type="button" class="qty-btn js-qty-plus" aria-label="Menge erh&ouml;hen">+</button>
-                  </span>
-                </td>
-                <td data-label="Zwischensumme" class="js-line-total">{{ item.line_total|euro }}</td>
-                <td class="cart-table__actions"><a href="#" class="cart-table__remove js-remove">Entfernen</a></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="4" class="text-right">Gesamtsumme</th>
-                <th id="cart-total">{{ cart.total_price|euro }}</th>
-                <th></th>
-              </tr>
-            </tfoot>
-          </table>
-          <p class="text-muted mt-24 mb-0">
-            Alle Preise sind &bdquo;ab&ldquo;-Richtwerte f&uuml;r die Grundausf&uuml;hrung &ndash;
-            der endg&uuml;ltige Preis wird im Beratungsgespr&auml;ch festgelegt.
-          </p>
+        <div class="cart-layout" id="cart-box">
+          <div class="cart-items" id="cart-items">
+            {% for item in cart_items %}
+            <article class="cart-item" data-product-id="{{ item.product_id }}">
+              <a class="cart-item__img" href="{% url 'product_detail' item.product.slug %}">
+                {% if item.product.image %}
+                  <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+                {% elif item.product.placeholder_image %}
+                  <img src="{% static item.product.placeholder_image %}" alt="Illustration: {{ item.product.name }}" loading="lazy">
+                {% endif %}
+              </a>
+              <div class="cart-item__info">
+                <a class="cart-item__name" href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                <p class="cart-item__meta">Einzelpreis: ab {{ item.product.price_display }},- &euro;</p>
+                <span class="qty-controls">
+                  <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
+                  <span class="qty-value">{{ item.quantity }}</span>
+                  <button type="button" class="qty-btn js-qty-plus" aria-label="Menge erh&ouml;hen">+</button>
+                </span>
+              </div>
+              <div class="cart-item__side">
+                <span class="cart-item__total js-line-total">{{ item.line_total|euro }}</span>
+                <a href="#" class="cart-item__remove js-remove">Entfernen</a>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+          <aside class="cart-summary">
+            <h2 class="cart-summary__title">Zusammenfassung</h2>
+            <div class="cart-summary__row">
+              <span>Gesamtsumme</span>
+              <strong id="cart-total">{{ cart.total_price|euro }}</strong>
+            </div>
+            <p class="cart-summary__hint text-muted">
+              Alle Preise sind &bdquo;ab&ldquo;-Richtwerte f&uuml;r die Grundausf&uuml;hrung &ndash;
+              der endg&uuml;ltige Preis wird im Beratungsgespr&auml;ch festgelegt.
+            </p>
+            <a class="btn btn-gold" href="{% url 'reservation' %}">Beratungstermin vereinbaren</a>
+            <a class="btn btn-outline" href="{% url 'wigs' %}">Weiter st&ouml;bern</a>
+          </aside>
         </div>
         <div class="cart-empty form-card" id="cart-empty" style="display: none;">
           <h2>Ihr Warenkorb ist leer.</h2>
@@ -83,7 +73,7 @@
 
     {% else %}
 
-      <div id="cart-anon-root" data-shop-url="{% url 'wigs' %}">
+      <div id="cart-anon-root" data-shop-url="{% url 'wigs' %}" data-reservation-url="{% url 'reservation' %}">
         <div class="cart-empty form-card">
           <h2>Ihr Warenkorb wird geladen &hellip;</h2>
         </div>

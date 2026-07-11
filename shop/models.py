@@ -232,6 +232,24 @@ class Product(models.Model):
         return rows
 
 
+class ProductImage(models.Model):
+    """Zusätzliches Galeriebild eines Produkts (Hauptbild bleibt Product.image)."""
+
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="images"
+    )
+    image = models.ImageField("Bild", upload_to="products/")
+    sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
+
+    class Meta:
+        verbose_name = "Produktbild"
+        verbose_name_plural = "Produktbilder"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"Bild für {self.product}"
+
+
 class Product3DAsset(models.Model):
     """Generiertes 3D-Modell (GLB) eines Produkts inkl. Quellbildern und Status.
 
