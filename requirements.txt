@@ -5,6 +5,10 @@ sqlparse==0.5.4
 tzdata==2025.2
 whitenoise==6.12.0
 
+# Produktion (Server)
+gunicorn==23.0.0
+psycopg[binary]==3.2.9
+
 # 3D-Produktvorschau (siehe README.md)
 celery~=5.5
 redis~=6.4
