@@ -18,8 +18,8 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "audience", "price", "badge", "is_active", "sort_order")
-    list_filter = ("category", "audience", "is_active", "badge")
+    list_display = ("name", "category", "audience", "price", "stock_mode", "stock_quantity", "is_active", "sort_order")
+    list_filter = ("category", "audience", "stock_mode", "is_active", "badge")
     search_fields = ("name", "label")
     prepopulated_fields = {"slug": ("label",)}
     list_editable = ("is_active", "sort_order")

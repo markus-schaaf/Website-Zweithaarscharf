@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "shop",
     "pages",
     "trainings",
+    "inventory",
 ]
 
 MIDDLEWARE = [

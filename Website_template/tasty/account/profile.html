@@ -42,6 +42,7 @@
         {% endif %}
         {% if user.can_manage_products %}
           <a class="btn btn-gold" href="{% url 'shop_manage:product_list' %}">Produktverwaltung</a>
+          <a class="btn btn-gold" href="{% url 'inventory_manage:home' %}">Warenwirtschaft</a>
         {% endif %}
         {% if user.role == "ADMIN" %}
           <a class="btn btn-gold" href="{% url 'admin:index' %}">Django-Admin</a>

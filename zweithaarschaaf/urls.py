@@ -41,6 +41,7 @@ urlpatterns = [
         name="robots",
     ),
     path("konto/produkte/", include("shop.manage_urls")),
+    path("konto/warenwirtschaft/", include("inventory.manage_urls")),
     path("konto/", include("accounts.urls")),
     path("warenkorb/", include("shop.urls")),
     path("", HomeView.as_view(), name="home"),

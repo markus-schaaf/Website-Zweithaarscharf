@@ -1,0 +1,116 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{% if object %}Bestandsstück bearbeiten{% else %}Wareneingang{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    {% if object %}
+      <h1>Bestandsst&uuml;ck <em>bearbeiten</em></h1>
+      <p>{{ object.inventory_no }} &middot; {{ object.product.name }}</p>
+    {% else %}
+      <h1>Waren<em>eingang</em></h1>
+      <p>Ein neues Einzelst&uuml;ck erfassen.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.product.id_for_label }}">Produkt (Vorlage) *</label>
+            {{ form.product }}{{ form.product.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.inventory_no.id_for_label }}">Inventarnummer *</label>
+            {{ form.inventory_no }}{{ form.inventory_no.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.supplier.id_for_label }}">Lieferant</label>
+            {{ form.supplier }}{{ form.supplier.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.purchase_price.id_for_label }}">Einkaufspreis (&euro;)</label>
+            {{ form.purchase_price }}{{ form.purchase_price.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.received_at.id_for_label }}">Wareneingang</label>
+            {{ form.received_at }}{{ form.received_at.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.current_phase.id_for_label }}">Fertigungsphase</label>
+            {{ form.current_phase }}{{ form.current_phase.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.status.id_for_label }}">Status</label>
+            {{ form.status }}{{ form.status.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.sold_channel.id_for_label }}">Verkaufskanal</label>
+            {{ form.sold_channel }}{{ form.sold_channel.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.reserved_for.id_for_label }}">Reserviert f&uuml;r (Kunde)</label>
+            {{ form.reserved_for }}{{ form.reserved_for.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.reserved_until.id_for_label }}">Reserviert bis</label>
+            {{ form.reserved_until }}{{ form.reserved_until.errors }}
+          </div>
+        </div>
+
+        <div class="form-row mb-0 btn-row">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+
+    {% if object %}
+      <div class="form-card mt-32">
+        <h3>Historie</h3>
+        <table class="manage-table">
+          <thead>
+            <tr><th>Zeitpunkt</th><th>Art</th><th>von</th><th>auf</th><th>durch</th></tr>
+          </thead>
+          <tbody>
+            {% for e in events %}
+              <tr>
+                <td>{{ e.changed_at|date:"d.m.Y H:i" }}</td>
+                <td>{{ e.get_kind_display }}</td>
+                <td>{{ e.from_value|default:"&ndash;" }}</td>
+                <td>{{ e.to_value|default:"&ndash;" }}</td>
+                <td>{{ e.changed_by.email|default:"&ndash;" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">Noch keine &Auml;nderungen protokolliert.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

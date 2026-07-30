@@ -1,0 +1,63 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Warenwirtschaft &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung</span>
+    <h1>Waren<em>wirtschaft</em></h1>
+    <p>Bestand, Lieferanten und Fertigungsphasen pflegen.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--shop">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="btn-row mb-24">
+      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
+      <a class="btn btn-gold" href="{% url 'inventory_manage:supplier_list' %}">Lieferanten</a>
+      <a class="btn btn-gold" href="{% url 'inventory_manage:phase_list' %}">Fertigungsphasen</a>
+      <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
+    </div>
+
+    <div class="manage-grid">
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_verfuegbar }} verf&uuml;gbar</h3>
+          <p class="manage-card__meta">von {{ anzahl_gesamt }} Bestandsst&uuml;cken gesamt</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:stock_create' %}">Wareneingang erfassen</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_lieferanten }} Lieferant(en)</h3>
+          <p class="manage-card__meta">Bezugsquellen verwalten</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:supplier_create' %}">Neuer Lieferant</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_phasen }} Phase(n)</h3>
+          <p class="manage-card__meta">aktive Fertigungsschritte</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:phase_create' %}">Neue Phase</a>
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

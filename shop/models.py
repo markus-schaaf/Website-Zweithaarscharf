@@ -49,6 +49,20 @@ class Product(models.Model):
     description = models.TextField("Beschreibung", blank=True)
     image = models.ImageField("Produktbild", upload_to="products/", blank=True)
 
+    # Bestandsart: Einzelstueck (serialisiert ueber inventory.StockItem)
+    # oder Mengenartikel (Zaehlfeld stock_quantity).
+    class StockMode(models.TextChoices):
+        EINZELSTUECK = "einzelstueck", "Einzelstück"
+        MENGE = "menge", "Mengenartikel"
+
+    stock_mode = models.CharField(
+        "Bestandsart", max_length=12, choices=StockMode.choices,
+        default=StockMode.EINZELSTUECK
+    )
+    stock_quantity = models.PositiveIntegerField(
+        "Bestand (nur Mengenartikel)", default=0
+    )
+
     # Produktattribute fuer die Detailseite (optional, je nach Kategorie relevant)
     hair_length = models.CharField("Länge", max_length=60, blank=True, default="")
     hair_size = models.CharField("Größe", max_length=60, blank=True, default="")
