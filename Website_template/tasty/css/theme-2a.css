@@ -683,6 +683,37 @@ p { margin: 0 0 1.25rem 0; }
 /* Klon-Quelle fuer das Off-Canvas-Menue: im Header selbst unsichtbar */
 .site-header .menu-2 { display: none; }
 
+/* Mobile Schnellzugriff: Konto- und Warenkorb-Icon in der Markenzeile */
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.mobile-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text);
+}
+.mobile-action:hover { color: var(--gold-text); }
+.mobile-action svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mobile-action--cart .nav-cart__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
 /* dropdown */
 /* Pfeil-Indikator: zeigt an, dass ein Menuepunkt Unterseiten hat */
 .site-nav__links > ul > li.has-dropdown > a::after {
@@ -756,7 +787,7 @@ p { margin: 0 0 1.25rem 0; }
 .fh5co-nav-toggle {
   display: none;
   position: fixed;
-  top: 4rem;
+  top: 4.5rem;
   right: var(--container-pad);
   z-index: 2001;
   width: 26px;
@@ -796,7 +827,20 @@ p { margin: 0 0 1.25rem 0; }
    Marke bekommt wieder eine eigene Zeile */
 @media screen and (max-width: 76em) {
   .site-nav { display: none; }
-  .site-brand--mobile { display: block; }
+  .site-brand--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: left;
+    /* Platz rechts fuer den fixierten Burger */
+    padding-right: calc(var(--container-pad) + 2.75rem);
+  }
+  /* Logo schmaler, damit Logo + Icons + Burger nebeneinander passen */
+  .site-brand--mobile > a {
+    font-size: clamp(1.05rem, 0.8rem + 1.4vw, 1.35rem);
+    letter-spacing: 0.1em;
+  }
   .fh5co-nav-toggle { display: block; }
 }
 
@@ -1455,6 +1499,27 @@ button.nav-action:focus {
 .role-badge--admin { border-color: var(--gold); color: var(--gold-text); }
 .role-badge--allpower { border-color: var(--text); color: var(--text); }
 .role-badge--b2b { border-color: var(--gold-dark); color: var(--gold-dark); }
+.status-badge {
+  display: inline-block;
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-badge--active { border-color: var(--gold); color: var(--gold-text); }
+.status-badge--inactive { color: var(--text-secondary); }
+
+/* Nutzerverwaltung: keine Zeilenumbrueche, E-Mail-Spalte darf wachsen */
+.account-table--users th,
+.account-table--users td { white-space: nowrap; }
+.account-table--users .account-table__email { width: 100%; }
+.account-table__actions {
+  display: inline-flex;
+  gap: 14px;
+  white-space: nowrap;
+}
 
 /* ---------- Produktverwaltung: Karten-Grid ---------- */
 .manage-grid {
@@ -1903,6 +1968,42 @@ h1 .badge {
     padding: 0.625rem 0.625rem 0.625rem 0;
   }
   .account-table td { word-break: break-word; }
+
+  /* Nutzerverwaltung: Tabelle als Karten-Stapel */
+  .account-table--users thead { display: none; }
+  .account-table--users tbody { display: block; }
+  .account-table--users tr {
+    display: block;
+    border: 2px solid var(--border);
+    background: var(--white);
+    margin-bottom: 1.75rem;
+  }
+  .account-table--users tr:last-child { margin-bottom: 0; }
+  .account-table--users td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+    white-space: normal;
+    word-break: normal;
+  }
+  .account-table--users tr td:last-child { border-bottom: none; }
+  .account-table--users td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .account-table--users .account-table__email {
+    width: auto;
+    word-break: break-word;
+    text-align: right;
+  }
 
   /* Mengen-Buttons auf Touch-Groesse */
   .qty-btn {

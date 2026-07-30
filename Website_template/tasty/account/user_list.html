@@ -26,35 +26,42 @@
     {% endif %}
 
     <div class="form-card table-scroll">
-      <table class="account-table">
+      <table class="account-table account-table--users">
         <thead>
           <tr>
             <th>E-Mail</th>
             <th>Name</th>
             <th>Rolle</th>
-            <th>Aktiv</th>
-            <th>Registriert am</th>
+            <th>Status</th>
+            <th>Registriert</th>
             {% if user.can_manage_users %}<th>Aktionen</th>{% endif %}
           </tr>
         </thead>
         <tbody>
           {% for b in benutzer %}
             <tr{% if not b.is_active %} class="is-inactive"{% endif %}>
-              <td>{{ b.email }}</td>
-              <td>{{ b.first_name }} {{ b.last_name }}</td>
-              <td>
-                <span class="role-badge{% if b.role == 'ADMIN' %} role-badge--admin{% elif b.role == 'ALL_POWER' %} role-badge--allpower{% endif %}">
+              <td class="account-table__email" data-label="E-Mail">{{ b.email }}</td>
+              <td data-label="Name">{% if b.first_name or b.last_name %}{{ b.first_name }} {{ b.last_name }}{% else %}&ndash;{% endif %}</td>
+              <td data-label="Rolle">
+                <span class="role-badge{% if b.role == 'ADMIN' %} role-badge--admin{% elif b.role == 'ALL_POWER' %} role-badge--allpower{% elif b.role == 'B2B' %} role-badge--b2b{% endif %}">
                   {{ b.get_role_display }}
                 </span>
               </td>
-              <td>{% if b.is_active %}Ja{% else %}Nein{% endif %}</td>
-              <td>{{ b.date_joined|date:"d.m.Y" }}</td>
+              <td data-label="Status">
+                {% if b.is_active %}
+                  <span class="status-badge status-badge--active">Aktiv</span>
+                {% else %}
+                  <span class="status-badge status-badge--inactive">Inaktiv</span>
+                {% endif %}
+              </td>
+              <td data-label="Registriert">{{ b.date_joined|date:"d.m.Y" }}</td>
               {% if user.can_manage_users %}
-                <td>
+                <td data-label="Aktionen">
                   {% if b.pk != user.pk %}
-                    <a href="{% url 'accounts:user_edit' b.pk %}">Bearbeiten</a>
-                    &nbsp;|&nbsp;
-                    <a href="{% url 'accounts:user_delete' b.pk %}">L&ouml;schen</a>
+                    <span class="account-table__actions">
+                      <a href="{% url 'accounts:user_edit' b.pk %}">Bearbeiten</a>
+                      <a href="{% url 'accounts:user_delete' b.pk %}">L&ouml;schen</a>
+                    </span>
                   {% else %}
                     <span class="text-muted">Eigenes Konto</span>
                   {% endif %}
