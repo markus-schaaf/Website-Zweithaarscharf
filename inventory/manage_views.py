@@ -4,13 +4,22 @@ Muster wie shop/manage_views.py (RoleRequiredMixin).
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 
 from accounts.views import RoleRequiredMixin
 
-from .forms import ProductionPhaseForm, StockItemForm, SupplierForm
+from .forms import (
+    GoodsReceiptForm,
+    ProductionPhaseForm,
+    StockItemForm,
+    SupplierForm,
+)
 from .models import ProductionPhase, StockItem, StockItemEvent, Supplier
+from .numbering import build_inventory_no, reserve_numbers
 
 User = get_user_model()
 STAFF_ROLES = (User.Role.ALL_POWER, User.Role.ADMIN)
@@ -48,6 +57,27 @@ class SupplierCreateView(StaffMixin, CreateView):
     form_class = SupplierForm
     template_name = "tasty/account/supplier_form.html"
     success_url = reverse_lazy("inventory_manage:supplier_list")
+
+    def _safe_next(self):
+        target = self.request.POST.get("next") or self.request.GET.get("next", "")
+        if target and url_has_allowed_host_and_scheme(
+            target, allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return target
+        return ""
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["next"] = self._safe_next()
+        return ctx
+
+    def get_success_url(self):
+        target = self._safe_next()
+        if target:
+            trenner = "&" if "?" in target else "?"
+            return f"{target}{trenner}supplier={self.object.pk}"
+        return str(self.success_url)
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -106,23 +136,62 @@ class StockItemListView(StaffMixin, ListView):
     context_object_name = "stuecke"
 
     def get_queryset(self):
-        return (
-            StockItem.objects.select_related("product", "current_phase", "supplier", "reserved_for")
-            .all()
-        )
+        return StockItem.objects.select_related(
+            "product", "current_phase", "supplier", "reserved_for"
+        ).order_by("-created_at", "-id")
 
 
 class StockItemCreateView(StaffMixin, CreateView):
-    form_class = StockItemForm
-    template_name = "tasty/account/stockitem_form.html"
+    """Wareneingang: legt je erfasstem Stueck einen eigenen Datensatz mit
+    automatisch vergebener Produktnummer an.
+    """
+
+    form_class = GoodsReceiptForm
+    template_name = "tasty/account/goodsreceipt_form.html"
     success_url = reverse_lazy("inventory_manage:stock_list")
 
+    def get_initial(self):
+        initial = super().get_initial()
+        supplier_id = self.request.GET.get("supplier")
+        if supplier_id:
+            initial["supplier"] = supplier_id
+        return initial
+
     def form_valid(self, form):
-        response = super().form_valid(form)
+        data = form.cleaned_data
+        supplier = data["supplier"]
+        counters = reserve_numbers(supplier, data["quantity"])
+
+        with transaction.atomic():
+            for counter in counters:
+                stueck = StockItem.objects.create(
+                    inventory_no=build_inventory_no(
+                        supplier, data["color"], data["length"], counter
+                    ),
+                    supplier=supplier,
+                    product_name=data["product_name"],
+                    invoice_no=data["invoice_no"],
+                    purchase_price=data["purchase_price"],
+                    vat_rate=data["vat_rate"],
+                    color=data["color"],
+                    length=data["length"],
+                    size=data["size"],
+                    received_at=data["received_at"],
+                )
+                stueck.log_event(
+                    StockItemEvent.Kind.EINGANG, "", stueck.get_status_display(),
+                    by=self.request.user,
+                    note=f"Wareneingang, Rechnung {stueck.invoice_no}",
+                )
+
         messages.success(
-            self.request, f"Bestandsstück „{form.instance.inventory_no}“ angelegt."
+            self.request,
+            f"{len(counters)} Stück erfasst "
+            f"({build_inventory_no(supplier, data['color'], data['length'], counters[0])}"
+            f" bis {build_inventory_no(supplier, data['color'], data['length'], counters[-1])})."
         )
-        return response
+        # Nicht get_success_url(): es gibt kein einzelnes self.object.
+        return HttpResponseRedirect(str(self.success_url))
 
 
 class StockItemUpdateView(StaffMixin, UpdateView):

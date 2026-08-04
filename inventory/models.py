@@ -2,15 +2,24 @@
 Historie, Bestellungen. Siehe WARENWIRTSCHAFT_PLAN.md.
 """
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 
 
 class Supplier(models.Model):
     name = models.CharField("Name", max_length=120)
+    code = models.CharField(
+        "Kürzel", max_length=4, unique=True,
+        help_text="Zwei bis vier Buchstaben, z. B. EW. Bildet den Anfang der Produktnummer."
+    )
     contact = models.CharField("Ansprechpartner", max_length=200, blank=True)
     email = models.EmailField("E-Mail", blank=True)
     notes = models.TextField("Notizen", blank=True)
+    # Zaehler je Hersteller fuer die Produktnummer. Eigenes Feld statt Parsen
+    # bestehender Nummern, damit die Vergabe unter select_for_update eindeutig ist.
+    next_number = models.PositiveIntegerField("Nächste laufende Nummer", default=1)
 
     class Meta:
         verbose_name = "Lieferant"
@@ -50,19 +59,37 @@ class StockItem(models.Model):
         ONLINE = "online", "Online"
         STUDIO = "studio", "Studio"
 
+    # Als Decimal, nicht als TextChoices: die Auswahl eines DecimalField wird
+    # zu Decimal gecastet und wuerde gegen String-Schluessel nicht validieren.
+    VAT_RATES = [
+        (Decimal("19.00"), "19 %"),
+        (Decimal("7.00"), "7 %"),
+        (Decimal("0.00"), "0 %"),
+    ]
+
+    # Zuordnung zum Shop-Katalog erst, wenn das Stueck online gestellt wird.
     product = models.ForeignKey(
-        "shop.Product", on_delete=models.PROTECT, related_name="stock_items",
-        verbose_name="Produkt (Vorlage)"
+        "shop.Product", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="stock_items", verbose_name="Produkt (Vorlage)"
     )
-    inventory_no = models.CharField("Inventarnummer", max_length=40, unique=True)
+    inventory_no = models.CharField("Produktnummer", max_length=40, unique=True)
     supplier = models.ForeignKey(
         Supplier, null=True, blank=True, on_delete=models.SET_NULL,
-        verbose_name="Lieferant"
+        verbose_name="Hersteller"
     )
+    product_name = models.CharField("Produktname", max_length=120, default="")
+    invoice_no = models.CharField("Rechnungsnummer", max_length=60, default="")
     purchase_price = models.DecimalField(
         "Einkaufspreis", max_digits=8, decimal_places=2, null=True, blank=True
     )
-    received_at = models.DateField("Wareneingang", null=True, blank=True)
+    vat_rate = models.DecimalField(
+        "Mehrwertsteuersatz", max_digits=4, decimal_places=2,
+        choices=VAT_RATES, default=Decimal("19.00")
+    )
+    color = models.CharField("Farbe", max_length=80, default="")
+    length = models.CharField("Länge", max_length=60, default="")
+    size = models.CharField("Größe", max_length=60, default="")
+    received_at = models.DateField("Lieferdatum", null=True, blank=True)
 
     # Dimension 1: kaufmaennischer Verfuegbarkeits-Status
     status = models.CharField(
@@ -93,11 +120,18 @@ class StockItem(models.Model):
         ordering = ["inventory_no"]
 
     def __str__(self):
-        return f"{self.inventory_no} · {self.product.name}"
+        return f"{self.inventory_no} · {self.product_name}"
 
     @property
     def is_available(self):
         return self.status == self.Status.VERFUEGBAR
+
+    @property
+    def vat_amount(self):
+        """Aus EK-Preis und Satz berechnete Mehrwertsteuer (nur Anzeige)."""
+        if self.purchase_price is None:
+            return None
+        return (self.purchase_price * self.vat_rate / 100).quantize(Decimal("0.01"))
 
     def log_event(self, kind, from_value, to_value, by=None, note=""):
         """Historien-Eintrag schreiben (wer/wann)."""
@@ -112,6 +146,7 @@ class StockItemEvent(models.Model):
     """Lueckenlose Historie je Bestandsstueck (Phase- und Statuswechsel)."""
 
     class Kind(models.TextChoices):
+        EINGANG = "eingang", "Wareneingang"
         PHASE = "phase", "Fertigungsphase"
         STATUS = "status", "Status"
 
