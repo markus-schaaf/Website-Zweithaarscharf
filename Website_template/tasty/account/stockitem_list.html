@@ -9,7 +9,7 @@
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
     <h1>Be<em>stand</em></h1>
-    <p>Einzelst&uuml;cke mit Status und Fertigungsphase.</p>
+    <p>Aktueller Warenbestand mit Herkunft, Rechnungsdaten und Fertigungsphase.</p>
   </div>
 </section>
 
@@ -22,33 +22,44 @@
     {% endif %}
 
     <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">Wareneingang erfassen</a>
+      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
       <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
     </div>
 
-    <table class="manage-table">
-      <thead>
-        <tr>
-          <th>Inventarnr.</th><th>Produkt</th><th>Status</th>
-          <th>Phase</th><th>Reserviert f&uuml;r</th><th>Lieferant</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in stuecke %}
+    <div class="form-card table-scroll">
+      <table class="account-table account-table--stock">
+        <thead>
           <tr>
-            <td>{{ s.inventory_no }}</td>
-            <td>{{ s.product.name }}</td>
-            <td>{{ s.get_status_display }}</td>
-            <td>{{ s.current_phase.name|default:"&ndash;" }}</td>
-            <td>{{ s.reserved_for.email|default:"&ndash;" }}</td>
-            <td>{{ s.supplier.name|default:"&ndash;" }}</td>
-            <td><a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a></td>
+            <th>Produktnr.</th><th>Hersteller</th><th>Produktname</th>
+            <th>Farbe</th><th>L&auml;nge</th><th>Gr&ouml;&szlig;e</th>
+            <th>EK</th><th>MwSt</th><th>Rechnungsnr.</th><th>Lieferdatum</th>
+            <th>Status</th><th>Phase</th><th>Erfasst am</th><th>Aktionen</th>
           </tr>
-        {% empty %}
-          <tr><td colspan="7">Noch keine Bestandsst&uuml;cke erfasst.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for s in stuecke %}
+            <tr>
+              <td data-label="Produktnr.">{{ s.inventory_no }}</td>
+              <td data-label="Hersteller">{{ s.supplier.name|default:"&ndash;" }}</td>
+              <td data-label="Produktname">{{ s.product_name|default:"&ndash;" }}</td>
+              <td data-label="Farbe">{{ s.color|default:"&ndash;" }}</td>
+              <td data-label="L&auml;nge">{{ s.length|default:"&ndash;" }}</td>
+              <td data-label="Gr&ouml;&szlig;e">{{ s.size|default:"&ndash;" }}</td>
+              <td data-label="EK">{{ s.purchase_price|default:"&ndash;" }}</td>
+              <td data-label="MwSt">{{ s.get_vat_rate_display }}</td>
+              <td data-label="Rechnungsnr.">{{ s.invoice_no|default:"&ndash;" }}</td>
+              <td data-label="Lieferdatum">{{ s.received_at|date:"d.m.Y"|default:"&ndash;" }}</td>
+              <td data-label="Status">{{ s.get_status_display }}</td>
+              <td data-label="Phase">{{ s.current_phase.name|default:"&ndash;" }}</td>
+              <td data-label="Erfasst am">{{ s.created_at|date:"d.m.Y" }}</td>
+              <td data-label="Aktionen"><a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="14">Noch kein Warenbestand erfasst.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 

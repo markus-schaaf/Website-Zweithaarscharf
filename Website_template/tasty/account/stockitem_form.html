@@ -1,6 +1,6 @@
 {% extends "tasty/_base.html" %}
 
-{% block title %}{% if object %}Bestandsstück bearbeiten{% else %}Wareneingang{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block title %}Bestandsst&uuml;ck bearbeiten &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
@@ -8,13 +8,8 @@
 <section class="hero hero--plain">
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
-    {% if object %}
-      <h1>Bestandsst&uuml;ck <em>bearbeiten</em></h1>
-      <p>{{ object.inventory_no }} &middot; {{ object.product.name }}</p>
-    {% else %}
-      <h1>Waren<em>eingang</em></h1>
-      <p>Ein neues Einzelst&uuml;ck erfassen.</p>
-    {% endif %}
+    <h1>Bestandsst&uuml;ck <em>bearbeiten</em></h1>
+    <p>{{ object.inventory_no }} &middot; {{ object.product_name }}</p>
   </div>
 </section>
 
@@ -27,30 +22,63 @@
 
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.product.id_for_label }}">Produkt (Vorlage) *</label>
-            {{ form.product }}{{ form.product.errors }}
+            <label>Produktnummer</label>
+            <p class="form-hint">{{ object.inventory_no }} (automatisch vergeben, nicht &auml;nderbar)</p>
           </div>
           <div class="field">
-            <label for="{{ form.inventory_no.id_for_label }}">Inventarnummer *</label>
-            {{ form.inventory_no }}{{ form.inventory_no.errors }}
-          </div>
-        </div>
-
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.supplier.id_for_label }}">Lieferant</label>
+            <label for="{{ form.supplier.id_for_label }}">Hersteller</label>
             {{ form.supplier }}{{ form.supplier.errors }}
           </div>
+        </div>
+
+        <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.purchase_price.id_for_label }}">Einkaufspreis (&euro;)</label>
-            {{ form.purchase_price }}{{ form.purchase_price.errors }}
+            <label for="{{ form.product_name.id_for_label }}">Produktname</label>
+            {{ form.product_name }}{{ form.product_name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.invoice_no.id_for_label }}">Rechnungsnummer</label>
+            {{ form.invoice_no }}{{ form.invoice_no.errors }}
           </div>
         </div>
 
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.received_at.id_for_label }}">Wareneingang</label>
+            <label for="{{ form.purchase_price.id_for_label }}">EK-Preis (&euro;)</label>
+            {{ form.purchase_price }}{{ form.purchase_price.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.vat_rate.id_for_label }}">Bezahlte Mehrwertsteuer</label>
+            {{ form.vat_rate }}{{ form.vat_rate.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.color.id_for_label }}">Farbe</label>
+            {{ form.color }}{{ form.color.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.length.id_for_label }}">L&auml;nge</label>
+            {{ form.length }}{{ form.length.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e</label>
+            {{ form.size }}{{ form.size.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.received_at.id_for_label }}">Lieferdatum</label>
             {{ form.received_at }}{{ form.received_at.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.product.id_for_label }}">Shop-Produkt (Vorlage)</label>
+            {{ form.product }}{{ form.product.errors }}
           </div>
           <div class="field">
             <label for="{{ form.current_phase.id_for_label }}">Fertigungsphase</label>
@@ -90,24 +118,26 @@
     {% if object %}
       <div class="form-card mt-32">
         <h3>Historie</h3>
-        <table class="manage-table">
-          <thead>
-            <tr><th>Zeitpunkt</th><th>Art</th><th>von</th><th>auf</th><th>durch</th></tr>
-          </thead>
-          <tbody>
-            {% for e in events %}
-              <tr>
-                <td>{{ e.changed_at|date:"d.m.Y H:i" }}</td>
-                <td>{{ e.get_kind_display }}</td>
-                <td>{{ e.from_value|default:"&ndash;" }}</td>
-                <td>{{ e.to_value|default:"&ndash;" }}</td>
-                <td>{{ e.changed_by.email|default:"&ndash;" }}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="5">Noch keine &Auml;nderungen protokolliert.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="account-table">
+            <thead>
+              <tr><th>Zeitpunkt</th><th>Art</th><th>von</th><th>auf</th><th>durch</th></tr>
+            </thead>
+            <tbody>
+              {% for e in events %}
+                <tr>
+                  <td data-label="Zeitpunkt">{{ e.changed_at|date:"d.m.Y H:i" }}</td>
+                  <td data-label="Art">{{ e.get_kind_display }}</td>
+                  <td data-label="von">{{ e.from_value|default:"&ndash;" }}</td>
+                  <td data-label="auf">{{ e.to_value|default:"&ndash;" }}</td>
+                  <td data-label="durch">{{ e.changed_by.email|default:"&ndash;" }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5">Noch keine &Auml;nderungen protokolliert.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     {% endif %}
   </div>

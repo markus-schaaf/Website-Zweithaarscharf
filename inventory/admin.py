@@ -12,8 +12,8 @@ from .models import (
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ("name", "contact", "email")
-    search_fields = ("name", "contact", "email")
+    list_display = ("name", "code", "next_number", "contact", "email")
+    search_fields = ("name", "code", "contact", "email")
 
 
 @admin.register(ProductionPhase)
@@ -39,14 +39,20 @@ class StockItemEventInline(admin.TabularInline):
 @admin.register(StockItem)
 class StockItemAdmin(admin.ModelAdmin):
     list_display = (
-        "inventory_no", "product", "status", "current_phase",
-        "reserved_for", "supplier",
+        "inventory_no", "product_name", "supplier", "invoice_no",
+        "status", "current_phase", "reserved_for",
     )
-    list_filter = ("status", "current_phase", "supplier", "product__stock_mode")
-    search_fields = ("inventory_no", "product__name")
+    list_filter = ("status", "supplier", "current_phase", "product__stock_mode")
+    search_fields = ("inventory_no", "product_name", "invoice_no", "product__name")
     autocomplete_fields = ("product", "reserved_for")
     readonly_fields = ("created_at", "updated_at")
     inlines = [StockItemEventInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        """Eine einmal vergebene Produktnummer bleibt unveraendert."""
+        if obj:
+            return self.readonly_fields + ("inventory_no",)
+        return self.readonly_fields
 
     def save_model(self, request, obj, form, change):
         """Status- und Phasenwechsel automatisch in die Historie schreiben."""

@@ -18,10 +18,16 @@
       <form method="post" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
-        <div class="form-row">
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.name.id_for_label }}">Name *</label>
             {{ form.name }}{{ form.name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.code.id_for_label }}">K&uuml;rzel *</label>
+            {{ form.code }}{{ form.code.errors }}
+            <p class="form-hint">Zwei bis vier Buchstaben, bildet den Anfang der Produktnummer.</p>
           </div>
         </div>
         <div class="form-row form-row--2">
@@ -42,7 +48,7 @@
         </div>
         <div class="form-row mb-0 btn-row">
           <button type="submit" class="btn btn-gold">Speichern</button>
-          <a class="btn" href="{% url 'inventory_manage:supplier_list' %}">Abbrechen</a>
+          <a class="btn" href="{% if next %}{{ next }}{% else %}{% url 'inventory_manage:supplier_list' %}{% endif %}">Abbrechen</a>
         </div>
       </form>
     </div>
