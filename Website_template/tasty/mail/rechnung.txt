@@ -1,0 +1,18 @@
+Verkauf {{ order.pk }} vom {{ order.sold_on|date:"d.m.Y" }} ({{ order.get_channel_display }})
+
+Rechnungsanschrift
+{% for zeile in order.billing_lines %}{{ zeile }}
+{% endfor %}
+Positionen
+{% for pos in order.items.all %}- {{ pos.description }}
+  Produktnummer: {{ pos.stock_item.inventory_no|default:"-" }}
+  Menge: {{ pos.quantity }}
+  Einzelpreis: {{ pos.price }} EUR
+  Mehrwertsteuersatz: {{ pos.stock_item.vat_rate|default:"-" }} %
+{% endfor %}
+Summe: {{ order.total }} EUR
+{% if order.note %}
+Notiz
+{{ order.note }}
+{% endif %}
+Diese Nachricht wurde automatisch beim Buchen des Verkaufs erzeugt.

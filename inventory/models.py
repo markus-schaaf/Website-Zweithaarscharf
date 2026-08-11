@@ -187,10 +187,24 @@ class Order(models.Model):
         FAILED = "failed", "Fehlgeschlagen"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL,
-        verbose_name="Kunde"
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="Kunde (Konto)"
     )
+    # Laufkundschaft im Studio hat kein Konto - dann werden diese Felder gefuellt.
+    customer_name = models.CharField("Name", max_length=120, blank=True)
+    customer_street = models.CharField("Straße und Hausnummer", max_length=120, blank=True)
+    customer_zip = models.CharField("PLZ", max_length=10, blank=True)
+    customer_city = models.CharField("Ort", max_length=80, blank=True)
+    customer_email = models.EmailField("E-Mail", blank=True)
+
+    channel = models.CharField(
+        "Verkaufskanal", max_length=10, choices=StockItem.Channel.choices,
+        default=StockItem.Channel.STUDIO
+    )
+    note = models.TextField("Notiz für die Rechnung", blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+    sold_on = models.DateField("Verkaufsdatum", null=True, blank=True)
     status = models.CharField(
         "Status", max_length=12, choices=Status.choices, default=Status.AUFGENOMMEN
     )
@@ -211,6 +225,36 @@ class Order(models.Model):
     def __str__(self):
         return f"Bestellung #{self.pk}"
 
+    @property
+    def customer_display(self):
+        """Name der Kundin, egal ob Konto oder Freitext."""
+        if self.user:
+            voll = f"{self.user.first_name} {self.user.last_name}".strip()
+            return self.user.company_name or voll or self.user.email
+        return self.customer_name
+
+    @property
+    def billing_lines(self):
+        """Rechnungsanschrift als Zeilenliste - eine Quelle für Mail und Anzeige."""
+        if self.user:
+            zeilen = [
+                self.customer_display,
+                self.user.street,
+                f"{self.user.zip_code} {self.user.city}".strip(),
+                self.user.email,
+                self.user.phone,
+            ]
+            if self.user.vat_id:
+                zeilen.append(f"USt-IdNr.: {self.user.vat_id}")
+        else:
+            zeilen = [
+                self.customer_name,
+                self.customer_street,
+                f"{self.customer_zip} {self.customer_city}".strip(),
+                self.customer_email,
+            ]
+        return [z for z in zeilen if z]
+
 
 class OrderItem(models.Model):
     """Position einer Bestellung. Einzelstueck ueber stock_item,
@@ -218,11 +262,17 @@ class OrderItem(models.Model):
     """
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey("shop.Product", on_delete=models.PROTECT, verbose_name="Produkt")
+    # Optional: ein noch nicht online gestelltes Stueck hat kein Shop-Produkt.
+    product = models.ForeignKey(
+        "shop.Product", null=True, blank=True, on_delete=models.PROTECT,
+        verbose_name="Produkt"
+    )
     stock_item = models.ForeignKey(
         StockItem, null=True, blank=True, on_delete=models.PROTECT,
         verbose_name="Bestandsstück (Einzelstück)"
     )
+    # Momentaufnahme: spaetere Umbenennungen duerfen alte Rechnungen nicht aendern.
+    description = models.CharField("Bezeichnung", max_length=160, default="")
     quantity = models.PositiveIntegerField("Menge", default=1)
     price = models.DecimalField("Verkaufspreis", max_digits=8, decimal_places=2)
 
@@ -231,4 +281,4 @@ class OrderItem(models.Model):
         verbose_name_plural = "Bestellpositionen"
 
     def __str__(self):
-        return f"{self.quantity}x {self.product.name}"
+        return f"{self.quantity}x {self.description}"

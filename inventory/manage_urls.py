@@ -22,4 +22,9 @@ urlpatterns = [
     path("bestand/neu/", manage_views.StockItemCreateView.as_view(), name="stock_create"),
     path("bestand/<int:pk>/bearbeiten/", manage_views.StockItemUpdateView.as_view(), name="stock_edit"),
     path("bestand/<int:pk>/onlinestellen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
+    path("bestand/<int:pk>/verkaufen/", manage_views.StockItemSellView.as_view(), name="stock_sell"),
+
+    # Verkäufe
+    path("verkaeufe/", manage_views.OrderListView.as_view(), name="order_list"),
+    path("verkaeufe/<int:pk>/erneut-senden/", manage_views.OrderResendView.as_view(), name="order_resend"),
 ]

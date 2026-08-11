@@ -57,6 +57,9 @@
                 <span class="account-table__actions">
                   <a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a>
                   <a href="{% url 'inventory_manage:stock_publish' s.pk %}">{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}</a>
+                  {% if s.status == "verfuegbar" or s.status == "reserviert" %}
+                    <a href="{% url 'inventory_manage:stock_sell' s.pk %}">Verkauf buchen</a>
+                  {% endif %}
                 </span>
               </td>
             </tr>
