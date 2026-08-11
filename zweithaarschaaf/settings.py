@@ -213,10 +213,10 @@ EMAIL_PORT = int(os.environ.get("DJANGO_EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("DJANGO_EMAIL_USE_TLS", "1") == "1"
-DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "info@zweithaarschaaf.de")
+DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "info@feinhaarmaedchen.de")
 
 # Empfängeradresse für Kontakt- und Terminanfragen
-CONTACT_RECIPIENT_EMAIL = os.environ.get("ZS_CONTACT_EMAIL", "info@zweithaarschaaf.de")
+CONTACT_RECIPIENT_EMAIL = os.environ.get("ZS_CONTACT_EMAIL", "info@feinhaarmaedchen.de")
 
 # Empfängeradresse für die Rechnungsdaten je Verkauf (Kollege schreibt die
 # Rechnung). Ohne eigene Angabe geht die Mail an die Kontaktadresse.

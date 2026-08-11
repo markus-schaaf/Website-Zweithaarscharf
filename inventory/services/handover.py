@@ -10,7 +10,18 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
+from ..models import InvoiceRecipient
+
 logger = logging.getLogger(__name__)
+
+
+def invoice_recipients():
+    """Aktive Empfaenger aus der Verwaltung.
+
+    Faellt auf die Servereinstellung zurueck, wenn keiner aktiv ist - so geht
+    eine Rechnungsmail nie ins Leere.
+    """
+    return InvoiceRecipient.active_addresses() or [settings.INVOICE_RECIPIENT_EMAIL]
 
 
 def send_invoice_mail(order):
@@ -25,7 +36,7 @@ def send_invoice_mail(order):
             f"Rechnungsdaten Verkauf {order.pk} ({order.customer_display})",
             body,
             settings.DEFAULT_FROM_EMAIL,
-            [settings.INVOICE_RECIPIENT_EMAIL],
+            invoice_recipients(),
             fail_silently=False,
         )
     except Exception:

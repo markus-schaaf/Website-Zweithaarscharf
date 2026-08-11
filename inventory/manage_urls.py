@@ -12,6 +12,11 @@ urlpatterns = [
     path("lieferanten/neu/", manage_views.SupplierCreateView.as_view(), name="supplier_create"),
     path("lieferanten/<int:pk>/bearbeiten/", manage_views.SupplierUpdateView.as_view(), name="supplier_edit"),
 
+    # Rechnungsempfänger
+    path("empfaenger/", manage_views.RecipientListView.as_view(), name="recipient_list"),
+    path("empfaenger/neu/", manage_views.RecipientCreateView.as_view(), name="recipient_create"),
+    path("empfaenger/<int:pk>/bearbeiten/", manage_views.RecipientUpdateView.as_view(), name="recipient_edit"),
+
     # Fertigungsphasen
     path("phasen/", manage_views.PhaseListView.as_view(), name="phase_list"),
     path("phasen/neu/", manage_views.PhaseCreateView.as_view(), name="phase_create"),

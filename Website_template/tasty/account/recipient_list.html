@@ -1,0 +1,65 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Rechnungsempf&auml;nger &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Rechnungs<em>empf&auml;nger</em></h1>
+    <p>An diese Adressen gehen die Rechnungsdaten nach jedem gebuchten Verkauf.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--shop">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if fallback %}
+      <div class="form-errors mb-24">
+        Zurzeit ist kein Empf&auml;nger aktiv. Die Rechnungsdaten gehen ersatzweise
+        an <strong>{{ fallback }}</strong> aus den Servereinstellungen.
+      </div>
+    {% endif %}
+
+    <div class="btn-row mb-24">
+      <a class="btn btn-gold" href="{% url 'inventory_manage:recipient_create' %}">Neuer Empf&auml;nger</a>
+      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    </div>
+
+    <div class="form-card table-scroll">
+      <table class="account-table">
+        <thead>
+          <tr><th>E-Mail</th><th>Name</th><th>Notiz</th><th>Status</th><th>Aktionen</th></tr>
+        </thead>
+        <tbody>
+          {% for e in empfaenger %}
+            <tr{% if not e.is_active %} class="is-inactive"{% endif %}>
+              <td data-label="E-Mail">{{ e.email }}</td>
+              <td data-label="Name">{{ e.name|default:"&ndash;" }}</td>
+              <td data-label="Notiz">{{ e.note|default:"&ndash;" }}</td>
+              <td data-label="Status">
+                {% if e.is_active %}
+                  <span class="status-badge status-badge--active">Aktiv</span>
+                {% else %}
+                  <span class="status-badge status-badge--inactive">Inaktiv</span>
+                {% endif %}
+              </td>
+              <td data-label="Aktionen"><a href="{% url 'inventory_manage:recipient_edit' e.pk %}">Bearbeiten</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Noch keine Empf&auml;nger angelegt.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

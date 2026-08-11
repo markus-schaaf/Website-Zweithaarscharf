@@ -25,6 +25,7 @@ from shop.models import Product
 
 from .forms import (
     GoodsReceiptForm,
+    InvoiceRecipientForm,
     ProductionPhaseForm,
     StockItemForm,
     StockItemPublishForm,
@@ -32,6 +33,7 @@ from .forms import (
     SupplierForm,
 )
 from .models import (
+    InvoiceRecipient,
     Order,
     OrderItem,
     ProductionPhase,
@@ -40,7 +42,7 @@ from .models import (
     Supplier,
 )
 from .numbering import build_inventory_no, reserve_numbers
-from .services.handover import send_invoice_mail
+from .services.handover import invoice_recipients, send_invoice_mail
 
 User = get_user_model()
 STAFF_ROLES = (User.Role.ALL_POWER, User.Role.ADMIN)
@@ -115,6 +117,46 @@ class SupplierUpdateView(StaffMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, f"Lieferant „{form.instance.name}“ gespeichert.")
+        return response
+
+
+# --- Rechnungsempfänger ----------------------------------------------------
+
+class RecipientListView(StaffMixin, ListView):
+    model = InvoiceRecipient
+    template_name = "tasty/account/recipient_list.html"
+    context_object_name = "empfaenger"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Ohne aktive Empfänger greift der Rückfall aus den Einstellungen.
+        ctx["fallback"] = (
+            settings.INVOICE_RECIPIENT_EMAIL
+            if not InvoiceRecipient.active_addresses() else ""
+        )
+        return ctx
+
+
+class RecipientCreateView(StaffMixin, CreateView):
+    form_class = InvoiceRecipientForm
+    template_name = "tasty/account/recipient_form.html"
+    success_url = reverse_lazy("inventory_manage:recipient_list")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Empfänger „{form.instance.email}“ gespeichert.")
+        return response
+
+
+class RecipientUpdateView(StaffMixin, UpdateView):
+    model = InvoiceRecipient
+    form_class = InvoiceRecipientForm
+    template_name = "tasty/account/recipient_form.html"
+    success_url = reverse_lazy("inventory_manage:recipient_list")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Empfänger „{form.instance.email}“ gespeichert.")
         return response
 
 
@@ -346,7 +388,7 @@ class StockItemSellView(StaffMixin, FormView):
             messages.success(
                 self.request,
                 f"Verkauf gebucht. Die Rechnungsdaten gingen an "
-                f"{settings.INVOICE_RECIPIENT_EMAIL}."
+                f"{', '.join(invoice_recipients())}."
             )
         else:
             messages.warning(

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase
@@ -7,7 +8,13 @@ from django.urls import reverse
 
 from shop.models import Cart, CartItem, Product
 
-from .models import Order, StockItem, StockItemEvent, Supplier
+from .models import (
+    InvoiceRecipient,
+    Order,
+    StockItem,
+    StockItemEvent,
+    Supplier,
+)
 from .numbering import build_inventory_no, reserve_numbers
 
 User = get_user_model()
@@ -312,6 +319,71 @@ class SellViewTest(StaffViewMixin, TestCase):
     def test_b2c_bekommt_403(self):
         self.client.force_login(self.kunde)
         self.assertEqual(self.client.get(self._url()).status_code, 403)
+
+
+class InvoiceRecipientTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.produkt = make_product("zu-verkaufen", track_stock=True)
+        self.stueck = make_stock_item(self.lieferant, self.produkt)
+
+    def _verkaufen(self):
+        return self.client.post(
+            reverse("inventory_manage:stock_sell", args=[self.stueck.pk]),
+            {
+                "user": "",
+                "customer_name": "Erika Musterfrau",
+                "customer_street": "Hauptstr. 1",
+                "customer_zip": "56766",
+                "customer_city": "Ulmen",
+                "customer_email": "erika@example.com",
+                "price": "890",
+                "sold_on": "2026-08-11",
+                "channel": StockItem.Channel.STUDIO,
+                "note": "",
+            },
+        )
+
+    def test_mail_geht_an_alle_aktiven_empfaenger(self):
+        InvoiceRecipient.objects.create(email="kollege@example.com")
+        InvoiceRecipient.objects.create(email="zweitkollege@example.com")
+        InvoiceRecipient.objects.create(email="ehemalig@example.com", is_active=False)
+
+        self._verkaufen()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertCountEqual(
+            mail.outbox[0].to, ["kollege@example.com", "zweitkollege@example.com"]
+        )
+
+    def test_ohne_aktive_empfaenger_greift_die_einstellung(self):
+        InvoiceRecipient.objects.create(email="ehemalig@example.com", is_active=False)
+        self._verkaufen()
+        self.assertEqual(mail.outbox[0].to, [settings.INVOICE_RECIPIENT_EMAIL])
+
+    def test_verwaltung_weist_auf_den_rueckfall_hin(self):
+        response = self.client.get(reverse("inventory_manage:recipient_list"))
+        self.assertEqual(response.context["fallback"], settings.INVOICE_RECIPIENT_EMAIL)
+
+        InvoiceRecipient.objects.create(email="kollege@example.com")
+        response = self.client.get(reverse("inventory_manage:recipient_list"))
+        self.assertEqual(response.context["fallback"], "")
+
+    def test_empfaenger_anlegen(self):
+        response = self.client.post(
+            reverse("inventory_manage:recipient_create"),
+            {"email": "neu@example.com", "name": "Buchhaltung", "note": "",
+             "is_active": "on"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            InvoiceRecipient.active_addresses(), ["neu@example.com"]
+        )
+
+    def test_b2c_bekommt_403(self):
+        self.client.force_login(self.kunde)
+        self.assertEqual(
+            self.client.get(reverse("inventory_manage:recipient_list")).status_code, 403
+        )
 
 
 class PublishViewTest(StaffViewMixin, TestCase):

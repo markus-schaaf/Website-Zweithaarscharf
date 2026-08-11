@@ -1,0 +1,59 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{% if object %}Empfänger bearbeiten{% else %}Neuer Empfänger{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    {% if object %}<h1>Empf&auml;nger <em>bearbeiten</em></h1>{% else %}<h1>Neuer <em>Empf&auml;nger</em></h1>{% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
+            {{ form.email }}{{ form.email.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">Name</label>
+            {{ form.name }}{{ form.name.errors }}
+            <p class="form-hint">Nur zur Orientierung in dieser Liste.</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.note.id_for_label }}">Notiz</label>
+            {{ form.note }}{{ form.note.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-checkbox">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" class="label-plain">
+              Aktiv (nur aktive Empf&auml;nger bekommen die Rechnungsdaten)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row mb-0 btn-row">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'inventory_manage:recipient_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
