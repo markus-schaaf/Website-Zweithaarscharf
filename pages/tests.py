@@ -83,8 +83,8 @@ class AppointmentFormTest(TestCase):
         return data
 
     def test_valid_post_saves_and_sends_mail(self):
-        response = self.client.post(reverse("reservation"), self._data())
-        self.assertRedirects(response, reverse("reservation"))
+        response = self.client.post(reverse("reservation_praesenz"), self._data())
+        self.assertRedirects(response, reverse("reservation_praesenz"))
         self.assertEqual(AppointmentRequest.objects.count(), 1)
         request_obj = AppointmentRequest.objects.get()
         self.assertTrue(request_obj.consent)
@@ -93,7 +93,7 @@ class AppointmentFormTest(TestCase):
     def test_missing_consent_is_rejected(self):
         data = self._data()
         del data["consent"]
-        response = self.client.post(reverse("reservation"), data)
+        response = self.client.post(reverse("reservation_praesenz"), data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(AppointmentRequest.objects.count(), 0)
         self.assertIn("consent", response.context["form"].errors)

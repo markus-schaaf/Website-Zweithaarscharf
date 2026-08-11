@@ -2,14 +2,23 @@
 Muster wie shop/manage_views.py (RoleRequiredMixin).
 """
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.generic import CreateView, FormView, ListView, TemplateView, UpdateView
+from django.views.generic import (
+    CreateView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+    View,
+)
 
 from accounts.views import RoleRequiredMixin
 from shop.models import Product
@@ -19,10 +28,19 @@ from .forms import (
     ProductionPhaseForm,
     StockItemForm,
     StockItemPublishForm,
+    StockItemSellForm,
     SupplierForm,
 )
-from .models import ProductionPhase, StockItem, StockItemEvent, Supplier
+from .models import (
+    Order,
+    OrderItem,
+    ProductionPhase,
+    StockItem,
+    StockItemEvent,
+    Supplier,
+)
 from .numbering import build_inventory_no, reserve_numbers
+from .services.handover import send_invoice_mail
 
 User = get_user_model()
 STAFF_ROLES = (User.Role.ALL_POWER, User.Role.ADMIN)
@@ -255,6 +273,109 @@ class StockItemPublishView(StaffMixin, FormView):
             f"„{produkt.name}“ verknüpft."
         )
         return HttpResponseRedirect(str(self.success_url))
+
+
+class StockItemSellView(StaffMixin, FormView):
+    """Verkauf buchen: Bestellung anlegen, Stueck als verkauft markieren und
+    die Rechnungsdaten an den Kollegen schicken.
+    """
+
+    form_class = StockItemSellForm
+    template_name = "tasty/account/stockitem_sell.html"
+    success_url = reverse_lazy("inventory_manage:stock_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        return {
+            "price": self.stueck.product.price if self.stueck.product else None,
+            "sold_on": timezone.localdate(),
+            "channel": StockItem.Channel.STUDIO,
+        }
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["stueck"] = self.stueck
+        return ctx
+
+    def form_valid(self, form):
+        daten = form.cleaned_data
+        bezeichnung = (
+            self.stueck.product.name if self.stueck.product
+            else self.stueck.product_name
+        )
+
+        with transaction.atomic():
+            bestellung = Order.objects.create(
+                user=daten.get("user"),
+                customer_name=daten["customer_name"],
+                customer_street=daten["customer_street"],
+                customer_zip=daten["customer_zip"],
+                customer_city=daten["customer_city"],
+                customer_email=daten["customer_email"],
+                channel=daten["channel"],
+                note=daten["note"],
+                sold_on=daten["sold_on"],
+                total=daten["price"],
+            )
+            OrderItem.objects.create(
+                order=bestellung,
+                product=self.stueck.product,
+                stock_item=self.stueck,
+                description=bezeichnung,
+                quantity=1,
+                price=daten["price"],
+            )
+            alt = self.stueck.get_status_display()
+            self.stueck.status = StockItem.Status.VERKAUFT
+            self.stueck.sold_at = timezone.now()
+            self.stueck.sold_channel = daten["channel"]
+            self.stueck.save(
+                update_fields=["status", "sold_at", "sold_channel", "updated_at"]
+            )
+            self.stueck.log_event(
+                StockItemEvent.Kind.STATUS, alt, self.stueck.get_status_display(),
+                by=self.request.user,
+                note=f"Verkauf gebucht (Bestellung {bestellung.pk})",
+            )
+
+        # Nach dem Commit: ein Mailfehler darf den Verkauf nicht zurueckrollen.
+        if send_invoice_mail(bestellung):
+            messages.success(
+                self.request,
+                f"Verkauf gebucht. Die Rechnungsdaten gingen an "
+                f"{settings.INVOICE_RECIPIENT_EMAIL}."
+            )
+        else:
+            messages.warning(
+                self.request,
+                "Verkauf gebucht, aber die Rechnungsmail konnte nicht versendet "
+                "werden. Unter „Verkäufe“ lässt sie sich erneut senden."
+            )
+        return HttpResponseRedirect(str(self.success_url))
+
+
+class OrderListView(StaffMixin, ListView):
+    """Schlanke Übersicht: zeigt vor allem, ob die Rechnungsmail rausging."""
+
+    model = Order
+    template_name = "tasty/account/order_list.html"
+    context_object_name = "verkaeufe"
+
+    def get_queryset(self):
+        return Order.objects.select_related("user").prefetch_related("items")
+
+
+class OrderResendView(StaffMixin, View):
+    def post(self, request, pk):
+        bestellung = get_object_or_404(Order, pk=pk)
+        if send_invoice_mail(bestellung):
+            messages.success(request, f"Rechnungsmail zu Verkauf {pk} erneut gesendet.")
+        else:
+            messages.error(request, f"Versand zu Verkauf {pk} erneut fehlgeschlagen.")
+        return HttpResponseRedirect(reverse("inventory_manage:order_list"))
 
 
 class StockItemUpdateView(StaffMixin, UpdateView):

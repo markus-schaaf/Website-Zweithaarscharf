@@ -1,0 +1,99 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Verkauf buchen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Verkauf <em>buchen</em></h1>
+    <p>{{ stueck.inventory_no }} &middot; {{ stueck.product_name }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.user.id_for_label }}">Kundenkonto</label>
+            {{ form.user }}{{ form.user.errors }}
+            <p class="form-hint">Bei Auswahl werden Name und Anschrift aus dem Konto &uuml;bernommen. Die Felder unten bleiben dann leer.</p>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.customer_name.id_for_label }}">Name</label>
+            {{ form.customer_name }}{{ form.customer_name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.customer_email.id_for_label }}">E-Mail</label>
+            {{ form.customer_email }}{{ form.customer_email.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.customer_street.id_for_label }}">Stra&szlig;e und Hausnummer</label>
+            {{ form.customer_street }}{{ form.customer_street.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.customer_zip.id_for_label }}">PLZ</label>
+            {{ form.customer_zip }}{{ form.customer_zip.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.customer_city.id_for_label }}">Ort</label>
+            {{ form.customer_city }}{{ form.customer_city.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.price.id_for_label }}">Verkaufspreis (&euro;) *</label>
+            {{ form.price }}{{ form.price.errors }}
+            <p class="form-hint">EK war {{ stueck.purchase_price }} &euro;.</p>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.sold_on.id_for_label }}">Verkaufsdatum *</label>
+            {{ form.sold_on }}{{ form.sold_on.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.channel.id_for_label }}">Verkaufskanal *</label>
+            {{ form.channel }}{{ form.channel.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.note.id_for_label }}">Notiz f&uuml;r die Rechnung</label>
+            {{ form.note }}{{ form.note.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <p class="form-hint">
+            Nach dem Speichern gehen die Rechnungsdaten automatisch per E-Mail raus,
+            und das St&uuml;ck verschwindet sofort aus dem Onlineshop.
+          </p>
+        </div>
+
+        <div class="form-row mb-0 btn-row">
+          <button type="submit" class="btn btn-gold">Verkauf buchen</button>
+          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
