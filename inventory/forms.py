@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import ProductionPhase, StockItem, Supplier
+from .models import InvoiceRecipient, ProductionPhase, StockItem, Supplier
 
 # <input type="date"> bzw. datetime-local akzeptieren nur ISO. Ohne festes
 # format rendert Django den deutschen Wert, den der Browser verwirft - das Feld
@@ -21,6 +21,12 @@ class SupplierForm(forms.ModelForm):
 
     def clean_code(self):
         return self.cleaned_data["code"].strip().upper()
+
+
+class InvoiceRecipientForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceRecipient
+        fields = ("email", "name", "note", "is_active")
 
 
 class ProductionPhaseForm(forms.ModelForm):

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    InvoiceRecipient,
     Order,
     OrderItem,
     ProductionPhase,
@@ -14,6 +15,13 @@ from .models import (
 class SupplierAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "next_number", "contact", "email")
     search_fields = ("name", "code", "contact", "email")
+
+
+@admin.register(InvoiceRecipient)
+class InvoiceRecipientAdmin(admin.ModelAdmin):
+    list_display = ("email", "name", "is_active", "note")
+    list_filter = ("is_active",)
+    search_fields = ("email", "name")
 
 
 @admin.register(ProductionPhase)

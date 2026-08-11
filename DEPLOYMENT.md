@@ -213,7 +213,7 @@ Inhalt (Werte anpassen — SECRET_KEY neu erzeugen, siehe unten):
 ```
 DJANGO_SECRET_KEY=LANGER-ZUFALLSSTRING
 DJANGO_DEBUG=0
-DJANGO_ALLOWED_HOSTS=www.zweithaarschaaf.de,zweithaarschaaf.de
+DJANGO_ALLOWED_HOSTS=www.feinhaarmaedchen.de,feinhaarmaedchen.de
 
 DJANGO_DB_NAME=zweithaar
 DJANGO_DB_USER=zweithaar
@@ -223,11 +223,11 @@ DJANGO_DB_PORT=5432
 
 DJANGO_EMAIL_HOST=smtp.strato.de
 DJANGO_EMAIL_PORT=587
-DJANGO_EMAIL_HOST_USER=info@zweithaarschaaf.de
+DJANGO_EMAIL_HOST_USER=noreply@feinhaarmaedchen.de
 DJANGO_EMAIL_HOST_PASSWORD=DEIN-MAIL-PASSWORT
 DJANGO_EMAIL_USE_TLS=1
-DJANGO_DEFAULT_FROM_EMAIL=info@zweithaarschaaf.de
-ZS_CONTACT_EMAIL=info@zweithaarschaaf.de
+DJANGO_DEFAULT_FROM_EMAIL=noreply@feinhaarmaedchen.de
+ZS_CONTACT_EMAIL=info@feinhaarmaedchen.de
 
 # 3D-Vorschau in Produktion: echter Hintergrund-Worker
 CELERY_TASK_ALWAYS_EAGER=0
@@ -374,7 +374,7 @@ sudo nano /etc/nginx/sites-available/zweithaar
 ```nginx
 server {
     listen 80;
-    server_name www.zweithaarschaaf.de zweithaarschaaf.de;
+    server_name www.feinhaarmaedchen.de feinhaarmaedchen.de;
 
     client_max_body_size 25M;   # Foto-Uploads für die 3D-Vorschau
 
@@ -415,7 +415,7 @@ sudo systemctl restart nginx
 
 ```
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d zweithaarschaaf.de -d www.zweithaarschaaf.de
+sudo certbot --nginx -d feinhaarmaedchen.de -d www.feinhaarmaedchen.de
 ```
 
 Certbot passt die Nginx-Config automatisch an und richtet die Auto-Verlängerung
@@ -426,7 +426,7 @@ ein. Ab jetzt greifen auch die HTTPS-Sicherheitseinstellungen aus deiner
 
 ## Phase 7 — Strato-Domain auf den Server zeigen
 
-Im **STRATO-Login → Domainverwaltung → zweithaarschaaf.de → DNS-Einstellungen**:
+Im **STRATO-Login → Domainverwaltung → feinhaarmaedchen.de → DNS-Einstellungen**:
 
 | Typ | Name | Wert |
 |-----|------|------|
@@ -434,7 +434,7 @@ Im **STRATO-Login → Domainverwaltung → zweithaarschaaf.de → DNS-Einstellun
 | A | `www` | DEINE-SERVER-IP |
 
 Speichern. Die Umstellung (DNS-Propagation) kann einige Minuten bis Stunden
-dauern. Prüfen mit `ping zweithaarschaaf.de` — sobald deine Server-IP erscheint,
+dauern. Prüfen mit `ping feinhaarmaedchen.de` — sobald deine Server-IP erscheint,
 ist es aktiv, und du kannst Phase 6 (TLS) ausführen.
 
 ---

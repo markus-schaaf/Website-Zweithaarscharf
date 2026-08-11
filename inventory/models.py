@@ -30,6 +30,30 @@ class Supplier(models.Model):
         return self.name
 
 
+class InvoiceRecipient(models.Model):
+    """Empfänger der Rechnungsdaten je Verkauf, auf der Website pflegbar."""
+
+    email = models.EmailField("E-Mail-Adresse", unique=True)
+    name = models.CharField("Name", max_length=120, blank=True)
+    note = models.CharField("Notiz", max_length=200, blank=True)
+    is_active = models.BooleanField("Aktiv", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Rechnungsempfänger"
+        verbose_name_plural = "Rechnungsempfänger"
+        ordering = ["name", "email"]
+
+    def __str__(self):
+        return f"{self.name} <{self.email}>" if self.name else self.email
+
+    @classmethod
+    def active_addresses(cls):
+        return list(
+            cls.objects.filter(is_active=True).values_list("email", flat=True)
+        )
+
+
 class ProductionPhase(models.Model):
     """Katalog der Fertigungsschritte, im Admin pflegbar."""
 
