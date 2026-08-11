@@ -1521,6 +1521,13 @@ button.nav-action:focus {
   white-space: nowrap;
 }
 
+/* Bestandsliste: viele Spalten, daher kein Umbruch - der .table-scroll-Wrapper
+   scrollt stattdessen waagerecht. Ziffern in gleicher Breite, damit
+   Produktnummern und Preise untereinander stehen. */
+.account-table--stock th,
+.account-table--stock td { white-space: nowrap; }
+.account-table--stock td { font-variant-numeric: tabular-nums; }
+
 /* ---------- Produktverwaltung: Karten-Grid ---------- */
 .manage-grid {
   display: grid;
@@ -1969,17 +1976,22 @@ h1 .badge {
   }
   .account-table td { word-break: break-word; }
 
-  /* Nutzerverwaltung: Tabelle als Karten-Stapel */
-  .account-table--users thead { display: none; }
-  .account-table--users tbody { display: block; }
-  .account-table--users tr {
+  /* Nutzerverwaltung und Bestand: Tabelle als Karten-Stapel */
+  .account-table--users thead,
+  .account-table--stock thead { display: none; }
+  .account-table--users tbody,
+  .account-table--stock tbody { display: block; }
+  .account-table--users tr,
+  .account-table--stock tr {
     display: block;
     border: 2px solid var(--border);
     background: var(--white);
     margin-bottom: 1.75rem;
   }
-  .account-table--users tr:last-child { margin-bottom: 0; }
-  .account-table--users td {
+  .account-table--users tr:last-child,
+  .account-table--stock tr:last-child { margin-bottom: 0; }
+  .account-table--users td,
+  .account-table--stock td {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1989,8 +2001,10 @@ h1 .badge {
     white-space: normal;
     word-break: normal;
   }
-  .account-table--users tr td:last-child { border-bottom: none; }
-  .account-table--users td::before {
+  .account-table--users tr td:last-child,
+  .account-table--stock tr td:last-child { border-bottom: none; }
+  .account-table--users td::before,
+  .account-table--stock td::before {
     content: attr(data-label);
     flex-shrink: 0;
     font-size: 0.7rem;

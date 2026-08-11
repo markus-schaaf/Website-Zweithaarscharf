@@ -2,6 +2,14 @@ from django import forms
 
 from .models import ProductionPhase, StockItem, Supplier
 
+# <input type="date"> bzw. datetime-local akzeptieren nur ISO. Ohne festes
+# format rendert Django den deutschen Wert, den der Browser verwirft - das Feld
+# waere beim Bearbeiten leer und der Wert ginge beim Speichern verloren.
+DATE_WIDGET = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+DATETIME_WIDGET = forms.DateTimeInput(
+    attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+)
+
 
 class SupplierForm(forms.ModelForm):
     class Meta:
@@ -42,7 +50,7 @@ class GoodsReceiptForm(forms.ModelForm):
             "received_at",
         )
         widgets = {
-            "received_at": forms.DateInput(attrs={"type": "date"}),
+            "received_at": DATE_WIDGET,
         }
 
     def __init__(self, *args, **kwargs):
@@ -73,6 +81,6 @@ class StockItemForm(forms.ModelForm):
             "sold_channel",
         )
         widgets = {
-            "received_at": forms.DateInput(attrs={"type": "date"}),
-            "reserved_until": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "received_at": DATE_WIDGET,
+            "reserved_until": DATETIME_WIDGET,
         }

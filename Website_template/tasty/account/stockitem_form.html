@@ -118,24 +118,26 @@
     {% if object %}
       <div class="form-card mt-32">
         <h3>Historie</h3>
-        <table class="manage-table">
-          <thead>
-            <tr><th>Zeitpunkt</th><th>Art</th><th>von</th><th>auf</th><th>durch</th></tr>
-          </thead>
-          <tbody>
-            {% for e in events %}
-              <tr>
-                <td>{{ e.changed_at|date:"d.m.Y H:i" }}</td>
-                <td>{{ e.get_kind_display }}</td>
-                <td>{{ e.from_value|default:"&ndash;" }}</td>
-                <td>{{ e.to_value|default:"&ndash;" }}</td>
-                <td>{{ e.changed_by.email|default:"&ndash;" }}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="5">Noch keine &Auml;nderungen protokolliert.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="account-table">
+            <thead>
+              <tr><th>Zeitpunkt</th><th>Art</th><th>von</th><th>auf</th><th>durch</th></tr>
+            </thead>
+            <tbody>
+              {% for e in events %}
+                <tr>
+                  <td data-label="Zeitpunkt">{{ e.changed_at|date:"d.m.Y H:i" }}</td>
+                  <td data-label="Art">{{ e.get_kind_display }}</td>
+                  <td data-label="von">{{ e.from_value|default:"&ndash;" }}</td>
+                  <td data-label="auf">{{ e.to_value|default:"&ndash;" }}</td>
+                  <td data-label="durch">{{ e.changed_by.email|default:"&ndash;" }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5">Noch keine &Auml;nderungen protokolliert.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     {% endif %}
   </div>
