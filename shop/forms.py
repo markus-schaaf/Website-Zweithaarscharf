@@ -1,5 +1,4 @@
 from django import forms
-from django.utils.text import slugify
 
 from .models import ConfiguratorGroup, ConfiguratorOption, Product, Product3DAsset
 
@@ -24,6 +23,9 @@ class ProductForm(forms.ModelForm):
             "cap_type",
             "content_amount",
             "usage_notes",
+            "track_stock",
+            "stock_mode",
+            "stock_quantity",
             "is_active",
             "sort_order",
         )
@@ -33,15 +35,7 @@ class ProductForm(forms.ModelForm):
 
     def save(self, commit=True):
         product = super().save(commit=False)
-        if not product.slug:
-            # Slug nur beim Anlegen erzeugen (Schema wie seed_products),
-            # Kollisionen bekommen ein -2/-3-Suffix
-            base = slugify(f"{product.category}-{product.label}")[:70]
-            slug, i = base, 2
-            while Product.objects.filter(slug=slug).exclude(pk=product.pk).exists():
-                slug = f"{base}-{i}"
-                i += 1
-            product.slug = slug
+        product.ensure_slug()
         if commit:
             product.save()
         return product

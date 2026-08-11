@@ -42,16 +42,27 @@ def _parse_json(request):
         return None
 
 
-def _clamp_qty(value):
+def _clamp_qty(value, limit=MAX_QTY):
     try:
-        return max(1, min(int(value), MAX_QTY))
+        return max(1, min(int(value), limit))
     except (TypeError, ValueError):
         return 1
 
 
+def _stock_limit(product):
+    """Obergrenze fuer die Menge im Warenkorb."""
+    if product.track_stock:
+        return min(product.available_count, MAX_QTY)
+    return MAX_QTY
+
+
 def _orderable(qs):
-    """Konfigurierbare Perücken sind nicht bestellbar (nur Beratungstermin)."""
-    return qs.exclude(category=Product.Category.KONFIG)
+    """Konfigurierbare Perücken sind nicht bestellbar (nur Beratungstermin).
+
+    Ausverkaufte Produkte bleiben bewusst enthalten: sie werden angezeigt und
+    als verkauft markiert. Ob gekauft werden darf, entscheidet is_sold_out.
+    """
+    return qs.with_stock().exclude(category=Product.Category.KONFIG)
 
 
 def _get_product(data, user):
@@ -68,7 +79,7 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        products = Product.objects.visible_for(self.request.user)
+        products = Product.objects.visible_for(self.request.user).with_stock()
         context["active"] = "home"
         context["home_products"] = products.exclude(
             category=Product.Category.ROHLING
@@ -127,6 +138,7 @@ class WigsView(TemplateView):
         context = super().get_context_data(**kwargs)
         products = list(
             Product.objects.visible_for(self.request.user)
+            .with_stock()
             .annotate(
                 badge_rank=Case(
                     When(badge=Product.Badge.POPULAR, then=Value(0)),
@@ -175,7 +187,7 @@ class ProductDetailView(DetailView):
 
     def get_queryset(self):
         # Unsichtbare Produkte (inaktiv, fremde Zielgruppe) ergeben ein 404.
-        return Product.objects.visible_for(self.request.user)
+        return Product.objects.visible_for(self.request.user).with_stock()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -219,6 +231,8 @@ def api_products(request):
             "price_display": p.price_display,
             "image": p.image.url if p.image else (static(p.placeholder_image) if p.placeholder_image else None),
             "url": reverse("product_detail", args=[p.slug]),
+            "sold_out": p.is_sold_out,
+            "available_count": p.available_count if p.track_stock else None,
         }
         for p in _orderable(Product.objects.visible_for(request.user))
     }
@@ -259,14 +273,17 @@ def api_add(request):
     product = _get_product(data, request.user)
     if product is None:
         return JsonResponse({"error": "product_not_found"}, status=404)
-    quantity = _clamp_qty(data.get("quantity", 1))
+    if product.is_sold_out:
+        return JsonResponse({"error": "sold_out"}, status=409)
+    limit = _stock_limit(product)
+    quantity = _clamp_qty(data.get("quantity", 1), limit)
 
     cart, _ = Cart.objects.get_or_create(user=request.user)
     item, created = CartItem.objects.get_or_create(
         cart=cart, product=product, defaults={"quantity": quantity}
     )
     if not created:
-        item.quantity = min(item.quantity + quantity, MAX_QTY)
+        item.quantity = min(item.quantity + quantity, limit)
         item.save()
     return JsonResponse({"ok": True, "count": cart.total_quantity})
 
@@ -289,12 +306,15 @@ def api_update(request):
 
     item = cart.items.filter(product=product).first()
     if quantity <= 0:
+        # Entfernen muss auch dann gehen, wenn das Stueck inzwischen weg ist.
         if item:
             item.delete()
         quantity = 0
         line_total_display = euro(0)
     else:
-        quantity = min(quantity, MAX_QTY)
+        if product.is_sold_out:
+            return JsonResponse({"error": "sold_out"}, status=409)
+        quantity = min(quantity, _stock_limit(product))
         if item is None:
             item = CartItem(cart=cart, product=product)
         item.quantity = quantity
@@ -349,11 +369,14 @@ def api_merge(request):
                 )
             except (Product.DoesNotExist, TypeError, ValueError):
                 continue
-            quantity = _clamp_qty(quantity)
+            if product.is_sold_out:
+                continue
+            limit = _stock_limit(product)
+            quantity = _clamp_qty(quantity, limit)
             item, created = CartItem.objects.get_or_create(
                 cart=cart, product=product, defaults={"quantity": quantity}
             )
             if not created:
-                item.quantity = min(item.quantity + quantity, MAX_QTY)
+                item.quantity = min(item.quantity + quantity, limit)
                 item.save()
     return JsonResponse({"ok": True, "count": cart.total_quantity})

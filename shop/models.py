@@ -3,11 +3,27 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 
 MAX_QTY = 99
 
 
 class ProductQuerySet(models.QuerySet):
+    def with_stock(self):
+        """Zaehlt die verfuegbaren Bestandsstuecke je Produkt.
+
+        Der Bezug laeuft ueber das related_name "stock_items" als String, damit
+        shop nicht inventory importieren muss (inventory referenziert bereits
+        shop.Product - sonst gaebe es einen Zirkelimport).
+        """
+        return self.annotate(
+            verfuegbar_count=models.Count(
+                "stock_items",
+                filter=models.Q(stock_items__status="verfuegbar"),
+                distinct=True,
+            )
+        )
+
     def visible_for(self, user):
         """Aktive Produkte, die dieser Besucher sehen darf (user darf anonym sein).
 
@@ -62,6 +78,13 @@ class Product(models.Model):
     stock_quantity = models.PositiveIntegerField(
         "Bestand (nur Mengenartikel)", default=0
     )
+    # Opt-in: nur bestandsgefuehrte Produkte richten sich nach dem Lager. Ohne
+    # diesen Schalter waeren beim Deploy alle Produkte ohne Bestandsstuecke
+    # schlagartig ausverkauft.
+    track_stock = models.BooleanField(
+        "Bestandsgeführt", default=False,
+        help_text="Verfügbarkeit im Shop aus dem Warenbestand ableiten."
+    )
 
     # Produktattribute fuer die Detailseite (optional, je nach Kategorie relevant)
     hair_length = models.CharField("Länge", max_length=60, blank=True, default="")
@@ -88,6 +111,20 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def ensure_slug(self):
+        """Slug beim Anlegen erzeugen (Schema wie seed_products),
+        Kollisionen bekommen ein -2/-3-Suffix.
+        """
+        if self.slug:
+            return self.slug
+        base = slugify(f"{self.category}-{self.label}")[:70]
+        slug, i = base, 2
+        while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base}-{i}"
+            i += 1
+        self.slug = slug
+        return self.slug
 
     @property
     def price_display(self):
@@ -197,8 +234,24 @@ class Product(models.Model):
         return self.category == self.Category.KONFIG
 
     @property
+    def available_count(self):
+        """Verfuegbare Menge. Nutzt die Annotation aus with_stock(), falls
+        vorhanden, sonst eine eigene Abfrage (Detailseite, Einzelobjekte).
+        """
+        if self.stock_mode == self.StockMode.MENGE:
+            return self.stock_quantity
+        annotiert = getattr(self, "verfuegbar_count", None)
+        if annotiert is not None:
+            return annotiert
+        return self.stock_items.filter(status="verfuegbar").count()
+
+    @property
+    def is_sold_out(self):
+        return self.track_stock and self.available_count == 0
+
+    @property
     def is_orderable(self):
-        return not self.is_configurable
+        return not self.is_configurable and not self.is_sold_out
 
     # Illustrations-Fallback je Kategorie, solange kein echtes Foto hochgeladen ist
     PLACEHOLDER_IMAGES = {

@@ -21,4 +21,5 @@ urlpatterns = [
     path("bestand/", manage_views.StockItemListView.as_view(), name="stock_list"),
     path("bestand/neu/", manage_views.StockItemCreateView.as_view(), name="stock_create"),
     path("bestand/<int:pk>/bearbeiten/", manage_views.StockItemUpdateView.as_view(), name="stock_edit"),
+    path("bestand/<int:pk>/onlinestellen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
 ]

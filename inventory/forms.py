@@ -60,6 +60,48 @@ class GoodsReceiptForm(forms.ModelForm):
         self.fields["supplier"].empty_label = "Bitte wählen"
 
 
+class StockItemPublishForm(forms.Form):
+    """Bestandsstueck online stellen: bestehendes Shop-Produkt waehlen oder
+    ein neues anlegen, vorbelegt aus den Wareneingangsdaten.
+    """
+
+    product = forms.ModelChoiceField(
+        queryset=None, required=False, label="Bestehendes Shop-Produkt",
+        empty_label="Neues Produkt anlegen",
+    )
+    name = forms.CharField(label="Produktname", max_length=120, required=False)
+    label = forms.CharField(label="Kurzlabel", max_length=60, required=False)
+    category = forms.ChoiceField(label="Kategorie", required=False)
+    price = forms.DecimalField(
+        label="Verkaufspreis (€)", max_digits=8, decimal_places=2, required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        # Import hier, nicht auf Modulebene: shop importiert inventory nicht,
+        # aber die Kette bleibt so in jedem Fall zirkelfrei.
+        from shop.models import Product
+
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = Product.objects.order_by("name")
+        self.fields["category"].choices = [("", "---------")] + [
+            (wert, bezeichnung) for wert, bezeichnung in Product.Category.choices
+            if wert != Product.Category.KONFIG
+        ]
+
+    def clean(self):
+        daten = super().clean()
+        if daten.get("product"):
+            return daten
+        # Neues Produkt: die Angaben, die der Wareneingang nicht liefert
+        for feld, text in (
+            ("name", "Produktname"), ("label", "Kurzlabel"),
+            ("category", "Kategorie"), ("price", "Verkaufspreis"),
+        ):
+            if not daten.get(feld):
+                self.add_error(feld, f"{text} wird für ein neues Produkt benötigt.")
+        return daten
+
+
 class StockItemForm(forms.ModelForm):
     class Meta:
         model = StockItem

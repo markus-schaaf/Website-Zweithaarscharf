@@ -1,0 +1,72 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Online stellen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Online <em>stellen</em></h1>
+    <p>{{ stueck.inventory_no }} &middot; {{ stueck.product_name }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.product.id_for_label }}">Bestehendes Shop-Produkt</label>
+            {{ form.product }}{{ form.product.errors }}
+            <p class="form-hint">Leer lassen, um ein neues Produkt aus diesem Bestandsst&uuml;ck anzulegen.</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <h3>Neues Produkt</h3>
+          <p class="form-hint">
+            Farbe ({{ stueck.color }}), L&auml;nge ({{ stueck.length }}) und Gr&ouml;&szlig;e ({{ stueck.size }})
+            werden aus dem Wareneingang &uuml;bernommen. Bild und Beschreibung pflegst du danach
+            in der Produktverwaltung.
+          </p>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">Produktname</label>
+            {{ form.name }}{{ form.name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.label.id_for_label }}">Kurzlabel</label>
+            {{ form.label }}{{ form.label.errors }}
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.category.id_for_label }}">Kategorie</label>
+            {{ form.category }}{{ form.category.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.price.id_for_label }}">Verkaufspreis (&euro;)</label>
+            {{ form.price }}{{ form.price.errors }}
+            <p class="form-hint">EK war {{ stueck.purchase_price }} &euro;.</p>
+          </div>
+        </div>
+
+        <div class="form-row mb-0 btn-row">
+          <button type="submit" class="btn btn-gold">Online stellen</button>
+          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

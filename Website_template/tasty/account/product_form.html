@@ -168,6 +168,29 @@
 
         <div class="form-row">
           <div class="field-checkbox">
+            {{ form.track_stock }}
+            <label for="{{ form.track_stock.id_for_label }}" class="label-plain">
+              Bestandsgef&uuml;hrt (Verf&uuml;gbarkeit im Shop kommt aus dem Warenbestand)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.stock_mode.id_for_label }}">Bestandsart</label>
+            {{ form.stock_mode }}
+            {{ form.stock_mode.errors }}
+            <p class="form-hint">Einzelst&uuml;ck: je Per&uuml;cke ein Bestandsdatensatz. Mengenartikel: Z&auml;hlfeld.</p>
+          </div>
+          <div class="field">
+            <label for="{{ form.stock_quantity.id_for_label }}">Bestand (nur Mengenartikel)</label>
+            {{ form.stock_quantity }}
+            {{ form.stock_quantity.errors }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-checkbox">
             {{ form.is_active }}
             <label for="{{ form.is_active.id_for_label }}" class="label-plain">
               Produkt ist aktiv (inaktive Produkte sind im Shop unsichtbar)

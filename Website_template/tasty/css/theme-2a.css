@@ -444,6 +444,28 @@ p { margin: 0 0 1.25rem 0; }
   background: var(--black);
   color: var(--white);
 }
+/* Verkauft ist keine Auszeichnung, daher gedeckt statt gold */
+.badge-soldout {
+  background: var(--white);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-soft);
+}
+/* Verkaufte Karte zuruecknehmen, aber lesbar lassen */
+.product-card--soldout .img-tile,
+.product-card--soldout .ph-image { opacity: 0.55; }
+.btn.is-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.soldout-note {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-alt);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+.soldout-note p { margin: 0 0 0.75rem 0; }
+.soldout-note .btn { margin-right: 0.75rem; }
+.cart-item__meta--soldout { color: var(--error); }
 
 /* ---------- Placeholder image pattern ---------- */
 /* Echte Bilder in Platzhalter-Geometrie (Illustrationen/Fotos) */
