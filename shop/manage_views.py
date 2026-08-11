@@ -34,6 +34,9 @@ class ProduktListeView(RoleRequiredMixin, ListView):
     template_name = "tasty/account/product_list.html"
     context_object_name = "produkte"
 
+    def get_queryset(self):
+        return super().get_queryset().with_stock()
+
 
 class ProduktErstellenView(RoleRequiredMixin, CreateView):
     allowed_roles = STAFF_ROLES

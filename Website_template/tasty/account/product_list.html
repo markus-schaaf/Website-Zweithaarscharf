@@ -42,6 +42,11 @@
           <div class="manage-card__body">
             <h3 class="manage-card__name">{{ p.name }}</h3>
             <p class="manage-card__meta">{{ p.get_category_display }} &middot; ab {{ p.price_display }},- &euro;</p>
+            {% if p.track_stock %}
+              <p class="manage-card__meta">
+                {% if p.is_sold_out %}Ausverkauft{% else %}{{ p.available_count }} verf&uuml;gbar{% endif %}
+              </p>
+            {% endif %}
             <p class="manage-card__badges">
               <span class="role-badge{% if p.audience == 'b2b' %} role-badge--b2b{% endif %}">{{ p.get_audience_display }}</span>
               {% if p.badge %}<span class="role-badge">{{ p.get_badge_display }}</span>{% endif %}

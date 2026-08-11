@@ -6,16 +6,19 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, FormView, ListView, TemplateView, UpdateView
 
 from accounts.views import RoleRequiredMixin
+from shop.models import Product
 
 from .forms import (
     GoodsReceiptForm,
     ProductionPhaseForm,
     StockItemForm,
+    StockItemPublishForm,
     SupplierForm,
 )
 from .models import ProductionPhase, StockItem, StockItemEvent, Supplier
@@ -191,6 +194,66 @@ class StockItemCreateView(StaffMixin, CreateView):
             f" bis {build_inventory_no(supplier, data['color'], data['length'], counters[-1])})."
         )
         # Nicht get_success_url(): es gibt kein einzelnes self.object.
+        return HttpResponseRedirect(str(self.success_url))
+
+
+class StockItemPublishView(StaffMixin, FormView):
+    """Bestandsstueck einem Shop-Produkt zuordnen und damit online stellen."""
+
+    form_class = StockItemPublishForm
+    template_name = "tasty/account/stockitem_publish.html"
+    success_url = reverse_lazy("inventory_manage:stock_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        # Was der Wareneingang schon weiss, vorbelegen.
+        return {
+            "product": self.stueck.product_id,
+            "name": self.stueck.product_name,
+            "label": self.stueck.product_name[:60],
+            "category": Product.Category.BESTAND,
+        }
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["stueck"] = self.stueck
+        return ctx
+
+    def form_valid(self, form):
+        daten = form.cleaned_data
+        produkt = daten.get("product")
+
+        with transaction.atomic():
+            if produkt is None:
+                produkt = Product(
+                    name=daten["name"],
+                    label=daten["label"],
+                    category=daten["category"],
+                    price=daten["price"],
+                    hair_color=self.stueck.color,
+                    hair_length=self.stueck.length,
+                    hair_size=self.stueck.size,
+                    stock_mode=Product.StockMode.EINZELSTUECK,
+                )
+                produkt.ensure_slug()
+            produkt.track_stock = True
+            produkt.save()
+            self.stueck.product = produkt
+            self.stueck.save(update_fields=["product"])
+            self.stueck.log_event(
+                StockItemEvent.Kind.STATUS, "", self.stueck.get_status_display(),
+                by=self.request.user,
+                note=f"Online gestellt als „{produkt.name}“",
+            )
+
+        messages.success(
+            self.request,
+            f"„{self.stueck.inventory_no}“ ist jetzt mit dem Shop-Produkt "
+            f"„{produkt.name}“ verknüpft."
+        )
         return HttpResponseRedirect(str(self.success_url))
 
 
