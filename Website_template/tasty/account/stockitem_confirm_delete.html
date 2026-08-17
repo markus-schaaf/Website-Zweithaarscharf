@@ -1,0 +1,84 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{{ object.inventory_no }} l&ouml;schen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+{% include "tasty/account/_wws_icons.html" %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Wirklich <em>l&ouml;schen</em>?</h1>
+    <p>{{ object.inventory_no }} &middot; {{ object.product_name }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    <div class="form-card">
+      {% if verkauft %}
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-warnung"></use></svg>L&ouml;schen nicht m&ouml;glich</h2>
+        <p>Zu diesem St&uuml;ck ist ein Verkauf gebucht. An ihm h&auml;ngen Bestellpositionen,
+          auf die die Rechnung verweist &ndash; w&uuml;rde es verschwinden, w&auml;re die
+          Historie unvollst&auml;ndig.</p>
+        <p>Wenn das St&uuml;ck nicht mehr auftauchen soll, mustere es aus. Es
+          verschwindet damit aus allen Arbeitslisten, bleibt aber f&uuml;r die
+          Buchhaltung auffindbar.</p>
+        <div class="form-actions">
+          <form method="post" action="{% url 'inventory_manage:stock_retire' object.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="wws-btn wws-btn--primary">
+              <svg class="wws-ico"><use href="#ico-haken"></use></svg>Stattdessen ausmustern
+            </button>
+          </form>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_edit' object.pk %}">Zur&uuml;ck</a>
+        </div>
+      {% else %}
+        <div class="wws-delete">
+          {% if object.cover_image %}
+            <img class="wws-delete__img" src="{{ object.cover_image.image.url }}" alt="">
+          {% endif %}
+          <div>
+            <h2 class="wws-delete__name">{{ object.product_name|default:"Ohne Namen" }}</h2>
+            <p class="wws-delete__meta">
+              {{ object.get_shop_category_display|default:"ohne Kategorie" }}
+              {% if object.color %}&middot; {{ object.color }}{% endif %}
+              {% if object.length %}&middot; {{ object.length }}{% endif %}
+            </p>
+            <p class="wws-row__badges">
+              <span class="wws-badge wws-badge--{{ object.status }}">{{ object.get_status_display }}</span>
+              {% if object.product_id %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
+            </p>
+          </div>
+        </div>
+
+        <p>Gel&ouml;scht werden dieser Datensatz{% if anzahl_bilder %},
+          {{ anzahl_bilder }} Foto{{ anzahl_bilder|pluralize:"s" }} samt Dateien{% endif %}
+          und die komplette Historie dazu. Das l&auml;sst sich nicht r&uuml;ckg&auml;ngig machen.</p>
+
+        {% if anzahl_projekte %}
+          <p class="form-hint"><strong>Achtung:</strong> {{ anzahl_projekte }}
+            Projekt{{ anzahl_projekte|pluralize:"e" }} verweis{{ anzahl_projekte|pluralize:"t,en" }}
+            auf dieses St&uuml;ck. Dort steht danach kein Bestandsst&uuml;ck mehr.</p>
+        {% endif %}
+        {% if object.product_id %}
+          <p class="form-hint">Das Shop-Produkt &bdquo;{{ object.product.name }}&ldquo;
+            bleibt bestehen. Ohne Bestandsst&uuml;ck ist es dort ausverkauft.</p>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-actions">
+            <button type="submit" class="wws-btn wws-btn--danger">
+              <svg class="wws-ico"><use href="#ico-papierkorb"></use></svg>Endg&uuml;ltig l&ouml;schen
+            </button>
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_edit' object.pk %}">Abbrechen</a>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

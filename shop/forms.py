@@ -1,9 +1,35 @@
 from django import forms
 
 from .models import ConfiguratorGroup, ConfiguratorOption, Product, Product3DAsset
+from .services.imaging import normalize_upload
 
 
-class ProductForm(forms.ModelForm):
+class NormalizedImageMixin:
+    """Wandelt frisch hochgeladene Bildfelder nach JPEG um.
+
+    Ohne das landen HEIC-Dateien der iPhone-Kamera unveraendert im
+    Medienordner und werden von keinem Browser angezeigt.
+    """
+
+    image_fields = ()
+
+    def clean(self):
+        cleaned = super().clean()
+        for name in self.image_fields:
+            datei = cleaned.get(name)
+            # Nur Neuhochgeladenes anfassen; unveraenderte Felder tragen das
+            # bereits gespeicherte FieldFile ohne content_type.
+            if datei and hasattr(datei, "content_type"):
+                try:
+                    cleaned[name] = normalize_upload(datei)
+                except forms.ValidationError as fehler:
+                    self.add_error(name, fehler)
+        return cleaned
+
+
+class ProductForm(NormalizedImageMixin, forms.ModelForm):
+    image_fields = ("image",)
+
     class Meta:
         model = Product
         fields = (
@@ -41,7 +67,11 @@ class ProductForm(forms.ModelForm):
         return product
 
 
-class Product3DAssetForm(forms.ModelForm):
+class Product3DAssetForm(NormalizedImageMixin, forms.ModelForm):
+    image_fields = (
+        "source_image_1", "source_image_2", "source_image_3", "source_image_4",
+    )
+
     class Meta:
         model = Product3DAsset
         fields = (
@@ -68,7 +98,7 @@ class Product3DAssetForm(forms.ModelForm):
             self.fields[name].required = False
 
     def clean(self):
-        cleaned = super().clean()
+        cleaned = super().clean()  # wandelt die Quellbilder um
         for name, default in self.COMP_DEFAULTS.items():
             if cleaned.get(name) is None:
                 cleaned[name] = default

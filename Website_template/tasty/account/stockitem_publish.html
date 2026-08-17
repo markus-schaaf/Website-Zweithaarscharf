@@ -15,6 +15,18 @@
 
 <section class="section section--tight">
   <div class="container container--form">
+    {% if blocker %}
+      <div class="wws-blocker">
+        <h3>Erst vervollst&auml;ndigen, dann online stellen</h3>
+        <ul>{% for eintrag in blocker %}<li>{{ eintrag }}</li>{% endfor %}</ul>
+        <p style="margin: 0.75rem 0 0 0;">
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_edit' stueck.pk %}">
+            <svg class="wws-ico"><use href="#ico-stift"></use></svg>Bestandsst&uuml;ck bearbeiten
+          </a>
+        </p>
+      </div>
+    {% endif %}
+
     <div class="form-card">
       <form method="post" novalidate>
         {% csrf_token %}
@@ -61,8 +73,19 @@
           </div>
         </div>
 
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.audience.id_for_label }}">Zielgruppe *</label>
+            {{ form.audience }}{{ form.audience.errors }}
+            <p class="form-hint">{{ form.audience.help_text }}
+              Rohlinge sind immer B2B.</p>
+          </div>
+        </div>
+
         <div class="form-actions form-actions--sticky">
-          <button type="submit" class="wws-btn wws-btn--primary">Online stellen</button>
+          <button type="submit" class="wws-btn wws-btn--primary"{% if blocker %} disabled{% endif %}>
+            Online stellen
+          </button>
           <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
         </div>
       </form>

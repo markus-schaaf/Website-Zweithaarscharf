@@ -1,6 +1,7 @@
 asgiref==3.11.0
 Django==5.2.8
 Pillow==12.3.0
+pillow-heif==1.5.0        # HEIC/HEIF: Standardformat der iPhone-Kamera
 sqlparse==0.5.4
 tzdata==2025.2
 whitenoise==6.12.0

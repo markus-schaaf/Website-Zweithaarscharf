@@ -376,7 +376,7 @@ server {
     listen 80;
     server_name www.zweithaarschaaf.de zweithaarschaaf.de;
 
-    client_max_body_size 25M;   # Foto-Uploads für die 3D-Vorschau
+    client_max_body_size 50M;   # Foto-Uploads: mehrere iPhone-Bilder auf einmal
 
     location /media/ {
         alias /home/deploy/app/media/;

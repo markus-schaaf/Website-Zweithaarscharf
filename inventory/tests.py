@@ -1,11 +1,13 @@
 import io
 import json
+import os
 
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from PIL import Image
 
 from shop.models import CartItem, Product
@@ -13,6 +15,7 @@ from shop.models import CartItem, Product
 from .models import (
     AttributeOption,
     Order,
+    OrderItem,
     Project,
     StockItem,
     StockItemEvent,
@@ -35,6 +38,13 @@ def make_image(name="foto.jpg"):
     return SimpleUploadedFile(name, puffer.getvalue(), content_type="image/jpeg")
 
 
+def make_heic(name="IMG_4711.heic"):
+    """Echte HEIC-Datei - so kommen Fotos von der iPhone-Kamera an."""
+    puffer = io.BytesIO()
+    Image.new("RGB", (12, 8), "white").save(puffer, format="HEIF")
+    return SimpleUploadedFile(name, puffer.getvalue(), content_type="image/heic")
+
+
 def make_product(slug, **overrides):
     daten = {
         "name": f"Produkt {slug}",
@@ -48,6 +58,9 @@ def make_product(slug, **overrides):
 
 
 def make_stock_item(supplier, product=None, **overrides):
+    """Vollstaendig gepflegte Peruecke - so, dass sie online gestellt werden
+    darf. Tests, die einen Blocker brauchen, leeren gezielt ein Feld.
+    """
     daten = {
         "inventory_no": f"EW-BLO-50-{StockItem.objects.count() + 1:04d}",
         "supplier": supplier,
@@ -55,9 +68,15 @@ def make_stock_item(supplier, product=None, **overrides):
         "product_name": "Bob Klassik",
         "invoice_no": "RE-1",
         "purchase_price": 300,
+        "shop_category": Product.Category.BESTAND,
+        "sale_price": 890,
+        "description": "Schulterlanges Modell, glatt.",
         "color": "Blond",
         "length": "50 cm",
         "size": "54 cm",
+        "structure": "Glatt",
+        "cap_type": "Tresse",
+        "density": "Mittel",
     }
     daten.update(overrides)
     return StockItem.objects.create(**daten)
@@ -119,9 +138,7 @@ class GoodsReceiptViewTest(StaffViewMixin, TestCase):
 
     def _daten(self, **overrides):
         daten = {
-            "stock_mode": StockItem.StockMode.EINZELSTUECK,
             "shop_category": Product.Category.BESTAND,
-            "audience": StockItem.Audience.B2C,
             "supplier": self.lieferant.pk,
             "product_name": "Bob Klassik",
             "invoice_no": "RE-2026-001",
@@ -164,6 +181,29 @@ class GoodsReceiptViewTest(StaffViewMixin, TestCase):
             self.assertEqual(len(bilder), 1)
             self.assertEqual(bilder[0].kind, StockItemImage.Kind.EINGANG)
 
+    def test_iphone_foto_wird_umgewandelt(self):
+        """HEIC ist das Standardformat der iPhone-Kamera. Unveraendert
+        gespeichert waere es in keinem Browser sichtbar.
+        """
+        response = self.client.post(
+            reverse("inventory_manage:stock_create"),
+            self._daten(quantity="1", eingang_images=make_heic()),
+        )
+        self.assertEqual(response.status_code, 302)
+        bild = StockItem.objects.get().images.get()
+        self.assertTrue(bild.image.name.endswith(".jpg"))
+        self.assertNotIn(".heic", bild.image.name.lower())
+
+    def test_unlesbare_datei_wird_als_formularfehler_gemeldet(self):
+        daten = self._daten(
+            eingang_images=SimpleUploadedFile("notiz.txt", b"kein Bild")
+        )
+        response = self.client.post(reverse("inventory_manage:stock_create"), daten)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("notiz.txt", " ".join(response.context["form"].non_field_errors()))
+        # Nichts angelegt - auch keine Produktnummern verbraucht
+        self.assertEqual(StockItem.objects.count(), 0)
+
     def test_ohne_foto_wird_abgelehnt(self):
         daten = self._daten()
         daten.pop("eingang_images")
@@ -172,25 +212,46 @@ class GoodsReceiptViewTest(StaffViewMixin, TestCase):
         self.assertIn("Foto", " ".join(response.context["form"].non_field_errors()))
         self.assertEqual(StockItem.objects.count(), 0)
 
-    def test_mengenartikel_ergibt_einen_datensatz(self):
+    def test_pflege_ergibt_einen_datensatz_mit_menge(self):
+        """Bestandsart wird nicht gefragt, sondern aus der Kategorie abgeleitet."""
         self.client.post(reverse("inventory_manage:stock_create"), self._daten(
-            stock_mode=StockItem.StockMode.MENGE, quantity="12",
-            shop_category=Product.Category.PFLEGE,
+            quantity="12", shop_category=Product.Category.PFLEGE,
         ))
-        self.assertEqual(StockItem.objects.count(), 1)
-        self.assertEqual(StockItem.objects.get().quantity, 12)
+        stueck = StockItem.objects.get()
+        self.assertEqual(stueck.stock_mode, StockItem.StockMode.MENGE)
+        self.assertEqual(stueck.quantity, 12)
+
+    def test_peruecke_ergibt_einen_datensatz_je_stueck(self):
+        self.client.post(reverse("inventory_manage:stock_create"), self._daten(
+            quantity="3", shop_category=Product.Category.BESTAND,
+        ))
+        self.assertEqual(StockItem.objects.count(), 3)
+        for stueck in StockItem.objects.all():
+            self.assertEqual(stueck.stock_mode, StockItem.StockMode.EINZELSTUECK)
+            self.assertEqual(stueck.quantity, 1)
 
     def test_rohling_wird_auf_b2b_gesetzt(self):
         self.client.post(reverse("inventory_manage:stock_create"), self._daten(
             quantity="1", shop_category=Product.Category.ROHLING,
-            audience=StockItem.Audience.B2C,
         ))
         self.assertEqual(StockItem.objects.get().audience, StockItem.Audience.B2B)
+
+    def test_lieferdatum_ist_vorbelegt(self):
+        """Leeres Datumsfeld sah auf dem iPhone wie ein Fehler aus."""
+        response = self.client.get(reverse("inventory_manage:stock_create"))
+        self.assertEqual(
+            response.context["form"].fields["received_at"].initial,
+            timezone.localdate(),
+        )
 
     def test_pflichtfelder(self):
         response = self.client.post(reverse("inventory_manage:stock_create"), {})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["form"].errors), 13)
+        fehlend = set(response.context["form"].errors)
+        # Bestandsart und Zielgruppe werden hier bewusst nicht mehr gefragt
+        self.assertNotIn("stock_mode", fehlend)
+        self.assertNotIn("audience", fehlend)
+        self.assertIn("shop_category", fehlend)
         self.assertEqual(StockItem.objects.count(), 0)
 
     def test_b2c_bekommt_403(self):
@@ -392,9 +453,57 @@ class PublishViewTest(StaffViewMixin, TestCase):
             "label": "Bob Klassik",
             "category": Product.Category.BESTAND,
             "price": "890",
+            "audience": StockItem.Audience.B2C,
         }
         daten.update(overrides)
         return daten
+
+    def test_zielgruppe_ist_pflicht(self):
+        """Erst hier gefragt, dafuer verbindlich."""
+        daten = self._daten()
+        daten.pop("audience")
+        response = self.client.post(
+            reverse("inventory_manage:stock_publish", args=[self.stueck.pk]), daten
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("audience", response.context["form"].errors)
+        self.stueck.refresh_from_db()
+        self.assertIsNone(self.stueck.product)
+
+    def test_zielgruppe_landet_am_stueck_und_am_produkt(self):
+        self.client.post(
+            reverse("inventory_manage:stock_publish", args=[self.stueck.pk]),
+            self._daten(audience=StockItem.Audience.B2B),
+        )
+        self.stueck.refresh_from_db()
+        self.assertEqual(self.stueck.audience, StockItem.Audience.B2B)
+        self.assertEqual(self.stueck.product.audience, StockItem.Audience.B2B)
+
+    def test_rohling_darf_nicht_an_alle_kunden(self):
+        self.stueck.shop_category = Product.Category.ROHLING
+        self.stueck.save()
+        response = self.client.post(
+            reverse("inventory_manage:stock_publish", args=[self.stueck.pk]),
+            self._daten(category=Product.Category.ROHLING,
+                        audience=StockItem.Audience.B2C),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("audience", response.context["form"].errors)
+
+    def test_unvollstaendiges_stueck_geht_nicht_online(self):
+        self.stueck.sale_price = None
+        self.stueck.description = ""
+        self.stueck.save()
+        response = self.client.post(
+            reverse("inventory_manage:stock_publish", args=[self.stueck.pk]),
+            self._daten(),
+        )
+        self.assertEqual(response.status_code, 200)
+        meldung = " ".join(response.context["form"].non_field_errors())
+        self.assertIn("Verkaufspreis", meldung)
+        self.assertIn("Beschreibung", meldung)
+        self.stueck.refresh_from_db()
+        self.assertIsNone(self.stueck.product)
 
     def test_neues_produkt_uebernimmt_die_warendaten(self):
         response = self.client.post(
@@ -580,3 +689,167 @@ class StatusMigrationTest(TestCase):
         gueltig = set(Project.Status.values)
         self.assertTrue(set(migration.VORWAERTS.values()) <= gueltig)
         self.assertTrue(set(migration.RUECKWAERTS) <= gueltig)
+
+
+class PublishBlockersTest(TestCase):
+    """Halbfertige Datensaetze duerfen nicht in den Shop."""
+
+    def setUp(self):
+        self.lieferant = make_supplier()
+
+    def _mit_bild(self, **overrides):
+        stueck = make_stock_item(self.lieferant, **overrides)
+        StockItemImage.objects.create(
+            stock_item=stueck, image=make_image(), kind=StockItemImage.Kind.SHOP
+        )
+        return stueck
+
+    def test_vollstaendige_peruecke_ist_bereit(self):
+        self.assertEqual(self._mit_bild().publish_blockers(), [])
+
+    def test_ohne_foto_nicht_bereit(self):
+        stueck = make_stock_item(self.lieferant)
+        self.assertIn("mindestens ein Foto", stueck.publish_blockers())
+
+    def test_fehlende_haarangaben_werden_gemeldet(self):
+        stueck = self._mit_bild(structure="", density="")
+        blocker = stueck.publish_blockers()
+        self.assertIn("Schnitt", blocker)
+        self.assertIn("Dichte", blocker)
+
+    def test_pflegeprodukt_braucht_keine_haarangaben(self):
+        stueck = self._mit_bild(
+            shop_category=Product.Category.PFLEGE,
+            structure="", density="", cap_type="", quantity=5,
+        )
+        self.assertEqual(stueck.publish_blockers(), [])
+
+    def test_verkauftes_stueck_ist_nicht_bereit(self):
+        stueck = self._mit_bild(status=StockItem.Status.VERKAUFT)
+        self.assertIn("verkaufsfähiger Status", " ".join(stueck.publish_blockers()))
+
+
+class StockItemDeleteTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.stueck = make_stock_item(self.lieferant)
+        StockItemImage.objects.create(
+            stock_item=self.stueck, image=make_image(), kind=StockItemImage.Kind.SHOP
+        )
+
+    def _url(self):
+        return reverse("inventory_manage:stock_delete", args=[self.stueck.pk])
+
+    def test_bestaetigungsseite_zeigt_umfang(self):
+        response = self.client.get(self._url())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["anzahl_bilder"], 1)
+        self.assertFalse(response.context["verkauft"])
+
+    def test_loeschen_entfernt_datensatz_und_datei(self):
+        pfad = self.stueck.images.get().image.path
+        self.assertTrue(os.path.exists(pfad))
+        response = self.client.post(self._url())
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(StockItem.objects.count(), 0)
+        self.assertEqual(StockItemImage.objects.count(), 0)
+        self.assertFalse(os.path.exists(pfad), "Bilddatei blieb im Medienordner liegen")
+
+    def test_verkauftes_stueck_wird_geschuetzt(self):
+        bestellung = Order.objects.create(customer_name="Frau M.", total=890)
+        OrderItem.objects.create(
+            order=bestellung, stock_item=self.stueck,
+            description="Bob Klassik", quantity=1, price=890,
+        )
+        response = self.client.post(self._url())
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(StockItem.objects.filter(pk=self.stueck.pk).exists())
+
+    def test_ausmustern_als_ausweg(self):
+        self.client.post(
+            reverse("inventory_manage:stock_retire", args=[self.stueck.pk])
+        )
+        self.stueck.refresh_from_db()
+        self.assertEqual(self.stueck.status, StockItem.Status.AUSGEMUSTERT)
+
+    def test_b2c_bekommt_403(self):
+        self.client.force_login(self.kunde)
+        self.assertEqual(self.client.get(self._url()).status_code, 403)
+
+
+class ProjectPickStockTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.peruecke = make_stock_item(self.lieferant, product_name="Bob")
+        self.pflege = make_stock_item(
+            self.lieferant, product_name="Shampoo",
+            shop_category=Product.Category.PFLEGE,
+        )
+
+    def test_nur_peruecken_und_rohlinge_stehen_zur_wahl(self):
+        response = self.client.get(reverse("inventory_manage:project_pick_stock"))
+        gezeigt = list(response.context["stuecke"])
+        self.assertIn(self.peruecke, gezeigt)
+        self.assertNotIn(self.pflege, gezeigt)
+
+    def test_suche_filtert(self):
+        response = self.client.get(
+            reverse("inventory_manage:project_pick_stock"), {"q": "Bob"}
+        )
+        self.assertEqual(list(response.context["stuecke"]), [self.peruecke])
+
+    def test_eingaben_ueberleben_den_seitenwechsel(self):
+        """Der Umweg ueber die Auswahlseite darf das Formular nicht leeren."""
+        self.client.post(
+            reverse("inventory_manage:project_pick_stock"),
+            {"title": "Umbau Frau M.", "notes": "Kundin möchte kürzer."},
+        )
+        response = self.client.get(reverse("inventory_manage:project_create"))
+        initial = response.context["form"].initial
+        self.assertEqual(initial["title"], "Umbau Frau M.")
+        self.assertEqual(initial["notes"], "Kundin möchte kürzer.")
+
+    def test_pflegeprodukt_ist_im_formular_nicht_waehlbar(self):
+        response = self.client.get(reverse("inventory_manage:project_create"))
+        auswahl = response.context["form"].fields["stock_item"].queryset
+        self.assertNotIn(self.pflege, auswahl)
+
+
+class CustomerSearchTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        User.objects.create_user(
+            email="anna.meier@example.com", password="pass12345",
+            first_name="Anna", last_name="Meier",
+        )
+        User.objects.create_user(
+            email="firma@example.com", password="pass12345",
+            role=User.Role.B2B, company_name="Salon Nord",
+        )
+
+    def _suche(self, q):
+        response = self.client.get(
+            reverse("inventory_manage:customer_search"), {"q": q}
+        )
+        return json.loads(response.content)["treffer"]
+
+    def test_suche_nach_nachname(self):
+        treffer = self._suche("meier")
+        self.assertEqual(len(treffer), 1)
+        self.assertEqual(treffer[0]["name"], "Anna Meier")
+
+    def test_suche_nach_firma_markiert_b2b(self):
+        treffer = self._suche("Salon")
+        self.assertEqual(len(treffer), 1)
+        self.assertTrue(treffer[0]["b2b"])
+
+    def test_zu_kurze_eingabe_liefert_nichts(self):
+        self.assertEqual(self._suche("a"), [])
+
+    def test_verwaltungskonten_tauchen_nicht_auf(self):
+        self.assertEqual(self._suche("admin@example.com"), [])
+
+    def test_b2c_bekommt_403(self):
+        self.client.force_login(self.kunde)
+        response = self.client.get(reverse("inventory_manage:customer_search"))
+        self.assertEqual(response.status_code, 403)

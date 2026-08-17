@@ -117,9 +117,16 @@
               <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_edit' s.pk %}">
                 <svg class="wws-ico"><use href="#ico-stift"></use></svg>Bearbeiten
               </a>
-              <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_publish' s.pk %}">
-                <svg class="wws-ico"><use href="#ico-etikett"></use></svg>{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}
-              </a>
+              {% if s.product_id or s.ist_veroeffentlichbar %}
+                <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_publish' s.pk %}">
+                  <svg class="wws-ico"><use href="#ico-etikett"></use></svg>{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}
+                </a>
+              {% else %}
+                <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_edit' s.pk %}"
+                   title="Es fehlen noch Angaben zum Onlinestellen">
+                  <svg class="wws-ico"><use href="#ico-warnung"></use></svg>Angaben fehlen
+                </a>
+              {% endif %}
               {% if s.status == "verfuegbar" or s.status == "reserviert" %}
                 <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_sell' s.pk %}">
                   <svg class="wws-ico"><use href="#ico-kasse"></use></svg>Verkauf buchen
@@ -147,4 +154,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=1"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=3"></script>{% endblock %}

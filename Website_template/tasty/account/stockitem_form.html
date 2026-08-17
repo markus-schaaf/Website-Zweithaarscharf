@@ -48,21 +48,38 @@
             {% csrf_token %}
             <button type="submit" class="wws-btn wws-btn--danger">Aus dem Shop nehmen</button>
           </form>
-        {% else %}
+        {% elif object.ist_veroeffentlichbar %}
           <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_publish' object.pk %}">
             <svg class="wws-ico"><use href="#ico-etikett"></use></svg>Online stellen
           </a>
+        {% else %}
+          <button type="button" class="wws-btn wws-btn--primary" disabled
+                  title="Es fehlen noch Angaben - siehe Liste unten">
+            <svg class="wws-ico"><use href="#ico-etikett"></use></svg>Online stellen
+          </button>
         {% endif %}
         {% if object.status == "verfuegbar" or object.status == "reserviert" %}
           <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_sell' object.pk %}">
             <svg class="wws-ico"><use href="#ico-kasse"></use></svg>Verkauf buchen
           </a>
         {% endif %}
-        <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_create' %}?bestand={{ object.pk }}">
-          <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Projekt anlegen
+        {% if object.ist_projektfaehig %}
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_create' %}?bestand={{ object.pk }}">
+            <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Projekt anlegen
+          </a>
+        {% endif %}
+        <a class="wws-btn wws-btn--danger" href="{% url 'inventory_manage:stock_delete' object.pk %}">
+          <svg class="wws-ico"><use href="#ico-papierkorb"></use></svg>L&ouml;schen
         </a>
       </div>
     </div>
+
+    {% if blocker %}
+      <div class="wws-blocker">
+        <h3>Zum Onlinestellen fehlt noch</h3>
+        <ul>{% for eintrag in blocker %}<li>{{ eintrag }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
 
     <div class="form-card">
       <form method="post" enctype="multipart/form-data" novalidate>
@@ -83,13 +100,15 @@
         </div>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.stock_mode.id_for_label }}">Bestandsart</label>
-            {{ form.stock_mode }}{{ form.stock_mode.errors }}
+            <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie</label>
+            {{ form.shop_category }}{{ form.shop_category.errors }}
+            <p class="form-hint">Bestimmt zugleich, ob das St&uuml;ck einzeln gef&uuml;hrt wird
+              und ob ein Projekt dazu m&ouml;glich ist.</p>
           </div>
           <div class="field">
-            <label for="{{ form.quantity.id_for_label }}">St&uuml;ckzahl</label>
+            <label for="{{ form.quantity.id_for_label }}">Anzahl</label>
             {{ form.quantity }}{{ form.quantity.errors }}
-            <p class="form-hint">Nur bei Mengenartikeln relevant &ndash; steuert den Bestand im Shop.</p>
+            <p class="form-hint">{{ form.quantity.help_text }}</p>
           </div>
         </div>
 
@@ -193,16 +212,8 @@
         </div>
 
         <h2 class="form-section"><svg class="wws-ico"><use href="#ico-etikett"></use></svg>Verkauf und Shop</h2>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie</label>
-            {{ form.shop_category }}{{ form.shop_category.errors }}
-          </div>
-          <div class="field">
-            <label for="{{ form.audience.id_for_label }}">Zielgruppe</label>
-            {{ form.audience }}{{ form.audience.errors }}
-          </div>
-        </div>
+        <p class="form-section__hint">Die Zielgruppe wird erst beim Onlinestellen
+          festgelegt &ndash; dort ist sie Pflichtangabe.</p>
         <div class="form-row">
           <div class="field">
             <label for="{{ form.sale_price.id_for_label }}">Verkaufspreis (&euro;)</label>
@@ -268,4 +279,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=1"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=3"></script>{% endblock %}

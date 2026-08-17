@@ -7,7 +7,7 @@
   // --- Bilder ---------------------------------------------------------------
 
   function tiles(grid) {
-    return Array.prototype.slice.call(grid.querySelectorAll("[data-img-tile]"));
+    return Array.prototype.slice.call(grid.querySelectorAll("[data-wws-img]"));
   }
 
   function move(grid, tile, richtung) {
@@ -24,44 +24,76 @@
     window.setTimeout(function () { tile.classList.remove("is-moved"); }, 400);
   }
 
+  function kuerzen(name) {
+    return name.length > 22 ? name.slice(0, 19) + "…" : name;
+  }
+
   function preview(input, ziel) {
     ziel.innerHTML = "";
     var dateien = Array.prototype.slice.call(input.files || []);
     ziel.hidden = dateien.length === 0;
     dateien.forEach(function (datei) {
-      if (datei.type.indexOf("image/") !== 0) return;
       var figure = document.createElement("figure");
-      figure.className = "img-tile img-tile--neu";
+      figure.className = "wws-img wws-img--neu";
       var bild = document.createElement("img");
       bild.alt = "";
       figure.appendChild(bild);
       var bar = document.createElement("figcaption");
-      bar.className = "img-tile__bar img-tile__bar--neu";
+      bar.className = "wws-img__bar wws-img__bar--neu";
       bar.textContent = "neu";
       figure.appendChild(bar);
       ziel.appendChild(figure);
 
+      // HEIC von der iPhone-Kamera kann der Browser nicht darstellen. Die
+      // Datei ist trotzdem in Ordnung - sie wird beim Speichern umgewandelt.
+      // Deshalb statt eines kaputten Bilds ein ruhiger Hinweis.
+      function ohneVorschau() {
+        figure.classList.add("wws-img--ohne-vorschau");
+        bild.remove();
+        var text = document.createElement("span");
+        text.className = "wws-img__name";
+        text.textContent = kuerzen(datei.name);
+        figure.insertBefore(text, bar);
+        bar.textContent = "wird umgewandelt";
+      }
+
+      bild.onerror = ohneVorschau;
       var leser = new FileReader();
       leser.onload = function (e) { bild.src = e.target.result; };
+      leser.onerror = ohneVorschau;
       leser.readAsDataURL(datei);
     });
   }
 
-  document.querySelectorAll("[data-img-uploader]").forEach(function (box) {
-    var grid = box.querySelector("[data-img-grid]");
-    var input = box.querySelector("[data-img-input]");
-    var vorschau = box.querySelector("[data-img-preview]");
+  // Gespeicherte Bilder, deren Datei nicht mehr ausgeliefert wird, sollen
+  // sagen was los ist statt ein kaputtes Bildsymbol zu zeigen.
+  document.querySelectorAll("[data-wws-img] img").forEach(function (bild) {
+    bild.addEventListener("error", function () {
+      var kachel = bild.closest("[data-wws-img]");
+      if (!kachel) return;
+      kachel.classList.add("wws-img--ohne-vorschau", "wws-img--fehlt");
+      var text = document.createElement("span");
+      text.className = "wws-img__name";
+      text.textContent = "Bild fehlt";
+      bild.replaceWith(text);
+    });
+  });
+
+  document.querySelectorAll("[data-wws-uploader]").forEach(function (box) {
+    var grid = box.querySelector("[data-wwsimg-grid]");
+    var input = box.querySelector("[data-wwsimg-input]");
+    var vorschau = box.querySelector("[data-wwsimg-preview]");
 
     if (grid) {
       grid.addEventListener("click", function (event) {
-        var knopf = event.target.closest("[data-img-move]");
+        var knopf = event.target.closest("[data-wwsimg-move]");
         if (!knopf) return;
         event.preventDefault();
-        move(grid, knopf.closest("[data-img-tile]"), parseInt(knopf.dataset.imgMove, 10));
+        move(grid, knopf.closest("[data-wws-img]"), parseInt(knopf.dataset.wwsimgMove, 10));
       });
       grid.addEventListener("change", function (event) {
         if (event.target.type !== "checkbox") return;
-        var tile = event.target.closest("[data-img-tile]");
+        var tile = event.target.closest("[data-wws-img]");
         if (tile) tile.classList.toggle("is-deleted", event.target.checked);
       });
     }
@@ -69,6 +101,81 @@
     if (input && vorschau) {
       input.addEventListener("change", function () { preview(input, vorschau); });
     }
+  });
+
+  // --- Kundensuche ----------------------------------------------------------
+  // Ersetzt die Auswahlliste, sobald JavaScript laeuft. Ohne JavaScript bleibt
+  // das urspruengliche <select> sichtbar und bedienbar.
+
+  document.querySelectorAll("[data-wws-kundensuche]").forEach(function (box) {
+    var feld = box.querySelector("[data-wws-kundenfeld]");
+    var liste = box.querySelector("[data-wws-treffer]");
+    var gewaehlt = box.querySelector("[data-wws-gewaehlt]");
+    var select = box.querySelector("select");
+    if (!feld || !liste || !select) return;
+
+    select.hidden = true;
+    feld.hidden = false;
+
+    function zeigeGewaehlt() {
+      var option = select.options[select.selectedIndex];
+      var hatKunden = select.value !== "";
+      gewaehlt.hidden = !hatKunden;
+      if (hatKunden) {
+        gewaehlt.textContent = "Gewählt: " + option.textContent;
+        var loesen = document.createElement("button");
+        loesen.type = "button";
+        loesen.className = "wws-btn wws-btn--quiet";
+        loesen.textContent = "entfernen";
+        loesen.addEventListener("click", function () {
+          select.value = "";
+          feld.value = "";
+          zeigeGewaehlt();
+        });
+        gewaehlt.appendChild(loesen);
+      }
+    }
+    zeigeGewaehlt();
+
+    var laeuft = null;
+    feld.addEventListener("input", function () {
+      var suche = feld.value.trim();
+      window.clearTimeout(laeuft);
+      if (suche.length < 2) {
+        liste.hidden = true;
+        liste.innerHTML = "";
+        return;
+      }
+      laeuft = window.setTimeout(function () {
+        fetch(box.dataset.url + "?q=" + encodeURIComponent(suche))
+          .then(function (r) { return r.json(); })
+          .then(function (daten) {
+            liste.innerHTML = "";
+            liste.hidden = daten.treffer.length === 0;
+            daten.treffer.forEach(function (kunde) {
+              var eintrag = document.createElement("li");
+              var knopf = document.createElement("button");
+              knopf.type = "button";
+              knopf.className = "wws-treffer__eintrag";
+              knopf.innerHTML =
+                "<strong></strong><span></span>" +
+                (kunde.b2b ? "<em class='wws-badge wws-badge--b2b'>B2B</em>" : "");
+              knopf.querySelector("strong").textContent = kunde.name;
+              knopf.querySelector("span").textContent = kunde.detail;
+              knopf.addEventListener("click", function () {
+                select.value = String(kunde.id);
+                feld.value = "";
+                liste.hidden = true;
+                liste.innerHTML = "";
+                zeigeGewaehlt();
+              });
+              eintrag.appendChild(knopf);
+              liste.appendChild(eintrag);
+            });
+          })
+          .catch(function () { liste.hidden = true; });
+      }, 250);
+    });
   });
 
   // --- Filterleiste ---------------------------------------------------------

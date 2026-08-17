@@ -5,15 +5,17 @@ Muster wie shop/manage_views.py (RoleRequiredMixin).
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Case, Count, Q, When
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import (
     CreateView,
+    DeleteView,
     FormView,
     ListView,
     TemplateView,
@@ -23,6 +25,7 @@ from django.views.generic import (
 
 from accounts.views import RoleRequiredMixin
 from shop.models import Product
+from shop.services.imaging import normalize_uploads
 
 from .forms import (
     AttributeOptionForm,
@@ -57,7 +60,12 @@ class StaffMixin(RoleRequiredMixin):
 # --- Bilder ----------------------------------------------------------------
 
 def save_images(stock_item, dateien, kind, start=0):
-    """Hochgeladene Dateien als Bilder anhaengen."""
+    """Bereits umgewandelte Dateien als Bilder anhaengen.
+
+    Das Umwandeln passiert bewusst eine Ebene hoeher (normalize_uploads), damit
+    unlesbare Dateien als Formularfehler erscheinen und ein Wareneingang mit
+    mehreren Stueck die Fotos nur einmal durch Pillow schickt.
+    """
     StockItemImage.objects.bulk_create([
         StockItemImage(stock_item=stock_item, image=f, kind=kind, sort_order=start + i)
         for i, f in enumerate(dateien)
@@ -65,7 +73,11 @@ def save_images(stock_item, dateien, kind, start=0):
 
 
 def apply_image_changes(request, stock_item, kind, upload_field):
-    """Loeschen, Neusortieren und Hochladen fuer eine Bildergruppe."""
+    """Loeschen, Neusortieren und Hochladen fuer eine Bildergruppe.
+
+    Gibt die Meldungen unlesbarer Dateien zurueck; der Rest wird gespeichert,
+    damit ein einzelnes kaputtes Foto nicht den ganzen Vorgang verwirft.
+    """
     delete_ids = request.POST.getlist(f"delete_images_{kind}")
     if delete_ids:
         stock_item.images.filter(pk__in=delete_ids).delete()
@@ -79,8 +91,14 @@ def apply_image_changes(request, stock_item, kind, upload_field):
         stock_item.images.filter(pk=pk).update(sort_order=position)
 
     neue = request.FILES.getlist(upload_field)
-    if neue:
-        save_images(stock_item, neue, kind, start=len(order))
+    if not neue:
+        return []
+    try:
+        umgewandelt = normalize_uploads(neue)
+    except ValidationError as fehler:
+        return fehler.messages
+    save_images(stock_item, umgewandelt, kind, start=len(order))
+    return []
 
 
 # --- Dashboard -------------------------------------------------------------
@@ -306,17 +324,30 @@ class StockItemCreateView(StaffMixin, CreateView):
             )
             return self.form_invalid(form)
 
+        # Vor der Transaktion umwandeln: unlesbare Dateien sollen als
+        # Formularfehler erscheinen, nicht als Serverfehler mitten im Anlegen.
+        try:
+            bilder = normalize_uploads(bilder)
+        except ValidationError as fehler:
+            for meldung in fehler.messages:
+                form.add_error(None, meldung)
+            return self.form_invalid(form)
+
         data = form.cleaned_data
         supplier = data["supplier"]
         menge = data["quantity"]
-        einzeln = data["stock_mode"] == StockItem.StockMode.EINZELSTUECK
+        # Bestandsart folgt der Kategorie: Peruecken und Rohlinge ergeben je
+        # Stueck einen Datensatz, Mengenware einen mit der Anzahl.
+        einzeln = (
+            StockItem.mode_for_category(data["shop_category"])
+            == StockItem.StockMode.EINZELSTUECK
+        )
         counters = reserve_numbers(supplier, menge if einzeln else 1)
 
         felder = (
             "product_name", "invoice_no", "purchase_price", "vat_rate",
             "color", "length", "size", "structure", "density", "cap_type",
-            "received_at", "stock_mode", "shop_category", "audience",
-            "sale_price", "notes",
+            "received_at", "shop_category", "sale_price", "notes",
         )
         gemeinsam = {name: data[name] for name in felder}
 
@@ -365,8 +396,14 @@ class StockItemPublishView(StaffMixin, FormView):
         self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["stueck"] = self.stueck  # fuer die Rohling-Regel im Formular
+        return kwargs
+
     def get_initial(self):
-        # Was der Wareneingang schon weiss, vorbelegen.
+        # Was der Wareneingang schon weiss, vorbelegen. Die Zielgruppe bewusst
+        # nicht - sie soll hier bewusst entschieden werden.
         return {
             "product": self.stueck.product_id,
             "name": self.stueck.product_name,
@@ -379,19 +416,25 @@ class StockItemPublishView(StaffMixin, FormView):
         ctx = super().get_context_data(**kwargs)
         ctx["stueck"] = self.stueck
         ctx["bilder"] = self.stueck.shop_images
+        ctx["blocker"] = self.stueck.publish_blockers()
         return ctx
 
     def form_valid(self, form):
         daten = form.cleaned_data
         produkt = daten.get("product")
 
-        if not self.stueck.shop_images:
+        # Kein halbfertiger Datensatz im Shop: erst muessen Name, Preis,
+        # Beschreibung, Foto und die Eigenschaften stehen.
+        blocker = self.stueck.publish_blockers()
+        if blocker:
             form.add_error(
-                None, "Ohne Foto geht das Stück nicht online. Bitte erst ein Bild hochladen."
+                None,
+                "Vor dem Onlinestellen fehlt noch: " + ", ".join(blocker) + ".",
             )
             return self.form_invalid(form)
 
         with transaction.atomic():
+            self.stueck.audience = daten["audience"]
             if produkt is None:
                 produkt = Product(
                     name=daten["name"],
@@ -404,7 +447,7 @@ class StockItemPublishView(StaffMixin, FormView):
             produkt.track_stock = True
             produkt.save()
             self.stueck.product = produkt
-            self.stueck.save(update_fields=["product", "updated_at"])
+            self.stueck.save(update_fields=["product", "audience", "updated_at"])
             # Eigenschaften, Zielgruppe und Galerie aus dem Bestand nachziehen
             self.stueck.sync_to_product()
             self.stueck.log_event(
@@ -538,6 +581,7 @@ class StockItemUpdateView(StaffMixin, UpdateView):
         )
         ctx["shop_bilder"] = self.object.images.filter(kind=StockItemImage.Kind.SHOP)
         ctx["projekte"] = self.object.projects.all()
+        ctx["blocker"] = self.object.publish_blockers()
         return ctx
 
     def form_valid(self, form):
@@ -548,12 +592,14 @@ class StockItemUpdateView(StaffMixin, UpdateView):
         response = super().form_valid(form)
         obj = form.instance
 
-        apply_image_changes(
+        bildfehler = apply_image_changes(
             self.request, obj, StockItemImage.Kind.EINGANG, "eingang_images"
         )
-        apply_image_changes(
+        bildfehler += apply_image_changes(
             self.request, obj, StockItemImage.Kind.SHOP, "shop_images"
         )
+        for meldung in bildfehler:
+            messages.warning(self.request, meldung)
 
         if old_status != obj.status:
             obj.log_event(
@@ -569,6 +615,64 @@ class StockItemUpdateView(StaffMixin, UpdateView):
             self.request, f"Bestandsstück „{obj.inventory_no}“ gespeichert."
         )
         return response
+
+
+class StockItemDeleteView(StaffMixin, DeleteView):
+    """Bestandsstueck endgueltig entfernen - nach Rueckfrage.
+
+    Verkaufte Ware wird geschuetzt: an ihr haengen Bestellpositionen
+    (on_delete=PROTECT), und die Rechnungshistorie soll nicht zerreissen.
+    Dafuer gibt es das Ausmustern.
+    """
+
+    model = StockItem
+    template_name = "tasty/account/stockitem_confirm_delete.html"
+    success_url = reverse_lazy("inventory_manage:stock_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["verkauft"] = self._verkauft(self.object)
+        ctx["anzahl_bilder"] = self.object.images.count()
+        ctx["anzahl_projekte"] = self.object.projects.count()
+        return ctx
+
+    @staticmethod
+    def _verkauft(stueck):
+        return OrderItem.objects.filter(stock_item=stueck).exists()
+
+    def form_valid(self, form):
+        stueck = self.object
+        if self._verkauft(stueck):
+            messages.error(
+                self.request,
+                f"„{stueck.inventory_no}“ wurde verkauft und kann nicht gelöscht "
+                "werden – daran hängt die Rechnungshistorie. Stattdessen ausmustern.",
+            )
+            return redirect("inventory_manage:stock_edit", pk=stueck.pk)
+
+        nummer = stueck.inventory_no
+        # Dateien mit entfernen: Djangos delete() raeumt den Medienordner nicht auf
+        for bild in stueck.images.all():
+            bild.image.delete(save=False)
+        response = super().form_valid(form)
+        messages.success(self.request, f"Bestandsstück „{nummer}“ wurde gelöscht.")
+        return response
+
+
+class StockItemRetireView(StaffMixin, View):
+    """Ausmustern statt loeschen (POST-only) - der Weg fuer verkaufte Ware."""
+
+    def post(self, request, pk):
+        stueck = get_object_or_404(StockItem, pk=pk)
+        alt = stueck.get_status_display()
+        stueck.status = StockItem.Status.AUSGEMUSTERT
+        stueck.save(update_fields=["status", "updated_at"])
+        stueck.log_event(
+            StockItemEvent.Kind.STATUS, alt, stueck.get_status_display(),
+            by=request.user, note="Ausgemustert",
+        )
+        messages.success(request, f"„{stueck.inventory_no}“ ist ausgemustert.")
+        return redirect("inventory_manage:stock_list")
 
 
 class StockItemUnpublishView(StaffMixin, View):
@@ -628,9 +732,20 @@ class ProjectMixin:
         return response
 
 
+# Schluessel des Formular-Zwischenspeichers waehrend der Bestandsauswahl.
+# Die Auswahl laeuft ueber eine eigene Seite, deshalb muessen die bereits
+# eingegebenen Werte zwischengeparkt werden - sonst waeren sie nach der
+# Rueckkehr weg.
+PROJEKT_ENTWURF = "projekt_entwurf"
+
+
 class ProjectCreateView(ProjectMixin, StaffMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
+        # Aus dem Zwischenspeicher zurueck (nach der Bestandsauswahl)
+        entwurf = self.request.session.pop(PROJEKT_ENTWURF, None)
+        if entwurf:
+            initial.update(entwurf)
         stueck_id = self.request.GET.get("bestand")
         if stueck_id and stueck_id.isdigit():
             initial["stock_item"] = stueck_id
@@ -643,6 +758,91 @@ class ProjectCreateView(ProjectMixin, StaffMixin, CreateView):
 
 class ProjectUpdateView(ProjectMixin, StaffMixin, UpdateView):
     model = Project
+
+
+class ProjectPickStockView(StaffMixin, ListView):
+    """Bestandsstueck fuer ein Projekt aussuchen - mit Bildern statt Auswahlliste.
+
+    Wird per POST aus dem Projektformular aufgerufen; die bereits eingegebenen
+    Werte wandern in die Session und kommen nach der Auswahl zurueck.
+    """
+
+    model = StockItem
+    template_name = "tasty/account/project_pick_stock.html"
+    context_object_name = "stuecke"
+
+    # Nur diese Felder werden zwischengeparkt - Dateien und CSRF nicht.
+    ENTWURF_FELDER = (
+        "title", "customer", "customer_name", "status", "due_date",
+        "target_color", "target_length", "target_structure",
+        "target_cap_type", "target_density", "target_size", "notes",
+    )
+
+    def post(self, request, *args, **kwargs):
+        request.session[PROJEKT_ENTWURF] = {
+            name: request.POST.get(name, "")
+            for name in self.ENTWURF_FELDER
+            if request.POST.get(name)
+        }
+        return redirect(request.get_full_path())
+
+    def get_queryset(self):
+        qs = (
+            StockItem.objects
+            .filter(shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN)
+            .exclude(status__in=(
+                StockItem.Status.AUSGEMUSTERT, StockItem.Status.VERKAUFT,
+            ))
+            .select_related("supplier")
+            .prefetch_related("images", "projects")
+        )
+        suche = self.request.GET.get("q", "").strip()
+        if suche:
+            qs = qs.filter(
+                Q(inventory_no__icontains=suche)
+                | Q(product_name__icontains=suche)
+                | Q(color__icontains=suche)
+                | Q(length__icontains=suche)
+                | Q(supplier__name__icontains=suche)
+            )
+        return qs.order_by("-created_at", "-id")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["suche"] = self.request.GET.get("q", "")
+        # Zurueck ins Formular: bei bestehenden Projekten zur Bearbeitung
+        ctx["projekt_pk"] = self.request.GET.get("projekt", "")
+        return ctx
+
+
+class CustomerSearchView(StaffMixin, View):
+    """Kundensuche als JSON fuer das Suchfeld im Projektformular."""
+
+    LIMIT = 20
+
+    def get(self, request):
+        suche = request.GET.get("q", "").strip()
+        if len(suche) < 2:
+            return JsonResponse({"treffer": []})
+        kunden = User.objects.filter(
+            Q(first_name__icontains=suche)
+            | Q(last_name__icontains=suche)
+            | Q(email__icontains=suche)
+            | Q(company_name__icontains=suche),
+            role__in=(User.Role.B2C, User.Role.B2B),
+        ).order_by("last_name", "email")[: self.LIMIT]
+        return JsonResponse({
+            "treffer": [
+                {
+                    "id": k.pk,
+                    "name": (f"{k.first_name} {k.last_name}".strip()
+                             or k.company_name or k.email),
+                    "detail": k.email,
+                    "b2b": k.role == User.Role.B2B,
+                }
+                for k in kunden
+            ]
+        })
 
 
 class ProjectApplyPlanView(StaffMixin, View):

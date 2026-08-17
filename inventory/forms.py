@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from .models import AttributeOption, Project, StockItem, Supplier
 
@@ -77,28 +78,30 @@ class AttributeOptionForm(forms.ModelForm):
 
 
 class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
-    """Wareneingang erfassen. Stueckzahl ist bei Einzelstuecken kein Modellfeld -
-    die View legt entsprechend viele Datensaetze an; bei Mengenartikeln landet
-    sie als quantity an einem einzigen Datensatz.
+    """Wareneingang erfassen.
+
+    Die Anzahl bedeutet je nach Kategorie zweierlei: bei Peruecken und Rohlingen
+    entstehen so viele Datensaetze mit eigener Produktnummer, bei Mengenware ein
+    einziger Datensatz mit dieser Anzahl. Die Bestandsart wird deshalb nicht
+    mehr gefragt, sondern aus der Kategorie abgeleitet.
     """
 
-    quantity = forms.IntegerField(label="Stückzahl", min_value=1, initial=1)
+    quantity = forms.IntegerField(label="Anzahl", min_value=1, initial=1)
 
     catalog_fields = ("color", "length", "size", "structure", "density", "cap_type")
 
     # Ohne diese Angaben laesst sich nichts einkaufen; alles Weitere
-    # (Verkaufspreis, Beschreibung) kommt spaeter beim Bearbeiten dazu.
+    # (Verkaufspreis, Beschreibung, Zielgruppe) kommt beim Bearbeiten und beim
+    # Onlinestellen dazu.
     required_fields = (
         "supplier", "product_name", "invoice_no", "purchase_price", "vat_rate",
-        "color", "length", "size", "received_at", "stock_mode", "shop_category",
+        "color", "length", "size", "received_at", "shop_category",
     )
 
     class Meta:
         model = StockItem
         fields = (
-            "stock_mode",
             "shop_category",
-            "audience",
             "supplier",
             "product_name",
             "invoice_no",
@@ -130,12 +133,9 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
         self.fields["shop_category"].choices = [
             ("", "Bitte wählen")
         ] + list(StockItem.SHOP_CATEGORIES)
-
-    def clean(self):
-        cleaned = super().clean()
-        if cleaned.get("shop_category") == "rohling":
-            cleaned["audience"] = StockItem.Audience.B2B
-        return cleaned
+        # Ware wird fast immer am Eingangstag erfasst. Ein leeres Datumsfeld
+        # sieht auf dem iPhone zudem aus wie ein Fehler.
+        self.fields["received_at"].initial = timezone.localdate()
 
 
 class StockItemPublishForm(forms.Form):
@@ -153,18 +153,39 @@ class StockItemPublishForm(forms.Form):
     price = forms.DecimalField(
         label="Verkaufspreis (€)", max_digits=8, decimal_places=2, required=False
     )
+    # Erst hier gefragt: beim Einkauf steht oft noch nicht fest, ob ein Stueck
+    # an Endkunden oder an Kollegen geht. Bewusst ohne Vorauswahl.
+    audience = forms.ChoiceField(
+        label="Zielgruppe", choices=(), required=True,
+        help_text="Wer das Produkt im Shop sehen darf.",
+    )
 
     def __init__(self, *args, **kwargs):
         # Import hier, nicht auf Modulebene: shop importiert inventory nicht,
         # aber die Kette bleibt so in jedem Fall zirkelfrei.
         from shop.models import Product
 
+        self.stueck = kwargs.pop("stueck", None)
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.order_by("name")
         self.fields["category"].choices = [("", "---------")] + [
             (wert, bezeichnung) for wert, bezeichnung in Product.Category.choices
             if wert != Product.Category.KONFIG
         ]
+        self.fields["audience"].choices = [
+            ("", "Bitte wählen")
+        ] + list(StockItem.Audience.choices)
+
+    def clean_audience(self):
+        wert = self.cleaned_data["audience"]
+        # Rohlinge sind Handelsware fuer Kollegen. Frueher wurde das still
+        # korrigiert - jetzt ein Fehler, damit die Nutzerin es mitbekommt.
+        if self.stueck and self.stueck.shop_category == "rohling":
+            if wert != StockItem.Audience.B2B:
+                raise forms.ValidationError(
+                    "Rohlinge sind B2B-Ware und dürfen nicht an alle Kunden gehen."
+                )
+        return wert
 
     def clean(self):
         daten = super().clean()
@@ -233,7 +254,6 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
         model = StockItem
         fields = (
             "product_name",
-            "stock_mode",
             "quantity",
             "supplier",
             "invoice_no",
@@ -251,7 +271,6 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
             "reserved_until",
             "sold_channel",
             "shop_category",
-            "audience",
             "sale_price",
             "description",
             "notes",
@@ -271,12 +290,15 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
         self.fields["shop_category"].choices = [
             ("", "Bitte wählen")
         ] + list(StockItem.SHOP_CATEGORIES)
-
-    def clean(self):
-        cleaned = super().clean()
-        if cleaned.get("shop_category") == "rohling":
-            cleaned["audience"] = StockItem.Audience.B2B
-        return cleaned
+        # Beschriftung je nach Ware: bei Peruecken zaehlt der Datensatz genau
+        # ein Stueck, bei Mengenware steht hier der Lagerbestand.
+        if self.instance.pk and self.instance.ist_einzelstueck:
+            self.fields["quantity"].help_text = (
+                "Einzelstück – dieser Datensatz ist genau ein Stück."
+            )
+            self.fields["quantity"].disabled = True
+        else:
+            self.fields["quantity"].help_text = "Wie viele davon im Lager liegen."
 
 
 class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
@@ -312,6 +334,11 @@ class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
         self._apply_catalog()
         self.fields["stock_item"].empty_label = "Noch kein Bestandsstück"
         self.fields["customer"].empty_label = "Kein Kundenkonto"
-        self.fields["stock_item"].queryset = StockItem.objects.exclude(
-            status=StockItem.Status.AUSGEMUSTERT
-        ).order_by("-created_at")
+        # Nur handwerklich bearbeitbare Ware: an Pflegeprodukten oder Top
+        # Holdern gibt es nichts zu planen.
+        self.fields["stock_item"].queryset = (
+            StockItem.objects
+            .filter(shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN)
+            .exclude(status=StockItem.Status.AUSGEMUSTERT)
+            .order_by("-created_at")
+        )

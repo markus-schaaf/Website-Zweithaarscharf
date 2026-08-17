@@ -96,6 +96,22 @@ class StockItem(models.Model):
         if value != ShopProduct.Category.KONFIG
     ]
 
+    # Handwerklich bearbeitbare Ware: nur diese kann in ein Projekt und ist
+    # zugleich immer ein Einzelstueck mit eigener Produktnummer. Pflege,
+    # Zubehoer und Top Holder sind Mengenartikel. Eine Quelle fuer Formulare,
+    # Auswahlseiten und Vorlagen.
+    PROJEKTFAEHIGE_KATEGORIEN = (
+        ShopProduct.Category.BESTAND,
+        ShopProduct.Category.ROHLING,
+    )
+
+    @classmethod
+    def mode_for_category(cls, shop_category):
+        """Bestandsart aus der Kategorie. Wird nicht mehr von Hand gepflegt."""
+        if shop_category in cls.PROJEKTFAEHIGE_KATEGORIEN:
+            return cls.StockMode.EINZELSTUECK
+        return cls.StockMode.MENGE
+
     # Als Decimal, nicht als TextChoices: die Auswahl eines DecimalField wird
     # zu Decimal gecastet und wuerde gegen String-Schluessel nicht validieren.
     VAT_RATES = [
@@ -132,12 +148,13 @@ class StockItem(models.Model):
     received_at = models.DateField("Lieferdatum", null=True, blank=True)
 
     # Einzelstueck = ein Datensatz je physischem Stueck; Mengenartikel = ein
-    # Datensatz mit Stueckzahl (Pflege, Zubehoer, Top Holder).
+    # Datensatz mit Anzahl (Pflege, Zubehoer, Top Holder). Wird aus
+    # shop_category abgeleitet, siehe mode_for_category und save().
     stock_mode = models.CharField(
         "Bestandsart", max_length=12, choices=StockMode.choices,
         default=StockMode.EINZELSTUECK
     )
-    quantity = models.PositiveIntegerField("Stückzahl", default=1)
+    quantity = models.PositiveIntegerField("Anzahl", default=1)
 
     # Verkaufsdaten fuer die Veroeffentlichung im Shop
     shop_category = models.CharField(
@@ -177,14 +194,70 @@ class StockItem(models.Model):
     def __str__(self):
         return f"{self.inventory_no} · {self.product_name}"
 
-    def clean(self):
+    def save(self, *args, **kwargs):
+        # Bestandsart wird nicht mehr von Hand gepflegt, sondern folgt der
+        # Kategorie: Peruecken und Rohlinge sind Einzelstuecke, alles andere
+        # ist Mengenware.
+        if self.shop_category:
+            self.stock_mode = self.mode_for_category(self.shop_category)
         # Rohlinge sind Handelsware fuer Kollegen, nie fuer Endkunden.
         if self.shop_category == ShopProduct.Category.ROHLING:
             self.audience = self.Audience.B2B
+        return super().save(*args, **kwargs)
 
     @property
     def is_available(self):
         return self.status == self.Status.VERFUEGBAR
+
+    @property
+    def ist_einzelstueck(self):
+        return self.stock_mode == self.StockMode.EINZELSTUECK
+
+    @property
+    def ist_projektfaehig(self):
+        return self.shop_category in self.PROJEKTFAEHIGE_KATEGORIEN
+
+    # Was ein Stueck mitbringen muss, bevor es in den Shop darf. Erst waren
+    # halbfertige Datensaetze online - Name und Preis fehlten, das Bild auch.
+    PFLICHT_IMMER = (
+        ("product_name", "Produktname"),
+        ("sale_price", "Verkaufspreis"),
+        ("shop_category", "Shop-Kategorie"),
+        ("description", "Beschreibung für die Produktseite"),
+    )
+    PFLICHT_HAAR = (
+        ("color", "Farbe"),
+        ("length", "Länge"),
+        ("size", "Größe"),
+        ("structure", "Schnitt"),
+        ("cap_type", "Montur"),
+        ("density", "Dichte"),
+    )
+
+    def publish_blockers(self):
+        """Angaben, die vor dem Onlinestellen noch fehlen (leer = bereit)."""
+        fehlt = [
+            label for name, label in self.PFLICHT_IMMER
+            if not getattr(self, name)
+        ]
+        if self.ist_projektfaehig:
+            fehlt += [
+                label for name, label in self.PFLICHT_HAAR
+                if not getattr(self, name)
+            ]
+        elif not self.quantity:
+            fehlt.append("Anzahl größer null")
+        if not self.shop_images:
+            fehlt.append("mindestens ein Foto")
+        if self.status in (self.Status.VERKAUFT, self.Status.AUSGEMUSTERT):
+            fehlt.append(
+                f"ein verkaufsfähiger Status (aktuell {self.get_status_display()})"
+            )
+        return fehlt
+
+    @property
+    def ist_veroeffentlichbar(self):
+        return not self.publish_blockers()
 
     @property
     def work_state(self):

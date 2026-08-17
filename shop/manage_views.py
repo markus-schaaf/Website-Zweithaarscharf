@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -21,6 +22,7 @@ from .models import (
     Product3DAsset,
     ProductImage,
 )
+from .services.imaging import normalize_upload, normalize_uploads
 from .tasks import generate_3d_model
 
 User = get_user_model()
@@ -64,8 +66,16 @@ class ProduktBearbeitenView(RoleRequiredMixin, UpdateView):
         delete_ids = self.request.POST.getlist("delete_images")
         if delete_ids:
             form.instance.images.filter(pk__in=delete_ids).delete()
-        for f in self.request.FILES.getlist("extra_images"):
-            ProductImage.objects.create(product=form.instance, image=f)
+        neue = self.request.FILES.getlist("extra_images")
+        if neue:
+            # iPhone-Fotos kommen als HEIC an - umwandeln, sonst zeigt sie
+            # spaeter kein Browser an.
+            try:
+                for f in normalize_uploads(neue):
+                    ProductImage.objects.create(product=form.instance, image=f)
+            except ValidationError as fehler:
+                for meldung in fehler.messages:
+                    messages.warning(self.request, meldung)
         messages.success(self.request, f"Produkt „{form.instance.name}“ wurde gespeichert.")
         return response
 

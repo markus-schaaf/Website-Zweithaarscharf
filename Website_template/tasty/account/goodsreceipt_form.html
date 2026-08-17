@@ -25,26 +25,15 @@
         <h2 class="form-section"><svg class="wws-ico"><use href="#ico-karton"></use></svg>Art der Ware</h2>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.stock_mode.id_for_label }}">Bestandsart *</label>
-            {{ form.stock_mode }}{{ form.stock_mode.errors }}
-            <p class="form-hint">Einzelst&uuml;ck: je St&uuml;ck ein eigener Datensatz (Per&uuml;cken, Rohlinge).
-              Mengenartikel: ein Datensatz mit St&uuml;ckzahl (Pflege, Zubeh&ouml;r, Top Holder).</p>
-          </div>
-          <div class="field">
-            <label for="{{ form.quantity.id_for_label }}">St&uuml;ckzahl *</label>
-            {{ form.quantity }}{{ form.quantity.errors }}
-          </div>
-        </div>
-
-        <div class="form-row form-row--2">
-          <div class="field">
             <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie *</label>
             {{ form.shop_category }}{{ form.shop_category.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.audience.id_for_label }}">Zielgruppe *</label>
-            {{ form.audience }}{{ form.audience.errors }}
-            <p class="form-hint">Rohlinge werden automatisch auf &bdquo;Nur B2B&ldquo; gesetzt.</p>
+            <label for="{{ form.quantity.id_for_label }}">Anzahl *</label>
+            {{ form.quantity }}{{ form.quantity.errors }}
+            <p class="form-hint">Bei Per&uuml;cken und Rohlingen entsteht je St&uuml;ck ein
+              eigener Datensatz mit eigener Produktnummer. Bei Pflege, Zubeh&ouml;r und
+              Top Holdern ein Datensatz mit dieser Menge im Lager.</p>
           </div>
         </div>
 
@@ -148,4 +137,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=1"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=3"></script>{% endblock %}

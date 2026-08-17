@@ -23,6 +23,8 @@ urlpatterns = [
     path("bestand/<int:pk>/bearbeiten/", manage_views.StockItemUpdateView.as_view(), name="stock_edit"),
     path("bestand/<int:pk>/onlinestellen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
     path("bestand/<int:pk>/zurueckziehen/", manage_views.StockItemUnpublishView.as_view(), name="stock_unpublish"),
+    path("bestand/<int:pk>/loeschen/", manage_views.StockItemDeleteView.as_view(), name="stock_delete"),
+    path("bestand/<int:pk>/ausmustern/", manage_views.StockItemRetireView.as_view(), name="stock_retire"),
     path("bestand/<int:pk>/verkaufen/", manage_views.StockItemSellView.as_view(), name="stock_sell"),
 
     # Verkäufe
@@ -35,4 +37,6 @@ urlpatterns = [
     path("projekte/<int:pk>/bearbeiten/", manage_views.ProjectUpdateView.as_view(), name="project_edit"),
     path("projekte/<int:pk>/plan-uebernehmen/", manage_views.ProjectApplyPlanView.as_view(), name="project_apply"),
     path("projekte/<int:pk>/erledigt/", manage_views.ProjectDoneView.as_view(), name="project_done"),
+    path("projekte/bestand-waehlen/", manage_views.ProjectPickStockView.as_view(), name="project_pick_stock"),
+    path("kunden/suche/", manage_views.CustomerSearchView.as_view(), name="customer_search"),
 ]
