@@ -21,8 +21,8 @@
       </ul>
     {% endif %}
 
-    <div class="btn-row mb-24">
-      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    <div class="wws-actions">
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
     </div>
 
     <div class="form-card table-scroll">
@@ -49,7 +49,7 @@
                 {% if v.export_status != "sent" %}
                   <form method="post" action="{% url 'inventory_manage:order_resend' v.pk %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline">Erneut senden</button>
+                    <button type="submit" class="wws-btn wws-btn--secondary">Erneut senden</button>
                   </form>
                 {% else %}
                   &ndash;

@@ -5,6 +5,7 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
@@ -26,7 +27,9 @@
       <div class="wws-statusbar__info">
         <strong>{{ object.inventory_no }}</strong>
         <span class="wws-badge wws-badge--{{ object.status }}">{{ object.get_status_display }}</span>
-        {% if object.current_phase %}<span class="wws-badge">{{ object.current_phase.name }}</span>{% endif %}
+        {% if object.work_state %}
+          <span class="wws-badge wws-badge--{{ object.work_state.0 }}">{{ object.work_state.1 }}</span>
+        {% endif %}
         {% if object.product_id %}
           <span class="wws-badge wws-badge--shop">Im Shop: {{ object.product.name }}</span>
         {% else %}
@@ -35,19 +38,29 @@
       </div>
       <div class="wws-statusbar__actions">
         {% if object.product_id %}
-          <a class="btn" href="{% url 'product_detail' object.product.slug %}">Im Shop ansehen</a>
-          <a class="btn" href="{% url 'inventory_manage:stock_publish' object.pk %}">Zuordnung &auml;ndern</a>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'product_detail' object.product.slug %}">
+            <svg class="wws-ico"><use href="#ico-lupe"></use></svg>Im Shop ansehen
+          </a>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_publish' object.pk %}">
+            <svg class="wws-ico"><use href="#ico-etikett"></use></svg>Zuordnung &auml;ndern
+          </a>
           <form method="post" action="{% url 'inventory_manage:stock_unpublish' object.pk %}">
             {% csrf_token %}
-            <button type="submit" class="btn">Aus dem Shop nehmen</button>
+            <button type="submit" class="wws-btn wws-btn--danger">Aus dem Shop nehmen</button>
           </form>
         {% else %}
-          <a class="btn btn-gold" href="{% url 'inventory_manage:stock_publish' object.pk %}">Online stellen</a>
+          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_publish' object.pk %}">
+            <svg class="wws-ico"><use href="#ico-etikett"></use></svg>Online stellen
+          </a>
         {% endif %}
         {% if object.status == "verfuegbar" or object.status == "reserviert" %}
-          <a class="btn" href="{% url 'inventory_manage:stock_sell' object.pk %}">Verkauf buchen</a>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_sell' object.pk %}">
+            <svg class="wws-ico"><use href="#ico-kasse"></use></svg>Verkauf buchen
+          </a>
         {% endif %}
-        <a class="btn" href="{% url 'inventory_manage:project_create' %}?bestand={{ object.pk }}">+ Projekt</a>
+        <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_create' %}?bestand={{ object.pk }}">
+          <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Projekt anlegen
+        </a>
       </div>
     </div>
 
@@ -56,7 +69,7 @@
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
-        <h2 class="form-section">Stammdaten</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-karton"></use></svg>Stammdaten</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.product_name.id_for_label }}">Produktname</label>
@@ -80,7 +93,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Einkauf</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-lkw"></use></svg>Einkauf</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.supplier.id_for_label }}">Hersteller</label>
@@ -112,7 +125,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Eigenschaften</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
         <p class="form-section__hint">Auswahlwerte pflegen Sie unter
           <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
         <div class="form-row form-row--2">
@@ -146,7 +159,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Bilder</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-kamera"></use></svg>Bilder</h2>
         <div class="form-row">
           {% include "tasty/account/_image_uploader.html" with kind="eingang" bilder=eingang_bilder upload_name="eingang_images" titel="Eingangsbilder (Zustand beim Kauf)" hinweis="Dokumentation des Lieferzustands." %}
         </div>
@@ -154,16 +167,18 @@
           {% include "tasty/account/_image_uploader.html" with kind="shop" bilder=shop_bilder upload_name="shop_images" titel="Verkaufsbilder (fertiges Produkt)" hinweis="Diese Bilder erscheinen im Shop, in genau dieser Reihenfolge. Ohne Verkaufsbilder werden die Eingangsbilder verwendet." %}
         </div>
 
-        <h2 class="form-section">Fertigung und Verf&uuml;gbarkeit</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-haken"></use></svg>Verf&uuml;gbarkeit</h2>
+        <p class="form-section__hint">Ob an dem St&uuml;ck gearbeitet wird, ergibt sich aus den
+          Projekten weiter unten &ndash; ein Projekt ist offen oder erledigt.</p>
         <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.current_phase.id_for_label }}">Fertigungsphase</label>
-            {{ form.current_phase }}{{ form.current_phase.errors }}
-          </div>
           <div class="field">
             <label for="{{ form.status.id_for_label }}">Status</label>
             {{ form.status }}{{ form.status.errors }}
             <p class="form-hint">Auf &bdquo;Verkauft&ldquo; gesetzt verschwindet das St&uuml;ck sofort aus dem Shop.</p>
+          </div>
+          <div class="field">
+            <label for="{{ form.sold_channel.id_for_label }}">Verkaufskanal</label>
+            {{ form.sold_channel }}{{ form.sold_channel.errors }}
           </div>
         </div>
         <div class="form-row form-row--2">
@@ -176,14 +191,8 @@
             {{ form.reserved_until }}{{ form.reserved_until.errors }}
           </div>
         </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="{{ form.sold_channel.id_for_label }}">Verkaufskanal</label>
-            {{ form.sold_channel }}{{ form.sold_channel.errors }}
-          </div>
-        </div>
 
-        <h2 class="form-section">Verkauf und Shop</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-etikett"></use></svg>Verkauf und Shop</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie</label>
@@ -208,8 +217,8 @@
         </div>
 
         <div class="form-actions form-actions--sticky">
-          <button type="submit" class="btn btn-gold">Speichern</button>
-          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+          <button type="submit" class="wws-btn wws-btn--primary">Speichern</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
         </div>
       </form>
     </div>

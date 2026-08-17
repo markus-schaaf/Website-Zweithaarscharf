@@ -4,7 +4,6 @@ from .models import (
     AttributeOption,
     Order,
     OrderItem,
-    ProductionPhase,
     Project,
     StockItem,
     StockItemEvent,
@@ -35,13 +34,6 @@ class ProjectAdmin(admin.ModelAdmin):
     autocomplete_fields = ("stock_item", "customer")
 
 
-@admin.register(ProductionPhase)
-class ProductionPhaseAdmin(admin.ModelAdmin):
-    list_display = ("name", "sort_order", "is_active")
-    list_editable = ("sort_order", "is_active")
-    ordering = ("sort_order", "name")
-
-
 class StockItemEventInline(admin.TabularInline):
     """Historie schreibgeschuetzt anzeigen (wird automatisch gefuellt)."""
 
@@ -65,9 +57,9 @@ class StockItemImageInline(admin.TabularInline):
 class StockItemAdmin(admin.ModelAdmin):
     list_display = (
         "inventory_no", "product_name", "supplier", "invoice_no",
-        "status", "current_phase", "product", "reserved_for",
+        "status", "product", "reserved_for",
     )
-    list_filter = ("status", "stock_mode", "shop_category", "supplier", "current_phase")
+    list_filter = ("status", "stock_mode", "shop_category", "supplier")
     search_fields = ("inventory_no", "product_name", "invoice_no", "product__name")
     autocomplete_fields = ("product", "reserved_for")
     readonly_fields = ("created_at", "updated_at")
@@ -80,23 +72,18 @@ class StockItemAdmin(admin.ModelAdmin):
         return self.readonly_fields
 
     def save_model(self, request, obj, form, change):
-        """Status- und Phasenwechsel automatisch in die Historie schreiben."""
-        pending = []
+        """Statuswechsel automatisch in die Historie schreiben."""
+        alt = None
         if change:
-            old = StockItem.objects.get(pk=obj.pk)
-            if old.status != obj.status:
-                pending.append((
-                    StockItemEvent.Kind.STATUS,
-                    old.get_status_display(), obj.get_status_display(),
-                ))
-            if old.current_phase_id != obj.current_phase_id:
-                pending.append((
-                    StockItemEvent.Kind.PHASE,
-                    str(old.current_phase or ""), str(obj.current_phase or ""),
-                ))
+            vorher = StockItem.objects.get(pk=obj.pk)
+            if vorher.status != obj.status:
+                alt = vorher.get_status_display()
         super().save_model(request, obj, form, change)
-        for kind, frm, to in pending:
-            obj.log_event(kind, frm, to, by=request.user)
+        if alt is not None:
+            obj.log_event(
+                StockItemEvent.Kind.STATUS, alt, obj.get_status_display(),
+                by=request.user,
+            )
 
 
 class OrderItemInline(admin.TabularInline):

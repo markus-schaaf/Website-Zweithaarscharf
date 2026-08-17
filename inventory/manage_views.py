@@ -5,9 +5,8 @@ Muster wie shop/manage_views.py (RoleRequiredMixin).
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Case, Count, Q, When
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -28,7 +27,6 @@ from shop.models import Product
 from .forms import (
     AttributeOptionForm,
     GoodsReceiptForm,
-    ProductionPhaseForm,
     ProjectForm,
     StockItemForm,
     StockItemPublishForm,
@@ -39,7 +37,6 @@ from .models import (
     AttributeOption,
     Order,
     OrderItem,
-    ProductionPhase,
     Project,
     StockItem,
     StockItemEvent,
@@ -100,12 +97,11 @@ class HomeView(StaffMixin, TemplateView):
         ctx["anzahl_veroeffentlicht"] = StockItem.objects.filter(
             product__isnull=False
         ).count()
-        ctx["anzahl_projekte"] = Project.objects.exclude(
-            status__in=(Project.Status.ABGEHOLT, Project.Status.STORNIERT)
+        ctx["anzahl_projekte"] = Project.objects.filter(
+            status=Project.Status.OFFEN
         ).count()
         ctx["anzahl_verkaeufe"] = Order.objects.count()
         ctx["anzahl_lieferanten"] = Supplier.objects.count()
-        ctx["anzahl_phasen"] = ProductionPhase.objects.filter(is_active=True).count()
         ctx["anzahl_werte"] = AttributeOption.objects.filter(is_active=True).count()
         return ctx
 
@@ -159,37 +155,6 @@ class SupplierUpdateView(StaffMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, f"Lieferant „{form.instance.name}“ gespeichert.")
-        return response
-
-
-# --- Fertigungsphasen ------------------------------------------------------
-
-class PhaseListView(StaffMixin, ListView):
-    model = ProductionPhase
-    template_name = "tasty/account/phase_list.html"
-    context_object_name = "phasen"
-
-
-class PhaseCreateView(StaffMixin, CreateView):
-    form_class = ProductionPhaseForm
-    template_name = "tasty/account/phase_form.html"
-    success_url = reverse_lazy("inventory_manage:phase_list")
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, f"Phase „{form.instance.name}“ gespeichert.")
-        return response
-
-
-class PhaseUpdateView(StaffMixin, UpdateView):
-    model = ProductionPhase
-    form_class = ProductionPhaseForm
-    template_name = "tasty/account/phase_form.html"
-    success_url = reverse_lazy("inventory_manage:phase_list")
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, f"Phase „{form.instance.name}“ gespeichert.")
         return response
 
 
@@ -253,8 +218,8 @@ class StockItemListView(StaffMixin, ListView):
 
     def get_queryset(self):
         qs = StockItem.objects.select_related(
-            "product", "current_phase", "supplier", "reserved_for"
-        ).prefetch_related("images")
+            "product", "supplier", "reserved_for"
+        ).prefetch_related("images", "projects")
 
         suche = self.request.GET.get("q", "").strip()
         if suche:
@@ -576,12 +541,10 @@ class StockItemUpdateView(StaffMixin, UpdateView):
         return ctx
 
     def form_valid(self, form):
-        # Status-/Phasenwechsel automatisch in die Historie schreiben (wer/wann)
+        # Statuswechsel automatisch in die Historie schreiben (wer/wann)
         old = StockItem.objects.get(pk=form.instance.pk)
         old_status_display = old.get_status_display()
         old_status = old.status
-        old_phase_id = old.current_phase_id
-        old_phase = str(old.current_phase or "")
         response = super().form_valid(form)
         obj = form.instance
 
@@ -598,11 +561,6 @@ class StockItemUpdateView(StaffMixin, UpdateView):
                 obj.get_status_display(), by=self.request.user,
             )
             self._handle_sale(obj)
-        if old_phase_id != obj.current_phase_id:
-            obj.log_event(
-                StockItemEvent.Kind.PHASE, old_phase,
-                str(obj.current_phase or ""), by=self.request.user,
-            )
         if obj.product_id:
             # Geaenderte Angaben und Bilder sofort in den Shop durchreichen
             obj.sync_to_product()
@@ -640,7 +598,11 @@ class ProjectListView(StaffMixin, ListView):
     context_object_name = "projekte"
 
     def get_queryset(self):
-        return Project.objects.select_related("stock_item", "customer")
+        # Offene zuerst - das ist die Arbeitsliste
+        return Project.objects.select_related("stock_item", "customer").order_by(
+            Case(When(status=Project.Status.OFFEN, then=0), default=1),
+            "due_date", "-created_at",
+        )
 
 
 class ProjectMixin:
@@ -698,3 +660,24 @@ class ProjectApplyPlanView(StaffMixin, View):
         else:
             messages.info(request, "Das Bestandsstück entspricht bereits dem Plan.")
         return redirect("inventory_manage:project_edit", pk=pk)
+
+
+class ProjectDoneView(StaffMixin, View):
+    """Projekt als erledigt markieren (POST-only). Das ist der einzige
+    Arbeitsstand, den es noch gibt - Fertigungsphasen sind entfallen.
+    """
+
+    def post(self, request, pk):
+        projekt = get_object_or_404(Project, pk=pk)
+        if projekt.status == Project.Status.ERLEDIGT:
+            messages.info(request, "Das Projekt ist bereits erledigt.")
+        else:
+            projekt.status = Project.Status.ERLEDIGT
+            projekt.save(update_fields=["status", "updated_at"])
+            if projekt.stock_item:
+                projekt.stock_item.log_event(
+                    StockItemEvent.Kind.PROJEKT, "Offen", "Erledigt",
+                    by=request.user, note=f"Projekt „{projekt.title}“",
+                )
+            messages.success(request, f"Projekt „{projekt.title}“ ist erledigt.")
+        return redirect("inventory_manage:project_list")

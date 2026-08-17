@@ -2514,3 +2514,426 @@ h1 .badge {
   .wws-statusbar__actions form .btn,
   .wws-statusbar__actions form button { width: 100%; }
 }
+
+/* =======================================================
+   Warenwirtschaft, eigene Formsprache
+   Werkzeug statt Schaufenster: runde Kanten, normale Schreibweise,
+   Symbole, weiche Schatten. Farbwelt bleibt die der Marke.
+   Alles unter .page-account gekapselt - der Kundenbereich bleibt unberuehrt.
+   ======================================================= */
+
+.page-account {
+  --wws-radius: 10px;
+  --wws-radius-lg: 14px;
+  --wws-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --wws-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.05), 0 10px 24px rgba(0, 0, 0, 0.09);
+  --wws-gruen: #2f7a4f;
+  --wws-gruen-bg: #eef6f1;
+  --wws-rot-bg: #fbeeee;
+  --wws-gold-bg: #faf4e8;
+}
+
+/* Sprite selbst nie sichtbar */
+.wws-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.wws-ico {
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+  vertical-align: -0.2em;
+}
+.wws-ico--lg { width: 1.6rem; height: 1.6rem; }
+
+/* ---------- Knoepfe ---------- */
+.wws-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.625rem 1.125rem;
+  border: 1px solid transparent;
+  border-radius: var(--wws-radius);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+}
+.wws-btn:active { transform: translateY(1px); }
+.wws-btn:focus-visible {
+  outline: 2px solid var(--gold-dark);
+  outline-offset: 2px;
+}
+
+.wws-btn--primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+  box-shadow: var(--wws-shadow);
+}
+.wws-btn--primary:hover,
+.wws-btn--primary:focus {
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+  color: var(--white);
+  box-shadow: var(--wws-shadow-hover);
+}
+
+.wws-btn--secondary {
+  background: var(--white);
+  border-color: var(--border-soft);
+  color: var(--text);
+}
+.wws-btn--secondary:hover,
+.wws-btn--secondary:focus {
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  box-shadow: var(--wws-shadow);
+}
+
+.wws-btn--quiet {
+  min-height: 38px;
+  padding: 0.375rem 0.625rem;
+  background: transparent;
+  color: var(--gold-text);
+  font-size: 0.875rem;
+}
+.wws-btn--quiet:hover,
+.wws-btn--quiet:focus {
+  background: var(--wws-gold-bg);
+  color: var(--gold-dark);
+}
+
+.wws-btn--danger {
+  background: var(--white);
+  border-color: var(--border-soft);
+  color: var(--error);
+}
+.wws-btn--danger:hover,
+.wws-btn--danger:focus {
+  background: var(--wws-rot-bg);
+  border-color: var(--error);
+}
+
+.wws-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* Knopfreihen */
+.wws-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-bottom: 1.5rem;
+}
+.wws-actions form { margin: 0; display: contents; }
+
+/* ---------- Meldungsbanner ---------- */
+.page-account .messages { margin: 0 0 1.5rem 0; }
+.page-account .messages li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--wws-radius);
+  background: var(--wws-gold-bg);
+  padding: 0.875rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.page-account .messages li.success {
+  border-left-color: var(--wws-gruen);
+  background: var(--wws-gruen-bg);
+}
+.page-account .messages li.error,
+.page-account .messages li.warning {
+  border-left-color: var(--error);
+  background: var(--wws-rot-bg);
+  color: var(--text);
+}
+
+/* ---------- Dashboard-Kacheln ---------- */
+.wws-group { margin-bottom: 2.5rem; }
+.wws-group__title {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 1rem 0;
+}
+.wws-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+}
+.wws-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--wws-radius-lg);
+  background: var(--white);
+  box-shadow: var(--wws-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.wws-tile:hover {
+  border-color: var(--gold);
+  box-shadow: var(--wws-shadow-hover);
+  transform: translateY(-2px);
+}
+.wws-tile__ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.875rem;
+  border-radius: var(--wws-radius);
+  background: var(--wws-gold-bg);
+  color: var(--gold-dark);
+}
+.wws-tile__zahl {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  line-height: 1.1;
+  margin: 0;
+}
+.wws-tile__label {
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  color: var(--text);
+  margin: 0.125rem 0 0 0;
+}
+.wws-tile__meta {
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+.wws-tile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.wws-tile--primary {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, var(--wws-gold-bg), var(--white) 60%);
+}
+
+/* ---------- Statusmarken mit Punkt ---------- */
+.wws-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--white);
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.wws-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+.wws-badge--kein-punkt::before { display: none; }
+.wws-badge--verfuegbar { border-color: #b6d8c4; background: var(--wws-gruen-bg); color: var(--wws-gruen); }
+.wws-badge--reserviert { border-color: var(--gold-cream); background: var(--wws-gold-bg); color: var(--gold-dark); }
+.wws-badge--verkauft { border-color: var(--border-soft); background: var(--bg-alt); color: var(--text); }
+.wws-badge--ausgemustert,
+.wws-badge--storniert { border-color: #e8bcbc; background: var(--wws-rot-bg); color: var(--error); }
+.wws-badge--offen { border-color: var(--gold-cream); background: var(--wws-gold-bg); color: var(--gold-dark); }
+.wws-badge--erledigt { border-color: #b6d8c4; background: var(--wws-gruen-bg); color: var(--wws-gruen); }
+.wws-badge--shop { border-color: var(--gold); background: var(--gold-cream); color: #6b5227; }
+.wws-badge--b2b { border-color: var(--gold-dark); color: var(--gold-dark); }
+.wws-badge--off { border-color: var(--border-soft); color: var(--placeholder); }
+
+/* ---------- Listenzeilen ---------- */
+.wws-row {
+  position: relative;
+  border-radius: var(--wws-radius-lg);
+  box-shadow: var(--wws-shadow);
+  padding: 0.875rem;
+  overflow: hidden;
+}
+.wws-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.wws-row:hover {
+  border-color: var(--gold);
+  box-shadow: var(--wws-shadow-hover);
+}
+.wws-row:hover::before { opacity: 1; }
+.wws-row__img { border-radius: var(--wws-radius); }
+.wws-row__actions {
+  gap: 0.25rem;
+  margin-left: -0.625rem;
+}
+.wws-row__price {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+.wws-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--wws-radius-lg);
+  background: var(--bg-alt);
+  text-align: center;
+}
+.wws-empty__ico { color: var(--placeholder); }
+.wws-empty p { margin: 0; color: var(--text-secondary); }
+
+/* ---------- Formularabschnitte mit Symbol ---------- */
+.form-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--text);
+}
+.form-section .wws-ico { color: var(--gold-dark); }
+.form-card {
+  border-radius: var(--wws-radius-lg);
+  box-shadow: var(--wws-shadow);
+}
+.form-actions--sticky {
+  box-shadow: 0 -8px 16px -12px rgba(0, 0, 0, 0.3);
+}
+.wws-statusbar {
+  border-radius: var(--wws-radius-lg);
+  box-shadow: var(--wws-shadow);
+}
+.wws-toolbar__search input,
+.wws-select select {
+  border-radius: var(--wws-radius);
+}
+.page-account .field input[type="text"],
+.page-account .field input[type="email"],
+.page-account .field input[type="tel"],
+.page-account .field input[type="number"],
+.page-account .field input[type="date"],
+.page-account .field input[type="datetime-local"],
+.page-account .field input[type="search"],
+.page-account .field input[type="password"],
+.page-account .field select,
+.page-account .field textarea { border-radius: var(--wws-radius); }
+.page-account .field input:focus,
+.page-account .field select:focus,
+.page-account .field textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.15);
+}
+
+/* ---------- Auswahlwerte als Chips ---------- */
+.attr-group {
+  border-radius: var(--wws-radius-lg);
+  box-shadow: var(--wws-shadow);
+  padding: 1.25rem;
+}
+.attr-group__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+}
+.attr-group__kopf .wws-tile__ico {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+}
+.attr-group__kopf h3 { margin: 0; font-size: 1.125rem; }
+.attr-group__anzahl {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.attr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.attr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 38px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--white);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.attr-chip:hover,
+.attr-chip:focus {
+  border-color: var(--gold);
+  background: var(--wws-gold-bg);
+  color: var(--gold-dark);
+}
+.attr-chip--inaktiv {
+  border-style: dashed;
+  color: var(--placeholder);
+  background: var(--bg-alt);
+}
+.attr-chip--neu {
+  border-style: dashed;
+  border-color: var(--gold);
+  color: var(--gold-dark);
+}
+.attr-chip--leer {
+  border: none;
+  padding-left: 0;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 600px) {
+  /* Aktionsleisten auf dem Handy in voller Breite - grosse Trefferflaechen */
+  .wws-actions .wws-btn { flex: 1 1 100%; }
+  .wws-actions form { display: flex; flex: 1 1 100%; }
+  .wws-actions form .wws-btn { width: 100%; }
+  .wws-tile__actions .wws-btn { flex: 1 1 100%; }
+  .wws-row__actions { margin-left: 0; }
+  .wws-row__actions .wws-btn { flex: 0 0 auto; }
+}

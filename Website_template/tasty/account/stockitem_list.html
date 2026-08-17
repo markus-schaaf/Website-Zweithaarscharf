@@ -5,6 +5,7 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
@@ -22,10 +23,16 @@
       </ul>
     {% endif %}
 
-    <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
-      <a class="btn" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
-      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    <div class="wws-actions">
+      <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
+        <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">
+        <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Projekte
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:home' %}">
+        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Zur&uuml;ck
+      </a>
     </div>
 
     <nav class="wws-chips" aria-label="Nach Status filtern">
@@ -44,7 +51,7 @@
       <div class="wws-toolbar__search">
         <input type="search" name="q" value="{{ filter.q }}" placeholder="Produktnummer, Name, Rechnung, Hersteller &hellip;"
                autocomplete="off" enterkeyhint="search" aria-label="Bestand durchsuchen">
-        <button type="submit" class="btn btn-gold">Suchen</button>
+        <button type="submit" class="wws-btn wws-btn--primary">Suchen</button>
       </div>
 
       <div class="wws-selects">
@@ -100,15 +107,23 @@
             </a>
             <p class="wws-row__badges">
               <span class="wws-badge wws-badge--{{ s.status }}">{{ s.get_status_display }}</span>
-              {% if s.current_phase %}<span class="wws-badge">{{ s.current_phase.name }}</span>{% endif %}
+              {% if s.work_state %}
+                <span class="wws-badge wws-badge--{{ s.work_state.0 }}">{{ s.work_state.1 }}</span>
+              {% endif %}
               {% if s.product_id %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
               {% if s.audience == "b2b" %}<span class="wws-badge wws-badge--b2b">Nur B2B</span>{% endif %}
             </p>
             <p class="wws-row__actions">
-              <a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a>
-              <a href="{% url 'inventory_manage:stock_publish' s.pk %}">{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}</a>
+              <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_edit' s.pk %}">
+                <svg class="wws-ico"><use href="#ico-stift"></use></svg>Bearbeiten
+              </a>
+              <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_publish' s.pk %}">
+                <svg class="wws-ico"><use href="#ico-etikett"></use></svg>{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}
+              </a>
               {% if s.status == "verfuegbar" or s.status == "reserviert" %}
-                <a href="{% url 'inventory_manage:stock_sell' s.pk %}">Verkauf buchen</a>
+                <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_sell' s.pk %}">
+                  <svg class="wws-ico"><use href="#ico-kasse"></use></svg>Verkauf buchen
+                </a>
               {% endif %}
             </p>
           </div>
@@ -118,8 +133,13 @@
           </div>
         </div>
       {% empty %}
-        <p class="wws-empty">Kein Bestandsst&uuml;ck gefunden.
-          <a href="{% url 'inventory_manage:stock_create' %}">Jetzt Wareneingang erfassen</a>.</p>
+        <div class="wws-empty">
+          <span class="wws-empty__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-karton"></use></svg></span>
+          <p>{% if filter.q or filter.status or filter.kategorie or filter.hersteller or filter.shop %}Kein Bestandsst&uuml;ck passt zu dieser Suche.{% else %}Noch kein Warenbestand erfasst.{% endif %}</p>
+          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
+            <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
+          </a>
+        </div>
       {% endfor %}
     </div>
   </div>

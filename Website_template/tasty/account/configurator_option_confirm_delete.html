@@ -23,8 +23,8 @@
       <form method="post">
         {% csrf_token %}
         <div class="form-row mb-0" class="btn-row">
-          <button type="submit" class="btn btn-gold">Endg&uuml;ltig l&ouml;schen</button>
-          <a class="btn" href="{% url 'shop_manage:configurator_list' %}">Abbrechen</a>
+          <button type="submit" class="wws-btn wws-btn--primary">Endg&uuml;ltig l&ouml;schen</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'shop_manage:configurator_list' %}">Abbrechen</a>
         </div>
       </form>
     </div>

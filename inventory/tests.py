@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from PIL import Image
 
-from shop.models import Cart, CartItem, Product
+from shop.models import CartItem, Product
 
 from .models import (
     AttributeOption,
@@ -459,7 +459,7 @@ class ProjectViewTest(StaffViewMixin, TestCase):
             "stock_item": "",
             "customer": "",
             "customer_name": "Frau M.",
-            "status": Project.Status.GEPLANT,
+            "status": Project.Status.OFFEN,
             "due_date": "",
             "target_color": "Grau meliert",
             "target_length": "",
@@ -511,7 +511,72 @@ class ProjectViewTest(StaffViewMixin, TestCase):
         self.assertEqual(stueck.color, "Grau meliert")
         self.assertTrue(stueck.events.filter(kind=StockItemEvent.Kind.PROJEKT).exists())
 
+    def test_erledigt_markieren(self):
+        stueck = make_stock_item(self.lieferant)
+        self.client.post(
+            reverse("inventory_manage:project_create"),
+            self._daten(stock_item=stueck.pk),
+        )
+        projekt = Project.objects.get()
+        self.client.post(reverse("inventory_manage:project_done", args=[projekt.pk]))
+        projekt.refresh_from_db()
+        self.assertEqual(projekt.status, Project.Status.ERLEDIGT)
+        self.assertTrue(stueck.events.filter(kind=StockItemEvent.Kind.PROJEKT).exists())
+
     def test_b2c_bekommt_403(self):
         self.client.force_login(self.kunde)
         url = reverse("inventory_manage:project_list")
         self.assertEqual(self.client.get(url).status_code, 403)
+
+
+class WorkStateTest(TestCase):
+    """Der Arbeitsstand ersetzt die frueheren Fertigungsphasen und wird
+    ausschliesslich aus den Projekten abgeleitet.
+    """
+
+    def setUp(self):
+        self.stueck = make_stock_item(make_supplier())
+
+    def _projekt(self, status):
+        return Project.objects.create(
+            title="Umbau", stock_item=self.stueck, status=status
+        )
+
+    def test_ohne_projekt_kein_arbeitsstand(self):
+        self.assertIsNone(self.stueck.work_state)
+
+    def test_offenes_projekt_meldet_in_arbeit(self):
+        self._projekt(Project.Status.OFFEN)
+        self.assertEqual(self.stueck.work_state, ("offen", "In Arbeit"))
+
+    def test_erledigtes_projekt_meldet_fertig(self):
+        self._projekt(Project.Status.ERLEDIGT)
+        self.assertEqual(self.stueck.work_state, ("erledigt", "Fertig"))
+
+    def test_offen_schlaegt_erledigt(self):
+        self._projekt(Project.Status.ERLEDIGT)
+        self._projekt(Project.Status.OFFEN)
+        self.assertEqual(self.stueck.work_state, ("offen", "In Arbeit"))
+
+    def test_storniertes_projekt_zaehlt_nicht(self):
+        self._projekt(Project.Status.STORNIERT)
+        self.assertIsNone(self.stueck.work_state)
+
+
+class StatusMigrationTest(TestCase):
+    """Die Umstellung von fuenf auf drei Projektzustaende darf keinen
+    Altwert liegen lassen - sonst steht auf dem Server ein Status, den es
+    im Modell nicht mehr gibt.
+    """
+
+    ALTE_WERTE = {"geplant", "in_arbeit", "fertig", "abgeholt", "storniert"}
+
+    def test_zuordnung_ist_vollstaendig_und_gueltig(self):
+        from importlib import import_module
+
+        migration = import_module("inventory.migrations.0007_phasen_entfernen")
+        abgedeckt = set(migration.VORWAERTS) | {"storniert"}
+        self.assertEqual(abgedeckt, self.ALTE_WERTE)
+        gueltig = set(Project.Status.values)
+        self.assertTrue(set(migration.VORWAERTS.values()) <= gueltig)
+        self.assertTrue(set(migration.RUECKWAERTS) <= gueltig)

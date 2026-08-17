@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import AttributeOption, ProductionPhase, Project, StockItem, Supplier
+from .models import AttributeOption, Project, StockItem, Supplier
 
 # <input type="date"> bzw. datetime-local akzeptieren nur ISO. Ohne festes
 # format rendert Django den deutschen Wert, den der Browser verwirft - das Feld
@@ -68,12 +68,6 @@ class SupplierForm(forms.ModelForm):
 
     def clean_code(self):
         return self.cleaned_data["code"].strip().upper()
-
-
-class ProductionPhaseForm(forms.ModelForm):
-    class Meta:
-        model = ProductionPhase
-        fields = ("name", "sort_order", "is_active")
 
 
 class AttributeOptionForm(forms.ModelForm):
@@ -252,7 +246,6 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
             "structure",
             "density",
             "cap_type",
-            "current_phase",
             "status",
             "reserved_for",
             "reserved_until",

@@ -12,11 +12,6 @@ urlpatterns = [
     path("lieferanten/neu/", manage_views.SupplierCreateView.as_view(), name="supplier_create"),
     path("lieferanten/<int:pk>/bearbeiten/", manage_views.SupplierUpdateView.as_view(), name="supplier_edit"),
 
-    # Fertigungsphasen
-    path("phasen/", manage_views.PhaseListView.as_view(), name="phase_list"),
-    path("phasen/neu/", manage_views.PhaseCreateView.as_view(), name="phase_create"),
-    path("phasen/<int:pk>/bearbeiten/", manage_views.PhaseUpdateView.as_view(), name="phase_edit"),
-
     # Auswahlwerte
     path("auswahlwerte/", manage_views.AttributeListView.as_view(), name="attribute_list"),
     path("auswahlwerte/neu/", manage_views.AttributeCreateView.as_view(), name="attribute_create"),
@@ -39,4 +34,5 @@ urlpatterns = [
     path("projekte/neu/", manage_views.ProjectCreateView.as_view(), name="project_create"),
     path("projekte/<int:pk>/bearbeiten/", manage_views.ProjectUpdateView.as_view(), name="project_edit"),
     path("projekte/<int:pk>/plan-uebernehmen/", manage_views.ProjectApplyPlanView.as_view(), name="project_apply"),
+    path("projekte/<int:pk>/erledigt/", manage_views.ProjectDoneView.as_view(), name="project_done"),
 ]

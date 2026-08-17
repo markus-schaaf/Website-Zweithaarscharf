@@ -50,9 +50,9 @@
             <form method="post" action="{% url 'shop_manage:product_3d_visibility' produkt.pk %}">
               {% csrf_token %}
               {% if asset.is_public %}
-                <button type="submit" class="btn">F&uuml;r Kunden verbergen</button>
+                <button type="submit" class="wws-btn wws-btn--secondary">F&uuml;r Kunden verbergen</button>
               {% else %}
-                <button type="submit" class="btn btn-gold">F&uuml;r Kunden freigeben</button>
+                <button type="submit" class="wws-btn wws-btn--primary">F&uuml;r Kunden freigeben</button>
               {% endif %}
             </form>
           </div>
@@ -68,7 +68,7 @@
         {% if asset.status == "done" or asset.status == "failed" %}
           <form method="post" action="{% url 'shop_manage:product_3d_generate' produkt.pk %}" style="margin-top: 8px;">
             {% csrf_token %}
-            <button type="submit" class="btn">Neu generieren (gleiche Bilder)</button>
+            <button type="submit" class="wws-btn wws-btn--secondary">Neu generieren (gleiche Bilder)</button>
           </form>
         {% endif %}
       </div>
@@ -136,8 +136,8 @@
         </div>
 
         <div class="form-row mb-0">
-          <button type="submit" class="btn btn-gold">Hochladen &amp; 3D-Modell generieren</button>
-          <a class="btn" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktliste</a>
+          <button type="submit" class="wws-btn wws-btn--primary">Hochladen &amp; 3D-Modell generieren</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktliste</a>
         </div>
       </form>
     </div>

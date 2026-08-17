@@ -33,22 +33,6 @@ class Supplier(models.Model):
         return self.name
 
 
-class ProductionPhase(models.Model):
-    """Katalog der Fertigungsschritte, im Admin pflegbar."""
-
-    name = models.CharField("Phase", max_length=60, unique=True)
-    sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
-    is_active = models.BooleanField("Aktiv", default=True)
-
-    class Meta:
-        verbose_name = "Fertigungsphase"
-        verbose_name_plural = "Fertigungsphasen"
-        ordering = ["sort_order", "name"]
-
-    def __str__(self):
-        return self.name
-
-
 class AttributeOption(models.Model):
     """Pflegbarer Wertekatalog fuer die Erfassung (Farbe, Laenge, Schnitt, ...).
 
@@ -182,12 +166,6 @@ class StockItem(models.Model):
         "Verkaufskanal", max_length=10, choices=Channel.choices, blank=True
     )
 
-    # Dimension 2: handwerkliche Fertigungsphase
-    current_phase = models.ForeignKey(
-        ProductionPhase, null=True, blank=True, on_delete=models.SET_NULL,
-        verbose_name="Aktuelle Fertigungsphase"
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -207,6 +185,24 @@ class StockItem(models.Model):
     @property
     def is_available(self):
         return self.status == self.Status.VERFUEGBAR
+
+    @property
+    def work_state(self):
+        """Arbeitsstand aus den Projekten als (Schluessel, Beschriftung).
+
+        Ersetzt die frueheren Fertigungsphasen: es gibt genau einen Zustand
+        je Stueck, und der ergibt sich aus den Projekten statt aus einem
+        Feld, das niemand pflegt. Iteriert bewusst in Python, damit ein
+        prefetch_related("projects") in Listen greift.
+        """
+        projekte = list(self.projects.all())
+        if not projekte:
+            return None
+        if any(p.status == Project.Status.OFFEN for p in projekte):
+            return ("offen", "In Arbeit")
+        if any(p.status == Project.Status.ERLEDIGT for p in projekte):
+            return ("erledigt", "Fertig")
+        return None
 
     @property
     def vat_amount(self):
@@ -355,10 +351,8 @@ class Project(models.Model):
     """
 
     class Status(models.TextChoices):
-        GEPLANT = "geplant", "Geplant"
-        IN_ARBEIT = "in_arbeit", "In Arbeit"
-        FERTIG = "fertig", "Fertig"
-        ABGEHOLT = "abgeholt", "Abgeholt"
+        OFFEN = "offen", "Offen"
+        ERLEDIGT = "erledigt", "Erledigt"
         STORNIERT = "storniert", "Storniert"
 
     title = models.CharField("Bezeichnung", max_length=120)
@@ -382,7 +376,7 @@ class Project(models.Model):
     notes = models.TextField("Kommentare", blank=True, default="")
     due_date = models.DateField("Fertig bis", null=True, blank=True)
     status = models.CharField(
-        "Status", max_length=10, choices=Status.choices, default=Status.GEPLANT
+        "Status", max_length=10, choices=Status.choices, default=Status.OFFEN
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,

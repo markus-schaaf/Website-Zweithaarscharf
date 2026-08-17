@@ -4,6 +4,7 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
@@ -26,18 +27,35 @@
       </ul>
     {% endif %}
 
-    {% if object.stock_item %}
+    {% if object %}
       <div class="wws-statusbar">
         <div class="wws-statusbar__info">
-          <strong>{{ object.stock_item.inventory_no }}</strong>
-          <span class="wws-badge wws-badge--{{ object.stock_item.status }}">{{ object.stock_item.get_status_display }}</span>
+          {% if object.stock_item %}<strong>{{ object.stock_item.inventory_no }}</strong>{% endif %}
+          <span class="wws-badge wws-badge--{{ object.status }}">{{ object.get_status_display }}</span>
+          {% if object.stock_item %}
+            <span class="wws-badge wws-badge--{{ object.stock_item.status }}">{{ object.stock_item.get_status_display }}</span>
+          {% endif %}
         </div>
         <div class="wws-statusbar__actions">
-          <form method="post" action="{% url 'inventory_manage:project_apply' object.pk %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-gold">Plan auf Bestandsst&uuml;ck &uuml;bernehmen</button>
-          </form>
-          <a class="btn" href="{% url 'inventory_manage:stock_edit' object.stock_item.pk %}">Bestandsst&uuml;ck &ouml;ffnen</a>
+          {% if object.status == "offen" %}
+            <form method="post" action="{% url 'inventory_manage:project_done' object.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="wws-btn wws-btn--primary">
+                <svg class="wws-ico"><use href="#ico-haken"></use></svg>Als erledigt markieren
+              </button>
+            </form>
+          {% endif %}
+          {% if object.stock_item %}
+            <form method="post" action="{% url 'inventory_manage:project_apply' object.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="wws-btn wws-btn--secondary">
+                <svg class="wws-ico"><use href="#ico-palette"></use></svg>Plan auf St&uuml;ck &uuml;bernehmen
+              </button>
+            </form>
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_edit' object.stock_item.pk %}">
+              <svg class="wws-ico"><use href="#ico-karton"></use></svg>Bestandsst&uuml;ck &ouml;ffnen
+            </a>
+          {% endif %}
         </div>
       </div>
     {% endif %}
@@ -47,7 +65,7 @@
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
-        <h2 class="form-section">Auftrag</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-mappe"></use></svg>Auftrag</h2>
         <div class="form-row">
           <div class="field">
             <label for="{{ form.title.id_for_label }}">Bezeichnung *</label>
@@ -83,7 +101,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Plan</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Plan</h2>
         <p class="form-section__hint">Was soll aus dem St&uuml;ck werden? Auswahlwerte pflegen Sie unter
           <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
         <div class="form-row form-row--2">
@@ -125,8 +143,8 @@
         </div>
 
         <div class="form-actions form-actions--sticky">
-          <button type="submit" class="btn btn-gold">Speichern</button>
-          <a class="btn" href="{% url 'inventory_manage:project_list' %}">Abbrechen</a>
+          <button type="submit" class="wws-btn wws-btn--primary">Speichern</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">Abbrechen</a>
         </div>
       </form>
     </div>

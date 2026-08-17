@@ -4,12 +4,13 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
     <span class="eyebrow">Verwaltung</span>
     <h1>Waren<em>wirtschaft</em></h1>
-    <p>Bestand, Lieferanten und Fertigungsphasen pflegen.</p>
+    <p>Bestand erfassen, Projekte planen, Ware online stellen und verkaufen.</p>
   </div>
 </section>
 
@@ -21,82 +22,89 @@
       </ul>
     {% endif %}
 
-    <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
-      <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
-      <a class="btn" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
-      <a class="btn" href="{% url 'inventory_manage:order_list' %}">Verk&auml;ufe</a>
-      <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
+    <div class="wws-actions">
+      <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
+        <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'accounts:profile' %}">
+        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Zum Konto
+      </a>
     </div>
 
-    <div class="manage-grid">
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_verfuegbar }} verf&uuml;gbar</h3>
-          <p class="manage-card__meta">von {{ anzahl_gesamt }} Bestandsst&uuml;cken gesamt</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:stock_list' %}">Bestand &ouml;ffnen</a>
-            <a href="{% url 'inventory_manage:stock_create' %}">Wareneingang</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_veroeffentlicht }} im Shop</h3>
-          <p class="manage-card__meta">ver&ouml;ffentlichte Bestandsst&uuml;cke</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:stock_list' %}?shop=nein">Nicht ver&ouml;ffentlichte</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_projekte }} Projekt(e)</h3>
-          <p class="manage-card__meta">in Planung oder Arbeit</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:project_list' %}">Projekte</a>
-            <a href="{% url 'inventory_manage:project_create' %}">Neues Projekt</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_verkaeufe }} Verkauf/Verk&auml;ufe</h3>
-          <p class="manage-card__meta">gebucht, mit Rechnungsversand</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:order_list' %}">Verk&auml;ufe</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_werte }} Auswahlwerte</h3>
-          <p class="manage-card__meta">Farbe, L&auml;nge, Schnitt, Montur &hellip;</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:attribute_list' %}">Werte pflegen</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_lieferanten }} Lieferant(en)</h3>
-          <p class="manage-card__meta">Bezugsquellen verwalten</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:supplier_list' %}">Lieferanten</a>
-            <a href="{% url 'inventory_manage:supplier_create' %}">Neuer Lieferant</a>
-          </p>
-        </div>
-      </article>
-      <article class="manage-card">
-        <div class="manage-card__body">
-          <h3 class="manage-card__name">{{ anzahl_phasen }} Phase(n)</h3>
-          <p class="manage-card__meta">aktive Fertigungsschritte</p>
-          <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:phase_list' %}">Phasen</a>
-            <a href="{% url 'inventory_manage:phase_create' %}">Neue Phase</a>
-          </p>
-        </div>
-      </article>
+    <div class="wws-group">
+      <h2 class="wws-group__title">T&auml;gliche Arbeit</h2>
+      <div class="wws-tiles">
+        <article class="wws-tile wws-tile--primary">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-karton"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_verfuegbar }}</p>
+          <p class="wws-tile__label">verf&uuml;gbar im Bestand</p>
+          <p class="wws-tile__meta">von {{ anzahl_gesamt }} St&uuml;ck insgesamt</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">Bestand &ouml;ffnen</a>
+          </div>
+        </article>
+
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-mappe"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_projekte }}</p>
+          <p class="wws-tile__label">offene Projekte</p>
+          <p class="wws-tile__meta">Kundenpl&auml;ne in Arbeit</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
+            <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:project_create' %}">
+              <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neu
+            </a>
+          </div>
+        </article>
+
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-etikett"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_veroeffentlicht }}</p>
+          <p class="wws-tile__label">St&uuml;cke im Shop</p>
+          <p class="wws-tile__meta">mit einem Shop-Produkt verkn&uuml;pft</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}?shop=nein">Noch nicht online</a>
+          </div>
+        </article>
+
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-kasse"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_verkaeufe }}</p>
+          <p class="wws-tile__label">gebuchte Verk&auml;ufe</p>
+          <p class="wws-tile__meta">mit Rechnungsversand</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:order_list' %}">Verk&auml;ufe</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="wws-group">
+      <h2 class="wws-group__title">Einstellungen</h2>
+      <div class="wws-tiles">
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-palette"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_werte }}</p>
+          <p class="wws-tile__label">Auswahlwerte</p>
+          <p class="wws-tile__meta">Farbe, L&auml;nge, Schnitt, Montur &hellip;</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:attribute_list' %}">Werte pflegen</a>
+          </div>
+        </article>
+
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-lkw"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_lieferanten }}</p>
+          <p class="wws-tile__label">Lieferanten</p>
+          <p class="wws-tile__meta">Bezugsquellen und Produktnummern</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:supplier_list' %}">Lieferanten</a>
+            <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:supplier_create' %}">
+              <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neu
+            </a>
+          </div>
+        </article>
+      </div>
     </div>
   </div>
 </section>

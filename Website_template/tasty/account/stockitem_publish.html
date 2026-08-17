@@ -31,9 +31,10 @@
         <div class="form-row">
           <h3>Neues Produkt</h3>
           <p class="form-hint">
-            Farbe ({{ stueck.color }}), L&auml;nge ({{ stueck.length }}) und Gr&ouml;&szlig;e ({{ stueck.size }})
-            werden aus dem Wareneingang &uuml;bernommen. Bild und Beschreibung pflegst du danach
-            in der Produktverwaltung.
+            Farbe ({{ stueck.color }}), L&auml;nge ({{ stueck.length }}), Gr&ouml;&szlig;e ({{ stueck.size }}),
+            Schnitt, Montur, Dichte und Zielgruppe werden aus dem Bestandsst&uuml;ck &uuml;bernommen.
+            Ebenso die {{ bilder|length }} Bild(er) &ndash; in der Reihenfolge, die du im
+            Bestandsst&uuml;ck festgelegt hast. Ohne Bild geht es nicht online.
           </p>
         </div>
 
@@ -60,9 +61,9 @@
           </div>
         </div>
 
-        <div class="form-row mb-0 btn-row">
-          <button type="submit" class="btn btn-gold">Online stellen</button>
-          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+        <div class="form-actions form-actions--sticky">
+          <button type="submit" class="wws-btn wws-btn--primary">Online stellen</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
         </div>
       </form>
     </div>

@@ -5,6 +5,7 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
@@ -21,7 +22,7 @@
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
-        <h2 class="form-section">Art der Ware</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-karton"></use></svg>Art der Ware</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.stock_mode.id_for_label }}">Bestandsart *</label>
@@ -47,7 +48,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Einkauf</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-lkw"></use></svg>Einkauf</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.supplier.id_for_label }}">Hersteller *</label>
@@ -84,7 +85,7 @@
           </div>
         </div>
 
-        <h2 class="form-section">Eigenschaften</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
         <p class="form-section__hint">Auswahlwerte pflegen Sie unter
           <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
         <div class="form-row form-row--2">
@@ -118,12 +119,12 @@
           </div>
         </div>
 
-        <h2 class="form-section">Fotos beim Wareneingang *</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-kamera"></use></svg>Fotos beim Wareneingang *</h2>
         <div class="form-row">
           {% include "tasty/account/_image_uploader.html" with kind="eingang" bilder=None upload_name="eingang_images" titel="Zustand bei Lieferung fotografieren" hinweis="Pflicht. Mehrfachauswahl und Kamera möglich. Fotos des fertig bearbeiteten Produkts kommen später beim Bearbeiten dazu." %}
         </div>
 
-        <h2 class="form-section">Optional</h2>
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-info"></use></svg>Optional</h2>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.sale_price.id_for_label }}">Verkaufspreis (&euro;)</label>
@@ -137,8 +138,8 @@
         </div>
 
         <div class="form-actions form-actions--sticky">
-          <button type="submit" class="btn btn-gold">Speichern</button>
-          <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
+          <button type="submit" class="wws-btn wws-btn--primary">Speichern</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
         </div>
       </form>
     </div>

@@ -4,12 +4,13 @@
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
+{% include "tasty/account/_wws_icons.html" %}
 
 <section class="hero hero--plain">
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
     <h1>Auswahl<em>werte</em></h1>
-    <p>Die Werte, die bei der Erfassung zur Auswahl stehen.</p>
+    <p>Die Werte, die bei der Erfassung zur Auswahl stehen. Ein Klick auf einen Wert &ouml;ffnet ihn.</p>
   </div>
 </section>
 
@@ -21,28 +22,41 @@
       </ul>
     {% endif %}
 
-    <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'inventory_manage:attribute_create' %}">+ Neuer Wert</a>
-      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    <div class="wws-actions">
+      <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:attribute_create' %}">
+        <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neuer Wert
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:home' %}">
+        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Zur&uuml;ck
+      </a>
     </div>
 
     <div class="attr-groups">
       {% for g in gruppen %}
         <div class="form-card attr-group">
-          <h3>{{ g.label }}</h3>
-          <ul class="attr-values">
+          <div class="attr-group__kopf">
+            <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-palette"></use></svg></span>
+            <h3>{{ g.label }}</h3>
+            <span class="attr-group__anzahl">{{ g.werte|length }} Wert(e)</span>
+          </div>
+          <ul class="attr-chips">
             {% for w in g.werte %}
-              <li class="attr-value{% if not w.is_active %} is-inactive{% endif %}">
-                <a href="{% url 'inventory_manage:attribute_edit' w.pk %}">{{ w.name }}</a>
-                {% if not w.is_active %}<span class="wws-badge wws-badge--off">inaktiv</span>{% endif %}
+              <li>
+                <a class="attr-chip{% if not w.is_active %} attr-chip--inaktiv{% endif %}"
+                   href="{% url 'inventory_manage:attribute_edit' w.pk %}"
+                   {% if not w.is_active %}title="Inaktiv - steht nicht mehr zur Auswahl"{% endif %}>
+                  {{ w.name }}{% if not w.is_active %} <svg class="wws-ico"><use href="#ico-info"></use></svg>{% endif %}
+                </a>
               </li>
             {% empty %}
-              <li class="attr-value attr-value--empty">Noch keine Werte.</li>
+              <li class="attr-chip attr-chip--leer">Noch keine Werte.</li>
             {% endfor %}
+            <li>
+              <a class="attr-chip attr-chip--neu" href="{% url 'inventory_manage:attribute_create' %}?merkmal={{ g.value }}">
+                <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wert
+              </a>
+            </li>
           </ul>
-          <p class="attr-group__add">
-            <a href="{% url 'inventory_manage:attribute_create' %}?merkmal={{ g.value }}">+ Wert hinzuf&uuml;gen</a>
-          </p>
         </div>
       {% endfor %}
     </div>

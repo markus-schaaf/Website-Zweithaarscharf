@@ -23,9 +23,9 @@
     {% endif %}
 
     <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'shop_manage:group_create' %}">Neue Gruppe</a>
-      <a class="btn btn-gold" href="{% url 'shop_manage:option_create' %}">Neue Option</a>
-      <a class="btn" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktverwaltung</a>
+      <a class="wws-btn wws-btn--primary" href="{% url 'shop_manage:group_create' %}">Neue Gruppe</a>
+      <a class="wws-btn wws-btn--primary" href="{% url 'shop_manage:option_create' %}">Neue Option</a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'shop_manage:product_list' %}">Zur&uuml;ck zur Produktverwaltung</a>
     </div>
 
     {% for gruppe in gruppen %}
