@@ -1,4 +1,5 @@
 {% extends "tasty/_base.html" %}
+{% load static %}
 
 {% block title %}Wareneingang erfassen &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
@@ -16,29 +17,59 @@
 <section class="section section--tight">
   <div class="container container--form">
     <div class="form-card">
-      <form method="post" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
+        <h2 class="form-section">Art der Ware</h2>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.supplier.id_for_label }}">Hersteller *</label>
-            {{ form.supplier }}{{ form.supplier.errors }}
+            <label for="{{ form.stock_mode.id_for_label }}">Bestandsart *</label>
+            {{ form.stock_mode }}{{ form.stock_mode.errors }}
+            <p class="form-hint">Einzelst&uuml;ck: je St&uuml;ck ein eigener Datensatz (Per&uuml;cken, Rohlinge).
+              Mengenartikel: ein Datensatz mit St&uuml;ckzahl (Pflege, Zubeh&ouml;r, Top Holder).</p>
           </div>
           <div class="field">
-            <label>&nbsp;</label>
-            <a class="btn" href="{% url 'inventory_manage:supplier_create' %}?next={% url 'inventory_manage:stock_create' %}">+ Neuer Hersteller</a>
+            <label for="{{ form.quantity.id_for_label }}">St&uuml;ckzahl *</label>
+            {{ form.quantity }}{{ form.quantity.errors }}
           </div>
         </div>
 
         <div class="form-row form-row--2">
           <div class="field">
+            <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie *</label>
+            {{ form.shop_category }}{{ form.shop_category.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.audience.id_for_label }}">Zielgruppe *</label>
+            {{ form.audience }}{{ form.audience.errors }}
+            <p class="form-hint">Rohlinge werden automatisch auf &bdquo;Nur B2B&ldquo; gesetzt.</p>
+          </div>
+        </div>
+
+        <h2 class="form-section">Einkauf</h2>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.supplier.id_for_label }}">Hersteller *</label>
+            {{ form.supplier }}{{ form.supplier.errors }}
+            <p class="form-hint">
+              <a href="{% url 'inventory_manage:supplier_create' %}?next={% url 'inventory_manage:stock_create' %}">+ Neuen Hersteller anlegen</a>
+            </p>
+          </div>
+          <div class="field">
             <label for="{{ form.product_name.id_for_label }}">Produktname *</label>
             {{ form.product_name }}{{ form.product_name.errors }}
           </div>
+        </div>
+
+        <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.invoice_no.id_for_label }}">Rechnungsnummer *</label>
             {{ form.invoice_no }}{{ form.invoice_no.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.received_at.id_for_label }}">Lieferdatum *</label>
+            {{ form.received_at }}{{ form.received_at.errors }}
           </div>
         </div>
 
@@ -53,6 +84,9 @@
           </div>
         </div>
 
+        <h2 class="form-section">Eigenschaften</h2>
+        <p class="form-section__hint">Auswahlwerte pflegen Sie unter
+          <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.color.id_for_label }}">Farbe *</label>
@@ -63,30 +97,46 @@
             {{ form.length }}{{ form.length.errors }}
           </div>
         </div>
-
         <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e *</label>
             {{ form.size }}{{ form.size.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.quantity.id_for_label }}">St&uuml;ckzahl *</label>
-            {{ form.quantity }}{{ form.quantity.errors }}
+            <label for="{{ form.structure.id_for_label }}">Schnitt</label>
+            {{ form.structure }}{{ form.structure.errors }}
           </div>
         </div>
-
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.received_at.id_for_label }}">Lieferdatum *</label>
-            {{ form.received_at }}{{ form.received_at.errors }}
+            <label for="{{ form.cap_type.id_for_label }}">Montur</label>
+            {{ form.cap_type }}{{ form.cap_type.errors }}
           </div>
           <div class="field">
-            <label>Automatisch</label>
-            <p class="form-hint">Erstelldatum und Produktnummer werden beim Speichern gesetzt. Bei St&uuml;ckzahl gr&ouml;&szlig;er 1 entsteht je St&uuml;ck ein eigener Datensatz mit fortlaufender Nummer.</p>
+            <label for="{{ form.density.id_for_label }}">Dichte</label>
+            {{ form.density }}{{ form.density.errors }}
           </div>
         </div>
 
-        <div class="form-row mb-0 btn-row">
+        <h2 class="form-section">Fotos beim Wareneingang *</h2>
+        <div class="form-row">
+          {% include "tasty/account/_image_uploader.html" with kind="eingang" bilder=None upload_name="eingang_images" titel="Zustand bei Lieferung fotografieren" hinweis="Pflicht. Mehrfachauswahl und Kamera möglich. Fotos des fertig bearbeiteten Produkts kommen später beim Bearbeiten dazu." %}
+        </div>
+
+        <h2 class="form-section">Optional</h2>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.sale_price.id_for_label }}">Verkaufspreis (&euro;)</label>
+            {{ form.sale_price }}{{ form.sale_price.errors }}
+            <p class="form-hint">Kann sp&auml;ter nachgetragen werden, wird f&uuml;r die Ver&ouml;ffentlichung ben&ouml;tigt.</p>
+          </div>
+          <div class="field">
+            <label for="{{ form.notes.id_for_label }}">Interne Notizen</label>
+            {{ form.notes }}{{ form.notes.errors }}
+          </div>
+        </div>
+
+        <div class="form-actions form-actions--sticky">
           <button type="submit" class="btn btn-gold">Speichern</button>
           <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Abbrechen</a>
         </div>
@@ -96,3 +146,5 @@
 </section>
 
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=1"></script>{% endblock %}

@@ -51,6 +51,9 @@
               <a href="{% url 'shop_manage:product_edit' p.pk %}">Bearbeiten</a>
               <a href="{% url 'shop_manage:product_edit' p.pk %}#produktbild">Bild</a>
               <a href="{% url 'shop_manage:product_3d' p.pk %}">3D</a>
+              {% for s in p.stock_items.all %}
+                <a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bestand {{ s.inventory_no }}</a>
+              {% endfor %}
             </p>
           </div>
         </article>

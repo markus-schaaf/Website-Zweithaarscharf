@@ -1,4 +1,5 @@
 {% extends "tasty/_base.html" %}
+{% load static %}
 
 {% block title %}Bestand &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
@@ -9,7 +10,7 @@
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
     <h1>Be<em>stand</em></h1>
-    <p>Aktueller Warenbestand mit Herkunft, Rechnungsdaten und Fertigungsphase.</p>
+    <p>Alle Produkte an einem Ort: erfassen, bearbeiten, im Shop ver&ouml;ffentlichen.</p>
   </div>
 </section>
 
@@ -23,44 +24,98 @@
 
     <div class="btn-row mb-24">
       <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
+      <a class="btn" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
       <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
     </div>
 
-    <div class="form-card table-scroll">
-      <table class="account-table account-table--stock">
-        <thead>
-          <tr>
-            <th>Produktnr.</th><th>Hersteller</th><th>Produktname</th>
-            <th>Farbe</th><th>L&auml;nge</th><th>Gr&ouml;&szlig;e</th>
-            <th>EK</th><th>MwSt</th><th>Rechnungsnr.</th><th>Lieferdatum</th>
-            <th>Status</th><th>Phase</th><th>Erfasst am</th><th>Aktionen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in stuecke %}
-            <tr>
-              <td data-label="Produktnr.">{{ s.inventory_no }}</td>
-              <td data-label="Hersteller">{{ s.supplier.name|default:"&ndash;" }}</td>
-              <td data-label="Produktname">{{ s.product_name|default:"&ndash;" }}</td>
-              <td data-label="Farbe">{{ s.color|default:"&ndash;" }}</td>
-              <td data-label="L&auml;nge">{{ s.length|default:"&ndash;" }}</td>
-              <td data-label="Gr&ouml;&szlig;e">{{ s.size|default:"&ndash;" }}</td>
-              <td data-label="EK">{{ s.purchase_price|default:"&ndash;" }}</td>
-              <td data-label="MwSt">{{ s.get_vat_rate_display }}</td>
-              <td data-label="Rechnungsnr.">{{ s.invoice_no|default:"&ndash;" }}</td>
-              <td data-label="Lieferdatum">{{ s.received_at|date:"d.m.Y"|default:"&ndash;" }}</td>
-              <td data-label="Status">{{ s.get_status_display }}</td>
-              <td data-label="Phase">{{ s.current_phase.name|default:"&ndash;" }}</td>
-              <td data-label="Erfasst am">{{ s.created_at|date:"d.m.Y" }}</td>
-              <td data-label="Aktionen"><a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a></td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="14">Noch kein Warenbestand erfasst.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <nav class="wws-chips" aria-label="Nach Status filtern">
+      <a class="wws-chip{% if not filter.status %} is-active{% endif %}"
+         href="?{{ basis_query }}">Alle <span>{{ anzahl_gesamt }}</span></a>
+      {% for chip in status_chips %}
+        <a class="wws-chip{% if filter.status == chip.value %} is-active{% endif %}"
+           href="?{% if basis_query %}{{ basis_query }}&amp;{% endif %}status={{ chip.value }}">
+          {{ chip.label }} <span>{{ chip.count }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+
+    <form class="wws-toolbar" method="get" data-wws-filter>
+      <input type="hidden" name="status" value="{{ filter.status }}">
+      <div class="wws-toolbar__search">
+        <input type="search" name="q" value="{{ filter.q }}" placeholder="Produktnummer, Name, Rechnung, Hersteller &hellip;"
+               autocomplete="off" enterkeyhint="search" aria-label="Bestand durchsuchen">
+        <button type="submit" class="btn btn-gold">Suchen</button>
+      </div>
+
+      <div class="wws-selects">
+        <label class="wws-select">
+          <span>Kategorie</span>
+          <select name="kategorie" data-wws-submit>
+            <option value="">Alle</option>
+            {% for value, label in kategorien %}
+              <option value="{{ value }}"{% if filter.kategorie == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="wws-select">
+          <span>Hersteller</span>
+          <select name="hersteller" data-wws-submit>
+            <option value="">Alle</option>
+            {% for l in lieferanten %}
+              <option value="{{ l.pk }}"{% if filter.hersteller == l.pk|stringformat:"s" %} selected{% endif %}>{{ l.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="wws-select">
+          <span>Shop</span>
+          <select name="shop" data-wws-submit>
+            <option value="">Alle</option>
+            <option value="ja"{% if filter.shop == "ja" %} selected{% endif %}>Ver&ouml;ffentlicht</option>
+            <option value="nein"{% if filter.shop == "nein" %} selected{% endif %}>Nicht ver&ouml;ffentlicht</option>
+          </select>
+        </label>
+      </div>
+    </form>
+
+    <div class="wws-list">
+      {% for s in stuecke %}
+        <a class="wws-row" href="{% url 'inventory_manage:stock_edit' s.pk %}">
+          <span class="wws-row__img">
+            {% if s.cover_image %}
+              <img src="{{ s.cover_image.image.url }}" alt="" loading="lazy">
+            {% else %}
+              <span class="wws-row__noimg">kein Bild</span>
+            {% endif %}
+          </span>
+          <span class="wws-row__main">
+            <span class="wws-row__no">{{ s.inventory_no }}</span>
+            <span class="wws-row__name">{{ s.product_name|default:"Ohne Namen" }}</span>
+            <span class="wws-row__meta">
+              {{ s.get_shop_category_display|default:"ohne Kategorie" }}
+              {% if s.color %}&middot; {{ s.color }}{% endif %}
+              {% if s.length %}&middot; {{ s.length }}{% endif %}
+              {% if s.stock_mode == "menge" %}&middot; {{ s.quantity }} St&uuml;ck{% endif %}
+            </span>
+            <span class="wws-row__badges">
+              <span class="wws-badge wws-badge--{{ s.status }}">{{ s.get_status_display }}</span>
+              {% if s.current_phase %}<span class="wws-badge">{{ s.current_phase.name }}</span>{% endif %}
+              {% if s.is_published %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
+              {% if s.audience == "b2b" %}<span class="wws-badge wws-badge--b2b">Nur B2B</span>{% endif %}
+            </span>
+          </span>
+          <span class="wws-row__price">
+            {% if s.sale_price %}{{ s.sale_price|floatformat:0 }},&ndash; &euro;{% else %}&ndash;{% endif %}
+            <span class="wws-row__ek">EK {{ s.purchase_price|floatformat:0|default:"&ndash;" }}</span>
+          </span>
+        </a>
+      {% empty %}
+        <p class="wws-empty">Kein Bestandsst&uuml;ck gefunden.
+          <a href="{% url 'inventory_manage:stock_create' %}">Jetzt Wareneingang erfassen</a>.</p>
+      {% endfor %}
     </div>
   </div>
 </section>
 
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=1"></script>{% endblock %}

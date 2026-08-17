@@ -1,11 +1,14 @@
 from django.contrib import admin
 
 from .models import (
+    AttributeOption,
     Order,
     OrderItem,
     ProductionPhase,
+    Project,
     StockItem,
     StockItemEvent,
+    StockItemImage,
     Supplier,
 )
 
@@ -14,6 +17,22 @@ from .models import (
 class SupplierAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "next_number", "contact", "email")
     search_fields = ("name", "code", "contact", "email")
+
+
+@admin.register(AttributeOption)
+class AttributeOptionAdmin(admin.ModelAdmin):
+    list_display = ("group", "name", "sort_order", "is_active")
+    list_filter = ("group", "is_active")
+    list_editable = ("sort_order", "is_active")
+    search_fields = ("name",)
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ("title", "stock_item", "customer_display", "status", "due_date")
+    list_filter = ("status",)
+    search_fields = ("title", "customer_name", "customer__email")
+    autocomplete_fields = ("stock_item", "customer")
 
 
 @admin.register(ProductionPhase)
@@ -36,17 +55,23 @@ class StockItemEventInline(admin.TabularInline):
         return False
 
 
+class StockItemImageInline(admin.TabularInline):
+    model = StockItemImage
+    extra = 0
+    fields = ("image", "kind", "sort_order")
+
+
 @admin.register(StockItem)
 class StockItemAdmin(admin.ModelAdmin):
     list_display = (
         "inventory_no", "product_name", "supplier", "invoice_no",
-        "status", "current_phase", "reserved_for",
+        "status", "current_phase", "is_published", "reserved_for",
     )
-    list_filter = ("status", "supplier", "current_phase", "product__stock_mode")
+    list_filter = ("status", "stock_mode", "shop_category", "is_published", "supplier", "current_phase")
     search_fields = ("inventory_no", "product_name", "invoice_no", "product__name")
     autocomplete_fields = ("product", "reserved_for")
-    readonly_fields = ("created_at", "updated_at")
-    inlines = [StockItemEventInline]
+    readonly_fields = ("created_at", "updated_at", "published_at")
+    inlines = [StockItemImageInline, StockItemEventInline]
 
     def get_readonly_fields(self, request, obj=None):
         """Eine einmal vergebene Produktnummer bleibt unveraendert."""

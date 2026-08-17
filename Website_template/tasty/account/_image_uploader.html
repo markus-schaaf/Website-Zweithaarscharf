@@ -1,0 +1,31 @@
+{% comment %}
+Bildverwaltung einer Gruppe (eingang | shop).
+Erwartet: kind, bilder, upload_name, titel, hinweis
+Reihenfolge, Loeschen und Vorschau werden von js/wws.js gesteuert.
+{% endcomment %}
+<div class="img-uploader" data-img-uploader data-kind="{{ kind }}">
+  <label class="img-uploader__label" for="upload-{{ kind }}">{{ titel }}</label>
+
+  <div class="img-uploader__grid" data-img-grid>
+    {% for b in bilder %}
+      <figure class="img-tile" data-img-tile data-id="{{ b.pk }}">
+        <img src="{{ b.image.url }}" alt="" loading="lazy">
+        <input type="hidden" name="image_order_{{ kind }}" value="{{ b.pk }}">
+        <figcaption class="img-tile__bar">
+          <button type="button" class="img-tile__btn" data-img-move="-1" aria-label="Nach vorne">&#8592;</button>
+          <button type="button" class="img-tile__btn" data-img-move="1" aria-label="Nach hinten">&#8594;</button>
+          <label class="img-tile__del">
+            <input type="checkbox" name="delete_images_{{ kind }}" value="{{ b.pk }}">
+            <span>L&ouml;schen</span>
+          </label>
+        </figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+
+  <div class="img-uploader__preview" data-img-preview hidden></div>
+
+  <input type="file" id="upload-{{ kind }}" name="{{ upload_name }}" multiple
+         accept="image/*" data-img-input>
+  {% if hinweis %}<p class="form-hint">{{ hinweis }}</p>{% endif %}
+</div>

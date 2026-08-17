@@ -1,0 +1,52 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Auswahlwerte &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Auswahl<em>werte</em></h1>
+    <p>Die Werte, die bei der Erfassung zur Auswahl stehen.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--shop">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="btn-row mb-24">
+      <a class="btn btn-gold" href="{% url 'inventory_manage:attribute_create' %}">+ Neuer Wert</a>
+      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    </div>
+
+    <div class="attr-groups">
+      {% for g in gruppen %}
+        <div class="form-card attr-group">
+          <h3>{{ g.label }}</h3>
+          <ul class="attr-values">
+            {% for w in g.werte %}
+              <li class="attr-value{% if not w.is_active %} is-inactive{% endif %}">
+                <a href="{% url 'inventory_manage:attribute_edit' w.pk %}">{{ w.name }}</a>
+                {% if not w.is_active %}<span class="wws-badge wws-badge--off">inaktiv</span>{% endif %}
+              </li>
+            {% empty %}
+              <li class="attr-value attr-value--empty">Noch keine Werte.</li>
+            {% endfor %}
+          </ul>
+          <p class="attr-group__add">
+            <a href="{% url 'inventory_manage:attribute_create' %}?merkmal={{ g.value }}">+ Wert hinzuf&uuml;gen</a>
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

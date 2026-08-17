@@ -1,0 +1,136 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{% if object %}Projekt bearbeiten{% else %}Neues Projekt{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    {% if object %}
+      <h1>Projekt <em>bearbeiten</em></h1>
+      <p>{{ object.title }} &middot; {{ object.customer_display }}</p>
+    {% else %}
+      <h1>Neues <em>Projekt</em></h1>
+      <p>Plan nach der Kundenberatung festhalten.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if object.stock_item %}
+      <div class="wws-statusbar">
+        <div class="wws-statusbar__info">
+          <strong>{{ object.stock_item.inventory_no }}</strong>
+          <span class="wws-badge wws-badge--{{ object.stock_item.status }}">{{ object.stock_item.get_status_display }}</span>
+        </div>
+        <div class="wws-statusbar__actions">
+          <form method="post" action="{% url 'inventory_manage:project_apply' object.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-gold">Plan auf Bestandsst&uuml;ck &uuml;bernehmen</button>
+          </form>
+          <a class="btn" href="{% url 'inventory_manage:stock_edit' object.stock_item.pk %}">Bestandsst&uuml;ck &ouml;ffnen</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <h2 class="form-section">Auftrag</h2>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.title.id_for_label }}">Bezeichnung *</label>
+            {{ form.title }}{{ form.title.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.customer.id_for_label }}">Kunde (Konto)</label>
+            {{ form.customer }}{{ form.customer.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.customer_name.id_for_label }}">Kundenname</label>
+            {{ form.customer_name }}{{ form.customer_name.errors }}
+            <p class="form-hint">F&uuml;r Kundinnen ohne Konto.</p>
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.stock_item.id_for_label }}">Bestandsst&uuml;ck</label>
+            {{ form.stock_item }}{{ form.stock_item.errors }}
+            <p class="form-hint">Kann sp&auml;ter zugeordnet werden. Ein verf&uuml;gbares St&uuml;ck wird beim Speichern reserviert.</p>
+          </div>
+          <div class="field">
+            <label for="{{ form.status.id_for_label }}">Status</label>
+            {{ form.status }}{{ form.status.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.due_date.id_for_label }}">Fertig bis</label>
+            {{ form.due_date }}{{ form.due_date.errors }}
+          </div>
+        </div>
+
+        <h2 class="form-section">Plan</h2>
+        <p class="form-section__hint">Was soll aus dem St&uuml;ck werden? Auswahlwerte pflegen Sie unter
+          <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.target_color.id_for_label }}">Farbe</label>
+            {{ form.target_color }}{{ form.target_color.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.target_length.id_for_label }}">L&auml;nge</label>
+            {{ form.target_length }}{{ form.target_length.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.target_structure.id_for_label }}">Schnitt</label>
+            {{ form.target_structure }}{{ form.target_structure.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.target_cap_type.id_for_label }}">Montur</label>
+            {{ form.target_cap_type }}{{ form.target_cap_type.errors }}
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.target_density.id_for_label }}">Dichte</label>
+            {{ form.target_density }}{{ form.target_density.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.target_size.id_for_label }}">Gr&ouml;&szlig;e</label>
+            {{ form.target_size }}{{ form.target_size.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.notes.id_for_label }}">Kommentare</label>
+            {{ form.notes }}{{ form.notes.errors }}
+            <p class="form-hint">Alles aus der Beratung, was sonst nirgends hinpasst.</p>
+          </div>
+        </div>
+
+        <div class="form-actions form-actions--sticky">
+          <button type="submit" class="btn btn-gold">Speichern</button>
+          <a class="btn" href="{% url 'inventory_manage:project_list' %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

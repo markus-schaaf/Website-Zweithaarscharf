@@ -17,8 +17,21 @@ urlpatterns = [
     path("phasen/neu/", manage_views.PhaseCreateView.as_view(), name="phase_create"),
     path("phasen/<int:pk>/bearbeiten/", manage_views.PhaseUpdateView.as_view(), name="phase_edit"),
 
+    # Auswahlwerte
+    path("auswahlwerte/", manage_views.AttributeListView.as_view(), name="attribute_list"),
+    path("auswahlwerte/neu/", manage_views.AttributeCreateView.as_view(), name="attribute_create"),
+    path("auswahlwerte/<int:pk>/bearbeiten/", manage_views.AttributeUpdateView.as_view(), name="attribute_edit"),
+
     # Bestand
     path("bestand/", manage_views.StockItemListView.as_view(), name="stock_list"),
     path("bestand/neu/", manage_views.StockItemCreateView.as_view(), name="stock_create"),
     path("bestand/<int:pk>/bearbeiten/", manage_views.StockItemUpdateView.as_view(), name="stock_edit"),
+    path("bestand/<int:pk>/veroeffentlichen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
+    path("bestand/<int:pk>/zurueckziehen/", manage_views.StockItemUnpublishView.as_view(), name="stock_unpublish"),
+
+    # Projekte
+    path("projekte/", manage_views.ProjectListView.as_view(), name="project_list"),
+    path("projekte/neu/", manage_views.ProjectCreateView.as_view(), name="project_create"),
+    path("projekte/<int:pk>/bearbeiten/", manage_views.ProjectUpdateView.as_view(), name="project_edit"),
+    path("projekte/<int:pk>/plan-uebernehmen/", manage_views.ProjectApplyPlanView.as_view(), name="project_apply"),
 ]

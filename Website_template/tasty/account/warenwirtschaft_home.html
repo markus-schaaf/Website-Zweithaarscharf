@@ -22,9 +22,9 @@
     {% endif %}
 
     <div class="btn-row mb-24">
-      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
-      <a class="btn btn-gold" href="{% url 'inventory_manage:supplier_list' %}">Lieferanten</a>
-      <a class="btn btn-gold" href="{% url 'inventory_manage:phase_list' %}">Fertigungsphasen</a>
+      <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
+      <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
+      <a class="btn" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
       <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
     </div>
 
@@ -34,7 +34,36 @@
           <h3 class="manage-card__name">{{ anzahl_verfuegbar }} verf&uuml;gbar</h3>
           <p class="manage-card__meta">von {{ anzahl_gesamt }} Bestandsst&uuml;cken gesamt</p>
           <p class="manage-card__actions">
-            <a href="{% url 'inventory_manage:stock_create' %}">Wareneingang erfassen</a>
+            <a href="{% url 'inventory_manage:stock_list' %}">Bestand &ouml;ffnen</a>
+            <a href="{% url 'inventory_manage:stock_create' %}">Wareneingang</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_veroeffentlicht }} im Shop</h3>
+          <p class="manage-card__meta">ver&ouml;ffentlichte Bestandsst&uuml;cke</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:stock_list' %}?shop=nein">Nicht ver&ouml;ffentlichte</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_projekte }} Projekt(e)</h3>
+          <p class="manage-card__meta">in Planung oder Arbeit</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:project_list' %}">Projekte</a>
+            <a href="{% url 'inventory_manage:project_create' %}">Neues Projekt</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_werte }} Auswahlwerte</h3>
+          <p class="manage-card__meta">Farbe, L&auml;nge, Schnitt, Montur &hellip;</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:attribute_list' %}">Werte pflegen</a>
           </p>
         </div>
       </article>
@@ -43,6 +72,7 @@
           <h3 class="manage-card__name">{{ anzahl_lieferanten }} Lieferant(en)</h3>
           <p class="manage-card__meta">Bezugsquellen verwalten</p>
           <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:supplier_list' %}">Lieferanten</a>
             <a href="{% url 'inventory_manage:supplier_create' %}">Neuer Lieferant</a>
           </p>
         </div>
@@ -52,6 +82,7 @@
           <h3 class="manage-card__name">{{ anzahl_phasen }} Phase(n)</h3>
           <p class="manage-card__meta">aktive Fertigungsschritte</p>
           <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:phase_list' %}">Phasen</a>
             <a href="{% url 'inventory_manage:phase_create' %}">Neue Phase</a>
           </p>
         </div>

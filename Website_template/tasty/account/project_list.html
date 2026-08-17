@@ -1,0 +1,54 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}Projekte &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Pro<em>jekte</em></h1>
+    <p>Der nach der Beratung festgelegte Plan f&uuml;r ein Produkt.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--shop">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="btn-row mb-24">
+      <a class="btn btn-gold" href="{% url 'inventory_manage:project_create' %}">+ Neues Projekt</a>
+      <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
+      <a class="btn" href="{% url 'inventory_manage:home' %}">Zur&uuml;ck</a>
+    </div>
+
+    <div class="wws-list">
+      {% for p in projekte %}
+        <a class="wws-row" href="{% url 'inventory_manage:project_edit' p.pk %}">
+          <span class="wws-row__main">
+            <span class="wws-row__no">{{ p.customer_display }}</span>
+            <span class="wws-row__name">{{ p.title }}</span>
+            <span class="wws-row__meta">
+              {% if p.stock_item %}{{ p.stock_item.inventory_no }}{% else %}noch ohne Bestandsst&uuml;ck{% endif %}
+              {% if p.due_date %}&middot; fertig bis {{ p.due_date|date:"d.m.Y" }}{% endif %}
+            </span>
+            <span class="wws-row__badges">
+              <span class="wws-badge wws-badge--{{ p.status }}">{{ p.get_status_display }}</span>
+              {% for label, wert in p.plan_rows %}<span class="wws-badge">{{ label }}: {{ wert }}</span>{% endfor %}
+            </span>
+          </span>
+        </a>
+      {% empty %}
+        <p class="wws-empty">Noch kein Projekt angelegt.
+          <a href="{% url 'inventory_manage:project_create' %}">Jetzt anlegen</a>.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
