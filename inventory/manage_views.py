@@ -2,6 +2,7 @@
 Muster wie shop/manage_views.py (RoleRequiredMixin).
 """
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -9,13 +10,20 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views import View
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import (
+    CreateView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+    View,
+)
 
 from accounts.views import RoleRequiredMixin
+from shop.models import Product
 
 from .forms import (
     AttributeOptionForm,
@@ -23,10 +31,14 @@ from .forms import (
     ProductionPhaseForm,
     ProjectForm,
     StockItemForm,
+    StockItemPublishForm,
+    StockItemSellForm,
     SupplierForm,
 )
 from .models import (
     AttributeOption,
+    Order,
+    OrderItem,
     ProductionPhase,
     Project,
     StockItem,
@@ -35,6 +47,7 @@ from .models import (
     Supplier,
 )
 from .numbering import build_inventory_no, reserve_numbers
+from .services.handover import send_invoice_mail
 
 User = get_user_model()
 STAFF_ROLES = (User.Role.ALL_POWER, User.Role.ADMIN)
@@ -84,10 +97,13 @@ class HomeView(StaffMixin, TemplateView):
             status=StockItem.Status.VERFUEGBAR
         ).count()
         ctx["anzahl_gesamt"] = StockItem.objects.count()
-        ctx["anzahl_veroeffentlicht"] = StockItem.objects.filter(is_published=True).count()
+        ctx["anzahl_veroeffentlicht"] = StockItem.objects.filter(
+            product__isnull=False
+        ).count()
         ctx["anzahl_projekte"] = Project.objects.exclude(
             status__in=(Project.Status.ABGEHOLT, Project.Status.STORNIERT)
         ).count()
+        ctx["anzahl_verkaeufe"] = Order.objects.count()
         ctx["anzahl_lieferanten"] = Supplier.objects.count()
         ctx["anzahl_phasen"] = ProductionPhase.objects.filter(is_active=True).count()
         ctx["anzahl_werte"] = AttributeOption.objects.filter(is_active=True).count()
@@ -262,11 +278,12 @@ class StockItemListView(StaffMixin, ListView):
         if hersteller.isdigit():
             qs = qs.filter(supplier_id=int(hersteller))
 
+        # Online = mit einem Shop-Produkt verknuepft
         shop = self.request.GET.get("shop", "")
         if shop == "ja":
-            qs = qs.filter(is_published=True)
+            qs = qs.filter(product__isnull=False)
         elif shop == "nein":
-            qs = qs.filter(is_published=False)
+            qs = qs.filter(product__isnull=True)
 
         return qs.order_by("-created_at", "-id")
 
@@ -372,6 +389,176 @@ class StockItemCreateView(StaffMixin, CreateView):
         return HttpResponseRedirect(str(self.success_url))
 
 
+class StockItemPublishView(StaffMixin, FormView):
+    """Bestandsstueck einem Shop-Produkt zuordnen und damit online stellen."""
+
+    form_class = StockItemPublishForm
+    template_name = "tasty/account/stockitem_publish.html"
+    success_url = reverse_lazy("inventory_manage:stock_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        # Was der Wareneingang schon weiss, vorbelegen.
+        return {
+            "product": self.stueck.product_id,
+            "name": self.stueck.product_name,
+            "label": self.stueck.product_name[:60],
+            "category": self.stueck.shop_category or Product.Category.BESTAND,
+            "price": self.stueck.sale_price,
+        }
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["stueck"] = self.stueck
+        ctx["bilder"] = self.stueck.shop_images
+        return ctx
+
+    def form_valid(self, form):
+        daten = form.cleaned_data
+        produkt = daten.get("product")
+
+        if not self.stueck.shop_images:
+            form.add_error(
+                None, "Ohne Foto geht das Stück nicht online. Bitte erst ein Bild hochladen."
+            )
+            return self.form_invalid(form)
+
+        with transaction.atomic():
+            if produkt is None:
+                produkt = Product(
+                    name=daten["name"],
+                    label=daten["label"],
+                    category=daten["category"],
+                    price=daten["price"],
+                    stock_mode=self.stueck.stock_mode,
+                )
+                produkt.ensure_slug()
+            produkt.track_stock = True
+            produkt.save()
+            self.stueck.product = produkt
+            self.stueck.save(update_fields=["product", "updated_at"])
+            # Eigenschaften, Zielgruppe und Galerie aus dem Bestand nachziehen
+            self.stueck.sync_to_product()
+            self.stueck.log_event(
+                StockItemEvent.Kind.STATUS, "", self.stueck.get_status_display(),
+                by=self.request.user,
+                note=f"Online gestellt als „{produkt.name}“",
+            )
+
+        messages.success(
+            self.request,
+            f"„{self.stueck.inventory_no}“ ist jetzt mit dem Shop-Produkt "
+            f"„{produkt.name}“ verknüpft."
+        )
+        return HttpResponseRedirect(str(self.success_url))
+
+
+class StockItemSellView(StaffMixin, FormView):
+    """Verkauf buchen: Bestellung anlegen, Stueck als verkauft markieren und
+    die Rechnungsdaten an den Kollegen schicken.
+    """
+
+    form_class = StockItemSellForm
+    template_name = "tasty/account/stockitem_sell.html"
+    success_url = reverse_lazy("inventory_manage:stock_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        return {
+            "price": self.stueck.product.price if self.stueck.product else None,
+            "sold_on": timezone.localdate(),
+            "channel": StockItem.Channel.STUDIO,
+        }
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["stueck"] = self.stueck
+        return ctx
+
+    def form_valid(self, form):
+        daten = form.cleaned_data
+        bezeichnung = (
+            self.stueck.product.name if self.stueck.product
+            else self.stueck.product_name
+        )
+
+        with transaction.atomic():
+            bestellung = Order.objects.create(
+                user=daten.get("user"),
+                customer_name=daten["customer_name"],
+                customer_street=daten["customer_street"],
+                customer_zip=daten["customer_zip"],
+                customer_city=daten["customer_city"],
+                customer_email=daten["customer_email"],
+                channel=daten["channel"],
+                note=daten["note"],
+                sold_on=daten["sold_on"],
+                total=daten["price"],
+            )
+            OrderItem.objects.create(
+                order=bestellung,
+                product=self.stueck.product,
+                stock_item=self.stueck,
+                description=bezeichnung,
+                quantity=1,
+                price=daten["price"],
+            )
+            alt = self.stueck.get_status_display()
+            self.stueck.status = StockItem.Status.VERKAUFT
+            self.stueck.sold_at = timezone.now()
+            self.stueck.sold_channel = daten["channel"]
+            self.stueck.save(
+                update_fields=["status", "sold_at", "sold_channel", "updated_at"]
+            )
+            self.stueck.log_event(
+                StockItemEvent.Kind.STATUS, alt, self.stueck.get_status_display(),
+                by=self.request.user,
+                note=f"Verkauf gebucht (Bestellung {bestellung.pk})",
+            )
+
+        # Nach dem Commit: ein Mailfehler darf den Verkauf nicht zurueckrollen.
+        if send_invoice_mail(bestellung):
+            messages.success(
+                self.request,
+                f"Verkauf gebucht. Die Rechnungsdaten gingen an "
+                f"{settings.INVOICE_RECIPIENT_EMAIL}."
+            )
+        else:
+            messages.warning(
+                self.request,
+                "Verkauf gebucht, aber die Rechnungsmail konnte nicht versendet "
+                "werden. Unter „Verkäufe“ lässt sie sich erneut senden."
+            )
+        return HttpResponseRedirect(str(self.success_url))
+
+
+class OrderListView(StaffMixin, ListView):
+    """Schlanke Übersicht: zeigt vor allem, ob die Rechnungsmail rausging."""
+
+    model = Order
+    template_name = "tasty/account/order_list.html"
+    context_object_name = "verkaeufe"
+
+    def get_queryset(self):
+        return Order.objects.select_related("user").prefetch_related("items")
+
+
+class OrderResendView(StaffMixin, View):
+    def post(self, request, pk):
+        bestellung = get_object_or_404(Order, pk=pk)
+        if send_invoice_mail(bestellung):
+            messages.success(request, f"Rechnungsmail zu Verkauf {pk} erneut gesendet.")
+        else:
+            messages.error(request, f"Versand zu Verkauf {pk} erneut fehlgeschlagen.")
+        return HttpResponseRedirect(reverse("inventory_manage:order_list"))
+
+
 class StockItemUpdateView(StaffMixin, UpdateView):
     model = StockItem
     form_class = StockItemForm
@@ -416,57 +603,32 @@ class StockItemUpdateView(StaffMixin, UpdateView):
                 StockItemEvent.Kind.PHASE, old_phase,
                 str(obj.current_phase or ""), by=self.request.user,
             )
-        if obj.is_published:
-            # Geaenderte Angaben sofort in den Shop durchreichen
-            try:
-                obj.publish(by=self.request.user)
-            except ValidationError as fehler:
-                obj.unpublish(by=self.request.user)
-                messages.warning(
-                    self.request,
-                    "Aus dem Shop genommen: " + " ".join(fehler.messages),
-                )
+        if obj.product_id:
+            # Geaenderte Angaben und Bilder sofort in den Shop durchreichen
+            obj.sync_to_product()
 
         messages.success(
             self.request, f"Bestandsstück „{obj.inventory_no}“ gespeichert."
         )
         return response
 
-    def _handle_sale(self, obj):
-        """Verkauf schlaegt sofort auf den Shop durch (geteilter Bestand)."""
-        if obj.status != StockItem.Status.VERKAUFT:
-            return
-        if obj.sold_at is None:
-            obj.sold_at = timezone.now()
-            obj.save(update_fields=["sold_at", "updated_at"])
-        if obj.is_published:
-            obj.unpublish(by=self.request.user)
-
-
-class StockItemPublishView(StaffMixin, View):
-    """Bestandsstueck im Shop veroeffentlichen (POST-only)."""
-
-    def post(self, request, pk):
-        stueck = get_object_or_404(StockItem, pk=pk)
-        try:
-            produkt = stueck.publish(by=request.user)
-        except ValidationError as fehler:
-            for meldung in fehler.messages:
-                messages.error(request, meldung)
-        else:
-            messages.success(
-                request, f"„{produkt.name}“ ist jetzt im Shop sichtbar."
-            )
-        return redirect("inventory_manage:stock_edit", pk=pk)
-
 
 class StockItemUnpublishView(StaffMixin, View):
-    """Bestandsstueck aus dem Shop nehmen (POST-only)."""
+    """Verknuepfung zum Shop-Produkt loesen (POST-only). Das Produkt selbst
+    bleibt bestehen - es kann weitere Bestandsstuecke haben.
+    """
 
     def post(self, request, pk):
         stueck = get_object_or_404(StockItem, pk=pk)
-        stueck.unpublish(by=request.user)
-        messages.success(request, "Aus dem Shop genommen.")
+        if stueck.product_id:
+            name = stueck.product.name
+            stueck.product = None
+            stueck.save(update_fields=["product", "updated_at"])
+            stueck.log_event(
+                StockItemEvent.Kind.STATUS, "", stueck.get_status_display(),
+                by=request.user, note=f"Aus dem Shop genommen (war „{name}“)",
+            )
+            messages.success(request, "Aus dem Shop genommen.")
         return redirect("inventory_manage:stock_edit", pk=pk)
 
 

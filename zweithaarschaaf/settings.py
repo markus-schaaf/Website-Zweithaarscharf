@@ -218,6 +218,12 @@ DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "info@zweithaar
 # Empfängeradresse für Kontakt- und Terminanfragen
 CONTACT_RECIPIENT_EMAIL = os.environ.get("ZS_CONTACT_EMAIL", "info@zweithaarschaaf.de")
 
+# Empfängeradresse für die Rechnungsdaten je Verkauf (Kollege schreibt die
+# Rechnung). Ohne eigene Angabe geht die Mail an die Kontaktadresse.
+INVOICE_RECIPIENT_EMAIL = os.environ.get(
+    "ZS_INVOICE_EMAIL", CONTACT_RECIPIENT_EMAIL
+)
+
 
 # Sicherheits-Einstellungen für den Produktivbetrieb (HTTPS vorausgesetzt)
 if not DEBUG:

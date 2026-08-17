@@ -27,26 +27,25 @@
         <strong>{{ object.inventory_no }}</strong>
         <span class="wws-badge wws-badge--{{ object.status }}">{{ object.get_status_display }}</span>
         {% if object.current_phase %}<span class="wws-badge">{{ object.current_phase.name }}</span>{% endif %}
-        {% if object.is_published %}
-          <span class="wws-badge wws-badge--shop">Im Shop</span>
+        {% if object.product_id %}
+          <span class="wws-badge wws-badge--shop">Im Shop: {{ object.product.name }}</span>
         {% else %}
-          <span class="wws-badge wws-badge--off">Nicht ver&ouml;ffentlicht</span>
+          <span class="wws-badge wws-badge--off">Nicht online</span>
         {% endif %}
       </div>
       <div class="wws-statusbar__actions">
-        {% if object.is_published %}
+        {% if object.product_id %}
+          <a class="btn" href="{% url 'product_detail' object.product.slug %}">Im Shop ansehen</a>
+          <a class="btn" href="{% url 'inventory_manage:stock_publish' object.pk %}">Zuordnung &auml;ndern</a>
           <form method="post" action="{% url 'inventory_manage:stock_unpublish' object.pk %}">
             {% csrf_token %}
             <button type="submit" class="btn">Aus dem Shop nehmen</button>
           </form>
-          {% if object.product %}
-            <a class="btn" href="{% url 'product_detail' object.product.slug %}">Im Shop ansehen</a>
-          {% endif %}
         {% else %}
-          <form method="post" action="{% url 'inventory_manage:stock_publish' object.pk %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-gold">Im Shop ver&ouml;ffentlichen</button>
-          </form>
+          <a class="btn btn-gold" href="{% url 'inventory_manage:stock_publish' object.pk %}">Online stellen</a>
+        {% endif %}
+        {% if object.status == "verfuegbar" or object.status == "reserviert" %}
+          <a class="btn" href="{% url 'inventory_manage:stock_sell' object.pk %}">Verkauf buchen</a>
         {% endif %}
         <a class="btn" href="{% url 'inventory_manage:project_create' %}?bestand={{ object.pk }}">+ Projekt</a>
       </div>

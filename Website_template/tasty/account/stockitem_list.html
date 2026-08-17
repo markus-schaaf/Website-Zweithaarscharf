@@ -79,35 +79,44 @@
 
     <div class="wws-list">
       {% for s in stuecke %}
-        <a class="wws-row" href="{% url 'inventory_manage:stock_edit' s.pk %}">
-          <span class="wws-row__img">
+        <div class="wws-row">
+          <a class="wws-row__img" href="{% url 'inventory_manage:stock_edit' s.pk %}">
             {% if s.cover_image %}
               <img src="{{ s.cover_image.image.url }}" alt="" loading="lazy">
             {% else %}
               <span class="wws-row__noimg">kein Bild</span>
             {% endif %}
-          </span>
-          <span class="wws-row__main">
-            <span class="wws-row__no">{{ s.inventory_no }}</span>
-            <span class="wws-row__name">{{ s.product_name|default:"Ohne Namen" }}</span>
-            <span class="wws-row__meta">
-              {{ s.get_shop_category_display|default:"ohne Kategorie" }}
-              {% if s.color %}&middot; {{ s.color }}{% endif %}
-              {% if s.length %}&middot; {{ s.length }}{% endif %}
-              {% if s.stock_mode == "menge" %}&middot; {{ s.quantity }} St&uuml;ck{% endif %}
-            </span>
-            <span class="wws-row__badges">
+          </a>
+          <div class="wws-row__main">
+            <a class="wws-row__link" href="{% url 'inventory_manage:stock_edit' s.pk %}">
+              <span class="wws-row__no">{{ s.inventory_no }}</span>
+              <span class="wws-row__name">{{ s.product_name|default:"Ohne Namen" }}</span>
+              <span class="wws-row__meta">
+                {{ s.get_shop_category_display|default:"ohne Kategorie" }}
+                {% if s.color %}&middot; {{ s.color }}{% endif %}
+                {% if s.length %}&middot; {{ s.length }}{% endif %}
+                {% if s.stock_mode == "menge" %}&middot; {{ s.quantity }} St&uuml;ck{% endif %}
+              </span>
+            </a>
+            <p class="wws-row__badges">
               <span class="wws-badge wws-badge--{{ s.status }}">{{ s.get_status_display }}</span>
               {% if s.current_phase %}<span class="wws-badge">{{ s.current_phase.name }}</span>{% endif %}
-              {% if s.is_published %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
+              {% if s.product_id %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
               {% if s.audience == "b2b" %}<span class="wws-badge wws-badge--b2b">Nur B2B</span>{% endif %}
-            </span>
-          </span>
-          <span class="wws-row__price">
+            </p>
+            <p class="wws-row__actions">
+              <a href="{% url 'inventory_manage:stock_edit' s.pk %}">Bearbeiten</a>
+              <a href="{% url 'inventory_manage:stock_publish' s.pk %}">{% if s.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}</a>
+              {% if s.status == "verfuegbar" or s.status == "reserviert" %}
+                <a href="{% url 'inventory_manage:stock_sell' s.pk %}">Verkauf buchen</a>
+              {% endif %}
+            </p>
+          </div>
+          <div class="wws-row__price">
             {% if s.sale_price %}{{ s.sale_price|floatformat:0 }},&ndash; &euro;{% else %}&ndash;{% endif %}
             <span class="wws-row__ek">EK {{ s.purchase_price|floatformat:0|default:"&ndash;" }}</span>
-          </span>
-        </a>
+          </div>
+        </div>
       {% empty %}
         <p class="wws-empty">Kein Bestandsst&uuml;ck gefunden.
           <a href="{% url 'inventory_manage:stock_create' %}">Jetzt Wareneingang erfassen</a>.</p>

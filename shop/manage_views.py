@@ -35,8 +35,8 @@ class ProduktListeView(RoleRequiredMixin, ListView):
     context_object_name = "produkte"
 
     def get_queryset(self):
-        # stock_items: Weg zurueck in den Bestand bei veroeffentlichten Stuecken
-        return super().get_queryset().prefetch_related("stock_items")
+        # stock_items: Weg zurueck in den Bestand bei online gestellten Stuecken
+        return super().get_queryset().with_stock().prefetch_related("stock_items")
 
 
 class ProduktErstellenView(RoleRequiredMixin, CreateView):

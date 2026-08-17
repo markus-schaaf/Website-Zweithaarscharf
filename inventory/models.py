@@ -5,10 +5,7 @@ Historie, Bestellungen. Siehe WARENWIRTSCHAFT_PLAN.md.
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
-from django.utils.text import slugify
 
 from shop.models import Product as ShopProduct
 from shop.models import ProductImage
@@ -170,8 +167,6 @@ class StockItem(models.Model):
     )
     description = models.TextField("Shop-Beschreibung", blank=True, default="")
     notes = models.TextField("Interne Notizen", blank=True, default="")
-    is_published = models.BooleanField("Im Shop veröffentlicht", default=False)
-    published_at = models.DateTimeField("Veröffentlicht am", null=True, blank=True)
 
     # Dimension 1: kaufmaennischer Verfuegbarkeits-Status
     status = models.CharField(
@@ -242,86 +237,55 @@ class StockItem(models.Model):
             changed_by=by, note=note,
         )
 
-    # --- Veroeffentlichung im Shop ----------------------------------------
-    # Der Shop laeuft komplett auf shop.Product (Katalog, Detailseite,
-    # Warenkorb, Sitemap). Ein veroeffentlichtes Bestandsstueck wird deshalb in
-    # ein Product gespiegelt statt den Shop umzubauen.
-
-    def _build_slug(self, product):
-        base = slugify(f"{self.shop_category}-{self.inventory_no}")[:70]
-        slug, i = base, 2
-        while ShopProduct.objects.filter(slug=slug).exclude(pk=product.pk).exists():
-            slug = f"{base}-{i}"
-            i += 1
-        return slug
-
-    def publish(self, by=None):
-        """Bestandsstueck im Shop sichtbar machen. Wirft ValidationError,
-        wenn Pflichtangaben fehlen.
+    @property
+    def is_published(self):
+        """Online = einem Shop-Produkt zugeordnet. Ob es tatsaechlich kaufbar
+        ist, entscheidet der Bestand ueber Product.track_stock.
         """
-        fehler = []
-        if not self.shop_category:
-            fehler.append("Shop-Kategorie fehlt.")
-        if self.sale_price is None:
-            fehler.append("Verkaufspreis fehlt.")
-        if not self.shop_images:
-            fehler.append("Mindestens ein Bild wird benötigt.")
-        if self.status in (self.Status.VERKAUFT, self.Status.AUSGEMUSTERT):
-            fehler.append("Verkaufte oder ausgemusterte Ware kann nicht veröffentlicht werden.")
-        if fehler:
-            raise ValidationError(fehler)
+        return self.product_id is not None
 
-        product = self.product or ShopProduct()
-        product.name = self.product_name
-        product.label = self.inventory_no
-        product.category = self.shop_category
-        product.audience = self.audience
-        product.price = self.sale_price
-        product.description = self.description
-        product.hair_color = self.color
-        product.hair_length = self.length
-        product.hair_size = self.size
-        product.hair_structure = self.structure
-        product.hair_density = self.density
-        product.cap_type = self.cap_type
-        product.stock_mode = self.stock_mode
-        product.stock_quantity = self.quantity if self.stock_mode == self.StockMode.MENGE else 0
-        product.is_active = True
-        if not product.slug:
-            product.slug = self._build_slug(product)
-        product.save()
+    def sync_to_product(self):
+        """Eigenschaften und Galerie ins verknuepfte Shop-Produkt nachziehen.
+
+        Nur die Felder, die der Bestand besser weiss - Name, Kurzlabel, Preis
+        und Kategorie bleiben beim Produkt, weil sich mehrere Stuecke ein
+        Produkt teilen koennen und die Verkaufstexte dort gepflegt werden.
+        """
+        produkt = self.product
+        if produkt is None:
+            return None
+
+        produkt.hair_color = self.color
+        produkt.hair_length = self.length
+        produkt.hair_size = self.size
+        produkt.hair_structure = self.structure
+        produkt.hair_density = self.density
+        produkt.cap_type = self.cap_type
+        if self.audience:
+            produkt.audience = self.audience
+        if self.description:
+            produkt.description = self.description
+        if self.stock_mode == self.StockMode.MENGE:
+            produkt.stock_mode = ShopProduct.StockMode.MENGE
+            produkt.stock_quantity = self.quantity
+        produkt.save()
 
         # Galerie spiegeln: nur Zeilen neu anlegen, die Dateien selbst bleiben
-        # im Bestand liegen (image.name ist derselbe Pfad).
+        # im Bestand liegen (image.name ist derselbe Pfad, kein Kopieren).
+        # Teilen sich mehrere Stuecke ein Produkt, bleibt die vorhandene
+        # Galerie stehen - sonst wuerde das zuletzt gespeicherte Stueck die
+        # Fotos der anderen ueberschreiben.
         bilder = self.shop_images
-        product.images.all().delete()
-        ProductImage.objects.bulk_create([
-            ProductImage(product=product, image=b.image.name, sort_order=i)
-            for i, b in enumerate(bilder)
-        ])
-        product.image = bilder[0].image.name
-        product.save(update_fields=["image"])
-
-        self.product = product
-        self.is_published = True
-        self.published_at = timezone.now()
-        self.save(update_fields=["product", "is_published", "published_at", "updated_at"])
-        self.log_event(
-            StockItemEvent.Kind.SHOP, "", "Veröffentlicht", by=by,
-            note=f"Als „{product.name}“ im Shop veröffentlicht.",
-        )
-        return product
-
-    def unpublish(self, by=None):
-        """Aus dem Shop nehmen. Das Product bleibt bestehen (Bestellhistorie)."""
-        if self.product:
-            self.product.is_active = False
-            self.product.save(update_fields=["is_active"])
-        self.is_published = False
-        self.save(update_fields=["is_published", "updated_at"])
-        self.log_event(
-            StockItemEvent.Kind.SHOP, "Veröffentlicht", "Zurückgezogen", by=by
-        )
+        allein = produkt.stock_items.exclude(pk=self.pk).count() == 0
+        if bilder and (allein or not produkt.images.exists()):
+            produkt.images.all().delete()
+            ProductImage.objects.bulk_create([
+                ProductImage(product=produkt, image=b.image.name, sort_order=i)
+                for i, b in enumerate(bilder)
+            ])
+            produkt.image = bilder[0].image.name
+            produkt.save(update_fields=["image"])
+        return produkt
 
 
 class StockItemImage(models.Model):
@@ -360,7 +324,6 @@ class StockItemEvent(models.Model):
         EINGANG = "eingang", "Wareneingang"
         PHASE = "phase", "Fertigungsphase"
         STATUS = "status", "Status"
-        SHOP = "shop", "Shop"
         PROJEKT = "projekt", "Projekt"
 
     stock_item = models.ForeignKey(
@@ -500,10 +463,24 @@ class Order(models.Model):
         FAILED = "failed", "Fehlgeschlagen"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL,
-        verbose_name="Kunde"
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="Kunde (Konto)"
     )
+    # Laufkundschaft im Studio hat kein Konto - dann werden diese Felder gefuellt.
+    customer_name = models.CharField("Name", max_length=120, blank=True)
+    customer_street = models.CharField("Straße und Hausnummer", max_length=120, blank=True)
+    customer_zip = models.CharField("PLZ", max_length=10, blank=True)
+    customer_city = models.CharField("Ort", max_length=80, blank=True)
+    customer_email = models.EmailField("E-Mail", blank=True)
+
+    channel = models.CharField(
+        "Verkaufskanal", max_length=10, choices=StockItem.Channel.choices,
+        default=StockItem.Channel.STUDIO
+    )
+    note = models.TextField("Notiz für die Rechnung", blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+    sold_on = models.DateField("Verkaufsdatum", null=True, blank=True)
     status = models.CharField(
         "Status", max_length=12, choices=Status.choices, default=Status.AUFGENOMMEN
     )
@@ -524,6 +501,36 @@ class Order(models.Model):
     def __str__(self):
         return f"Bestellung #{self.pk}"
 
+    @property
+    def customer_display(self):
+        """Name der Kundin, egal ob Konto oder Freitext."""
+        if self.user:
+            voll = f"{self.user.first_name} {self.user.last_name}".strip()
+            return self.user.company_name or voll or self.user.email
+        return self.customer_name
+
+    @property
+    def billing_lines(self):
+        """Rechnungsanschrift als Zeilenliste - eine Quelle für Mail und Anzeige."""
+        if self.user:
+            zeilen = [
+                self.customer_display,
+                self.user.street,
+                f"{self.user.zip_code} {self.user.city}".strip(),
+                self.user.email,
+                self.user.phone,
+            ]
+            if self.user.vat_id:
+                zeilen.append(f"USt-IdNr.: {self.user.vat_id}")
+        else:
+            zeilen = [
+                self.customer_name,
+                self.customer_street,
+                f"{self.customer_zip} {self.customer_city}".strip(),
+                self.customer_email,
+            ]
+        return [z for z in zeilen if z]
+
 
 class OrderItem(models.Model):
     """Position einer Bestellung. Einzelstueck ueber stock_item,
@@ -531,11 +538,17 @@ class OrderItem(models.Model):
     """
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey("shop.Product", on_delete=models.PROTECT, verbose_name="Produkt")
+    # Optional: ein noch nicht online gestelltes Stueck hat kein Shop-Produkt.
+    product = models.ForeignKey(
+        "shop.Product", null=True, blank=True, on_delete=models.PROTECT,
+        verbose_name="Produkt"
+    )
     stock_item = models.ForeignKey(
         StockItem, null=True, blank=True, on_delete=models.PROTECT,
         verbose_name="Bestandsstück (Einzelstück)"
     )
+    # Momentaufnahme: spaetere Umbenennungen duerfen alte Rechnungen nicht aendern.
+    description = models.CharField("Bezeichnung", max_length=160, default="")
     quantity = models.PositiveIntegerField("Menge", default=1)
     price = models.DecimalField("Verkaufspreis", max_digits=8, decimal_places=2)
 
@@ -544,4 +557,4 @@ class OrderItem(models.Model):
         verbose_name_plural = "Bestellpositionen"
 
     def __str__(self):
-        return f"{self.quantity}x {self.product.name}"
+        return f"{self.quantity}x {self.description}"

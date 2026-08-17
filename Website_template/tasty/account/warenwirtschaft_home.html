@@ -25,6 +25,7 @@
       <a class="btn btn-gold" href="{% url 'inventory_manage:stock_create' %}">+ Wareneingang erfassen</a>
       <a class="btn" href="{% url 'inventory_manage:stock_list' %}">Bestand</a>
       <a class="btn" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
+      <a class="btn" href="{% url 'inventory_manage:order_list' %}">Verk&auml;ufe</a>
       <a class="btn" href="{% url 'accounts:profile' %}">Zur&uuml;ck zum Konto</a>
     </div>
 
@@ -55,6 +56,15 @@
           <p class="manage-card__actions">
             <a href="{% url 'inventory_manage:project_list' %}">Projekte</a>
             <a href="{% url 'inventory_manage:project_create' %}">Neues Projekt</a>
+          </p>
+        </div>
+      </article>
+      <article class="manage-card">
+        <div class="manage-card__body">
+          <h3 class="manage-card__name">{{ anzahl_verkaeufe }} Verkauf/Verk&auml;ufe</h3>
+          <p class="manage-card__meta">gebucht, mit Rechnungsversand</p>
+          <p class="manage-card__actions">
+            <a href="{% url 'inventory_manage:order_list' %}">Verk&auml;ufe</a>
           </p>
         </div>
       </article>

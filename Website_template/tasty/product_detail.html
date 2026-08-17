@@ -77,8 +77,12 @@
         <span class="eyebrow">{{ product.get_category_display }}</span>
         <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
           {{ product.name }}
-          {% if product.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
-          {% if product.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+          {% if product.is_sold_out %}
+            <span class="badge badge-soldout">Verkauft</span>
+          {% else %}
+            {% if product.badge == "new" %}<span class="badge badge-new">Neu</span>{% endif %}
+            {% if product.badge == "popular" %}<span class="badge badge-popular">Beliebt</span>{% endif %}
+          {% endif %}
         </h1>
 
         {% if product.is_configurable %}
@@ -137,9 +141,23 @@
             </div>
           </div>
 
+        {% elif product.is_sold_out %}
+
+          <div class="soldout-note">
+            <p><strong>Dieses St&uuml;ck ist verkauft.</strong> Jede Per&uuml;cke aus dem Bestand
+            gibt es nur einmal.</p>
+            <p>Gern fertigen wir Ihnen ein vergleichbares St&uuml;ck an oder suchen mit Ihnen
+            gemeinsam eine Alternative.</p>
+            <a class="btn btn-gold" href="{% url 'reservation' %}">Beratungstermin vereinbaren</a>
+            <a class="btn btn-outline" href="{% url 'wigs' %}">Weiter st&ouml;bern</a>
+          </div>
+
         {% else %}
 
           <button type="button" class="btn btn-gold js-add-to-cart" data-product-id="{{ product.id }}">In den Warenkorb</button>
+          {% if product.track_stock and product.stock_mode == "menge" %}
+            <p class="form-hint">Noch {{ product.available_count }} auf Lager.</p>
+          {% endif %}
 
         {% endif %}
       </div>

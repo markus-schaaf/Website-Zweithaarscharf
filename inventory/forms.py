@@ -144,6 +144,94 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
         return cleaned
 
 
+class StockItemPublishForm(forms.Form):
+    """Bestandsstueck online stellen: bestehendes Shop-Produkt waehlen oder
+    ein neues anlegen, vorbelegt aus den Wareneingangsdaten.
+    """
+
+    product = forms.ModelChoiceField(
+        queryset=None, required=False, label="Bestehendes Shop-Produkt",
+        empty_label="Neues Produkt anlegen",
+    )
+    name = forms.CharField(label="Produktname", max_length=120, required=False)
+    label = forms.CharField(label="Kurzlabel", max_length=60, required=False)
+    category = forms.ChoiceField(label="Kategorie", required=False)
+    price = forms.DecimalField(
+        label="Verkaufspreis (€)", max_digits=8, decimal_places=2, required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        # Import hier, nicht auf Modulebene: shop importiert inventory nicht,
+        # aber die Kette bleibt so in jedem Fall zirkelfrei.
+        from shop.models import Product
+
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = Product.objects.order_by("name")
+        self.fields["category"].choices = [("", "---------")] + [
+            (wert, bezeichnung) for wert, bezeichnung in Product.Category.choices
+            if wert != Product.Category.KONFIG
+        ]
+
+    def clean(self):
+        daten = super().clean()
+        if daten.get("product"):
+            return daten
+        # Neues Produkt: die Angaben, die der Wareneingang nicht liefert
+        for feld, text in (
+            ("name", "Produktname"), ("label", "Kurzlabel"),
+            ("category", "Kategorie"), ("price", "Verkaufspreis"),
+        ):
+            if not daten.get(feld):
+                self.add_error(feld, f"{text} wird für ein neues Produkt benötigt.")
+        return daten
+
+
+class StockItemSellForm(forms.Form):
+    """Verkauf buchen. Kundin entweder ueber ein Konto oder als Freitext."""
+
+    user = forms.ModelChoiceField(
+        queryset=None, required=False, label="Kundenkonto",
+        empty_label="Ohne Konto (Angaben unten)",
+    )
+    customer_name = forms.CharField(label="Name", max_length=120, required=False)
+    customer_street = forms.CharField(
+        label="Straße und Hausnummer", max_length=120, required=False
+    )
+    customer_zip = forms.CharField(label="PLZ", max_length=10, required=False)
+    customer_city = forms.CharField(label="Ort", max_length=80, required=False)
+    customer_email = forms.EmailField(label="E-Mail", required=False)
+
+    price = forms.DecimalField(
+        label="Verkaufspreis (€)", max_digits=8, decimal_places=2
+    )
+    sold_on = forms.DateField(label="Verkaufsdatum", widget=DATE_WIDGET)
+    channel = forms.ChoiceField(label="Verkaufskanal", choices=())
+    note = forms.CharField(
+        label="Notiz für die Rechnung", required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        from accounts.models import User
+
+        super().__init__(*args, **kwargs)
+        self.fields["user"].queryset = User.objects.filter(
+            role__in=(User.Role.B2C, User.Role.B2B)
+        ).order_by("last_name", "email")
+        self.fields["channel"].choices = StockItem.Channel.choices
+
+    def clean(self):
+        daten = super().clean()
+        if daten.get("user"):
+            return daten
+        if not daten.get("customer_name"):
+            self.add_error(
+                "customer_name",
+                "Ohne Kundenkonto wird der Name für die Rechnung benötigt.",
+            )
+        return daten
+
+
 class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
     catalog_fields = ("color", "length", "size", "structure", "density", "cap_type")
 

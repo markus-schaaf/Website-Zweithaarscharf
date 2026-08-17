@@ -65,12 +65,12 @@ class StockItemImageInline(admin.TabularInline):
 class StockItemAdmin(admin.ModelAdmin):
     list_display = (
         "inventory_no", "product_name", "supplier", "invoice_no",
-        "status", "current_phase", "is_published", "reserved_for",
+        "status", "current_phase", "product", "reserved_for",
     )
-    list_filter = ("status", "stock_mode", "shop_category", "is_published", "supplier", "current_phase")
+    list_filter = ("status", "stock_mode", "shop_category", "supplier", "current_phase")
     search_fields = ("inventory_no", "product_name", "invoice_no", "product__name")
     autocomplete_fields = ("product", "reserved_for")
-    readonly_fields = ("created_at", "updated_at", "published_at")
+    readonly_fields = ("created_at", "updated_at")
     inlines = [StockItemImageInline, StockItemEventInline]
 
     def get_readonly_fields(self, request, obj=None):
@@ -108,9 +108,10 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "user", "created_at", "status", "export_status", "total",
+        "id", "customer_display", "sold_on", "channel", "status",
+        "export_status", "total",
     )
-    list_filter = ("status", "export_status")
-    search_fields = ("id", "user__email")
+    list_filter = ("status", "export_status", "channel")
+    search_fields = ("id", "user__email", "customer_name")
     readonly_fields = ("created_at",)
     inlines = [OrderItemInline]

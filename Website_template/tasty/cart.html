@@ -33,6 +33,9 @@
               <div class="cart-item__info">
                 <a class="cart-item__name" href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
                 <p class="cart-item__meta">Einzelpreis: ab {{ item.product.price_display }},- &euro;</p>
+                {% if item.product.is_sold_out %}
+                  <p class="cart-item__meta cart-item__meta--soldout">Inzwischen verkauft &ndash; bitte entfernen.</p>
+                {% endif %}
                 <span class="qty-controls">
                   <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
                   <span class="qty-value">{{ item.quantity }}</span>

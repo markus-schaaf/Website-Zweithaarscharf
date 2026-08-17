@@ -26,8 +26,13 @@ urlpatterns = [
     path("bestand/", manage_views.StockItemListView.as_view(), name="stock_list"),
     path("bestand/neu/", manage_views.StockItemCreateView.as_view(), name="stock_create"),
     path("bestand/<int:pk>/bearbeiten/", manage_views.StockItemUpdateView.as_view(), name="stock_edit"),
-    path("bestand/<int:pk>/veroeffentlichen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
+    path("bestand/<int:pk>/onlinestellen/", manage_views.StockItemPublishView.as_view(), name="stock_publish"),
     path("bestand/<int:pk>/zurueckziehen/", manage_views.StockItemUnpublishView.as_view(), name="stock_unpublish"),
+    path("bestand/<int:pk>/verkaufen/", manage_views.StockItemSellView.as_view(), name="stock_sell"),
+
+    # Verkäufe
+    path("verkaeufe/", manage_views.OrderListView.as_view(), name="order_list"),
+    path("verkaeufe/<int:pk>/erneut-senden/", manage_views.OrderResendView.as_view(), name="order_resend"),
 
     # Projekte
     path("projekte/", manage_views.ProjectListView.as_view(), name="project_list"),
