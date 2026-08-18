@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Case, Count, Q, When
+from django.db.models import Count, Q
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -702,15 +702,32 @@ class StockItemUnpublishView(StaffMixin, View):
 # --- Projekte --------------------------------------------------------------
 
 class ProjectListView(StaffMixin, ListView):
+    """Die Arbeitsliste - abgeschlossene Projekte stehen im Archiv."""
+
     model = Project
     template_name = "tasty/account/project_list.html"
     context_object_name = "projekte"
 
     def get_queryset(self):
-        # Offene zuerst - das ist die Arbeitsliste
-        return Project.objects.select_related("stock_item", "customer").order_by(
-            Case(When(status=Project.Status.OFFEN, then=0), default=1),
-            "due_date", "-created_at",
+        return (
+            Project.objects.select_related("stock_item", "customer")
+            .exclude(status__in=Project.ARCHIV_STATUS)
+            .order_by("due_date", "-created_at")
+        )
+
+
+class ProjectArchiveView(StaffMixin, ListView):
+    """Erledigte und stornierte Projekte. Von hier aus wieder zu oeffnen."""
+
+    model = Project
+    template_name = "tasty/account/project_archive.html"
+    context_object_name = "projekte"
+
+    def get_queryset(self):
+        return (
+            Project.objects.select_related("stock_item", "customer")
+            .filter(status__in=Project.ARCHIV_STATUS)
+            .order_by("-updated_at")
         )
 
 
@@ -780,7 +797,7 @@ class ProjectPickStockView(StaffMixin, ListView):
     ENTWURF_FELDER = (
         "title", "customer", "customer_name", "status", "due_date",
         "target_color", "target_length", "target_structure",
-        "target_cap_type", "target_density", "target_size", "notes",
+        "target_cap_type", "target_density", "notes",
     )
 
     def post(self, request, *args, **kwargs):
@@ -884,5 +901,30 @@ class ProjectDoneView(StaffMixin, View):
                     StockItemEvent.Kind.PROJEKT, "Offen", "Erledigt",
                     by=request.user, note=f"Projekt „{projekt.title}“",
                 )
-            messages.success(request, f"Projekt „{projekt.title}“ ist erledigt.")
+            messages.success(
+                request,
+                f"Projekt „{projekt.title}“ ist erledigt und liegt jetzt im Archiv.",
+            )
+        return redirect("inventory_manage:project_list")
+
+
+class ProjectReopenView(StaffMixin, View):
+    """Archiviertes Projekt zurueck in die Arbeitsliste holen (POST-only)."""
+
+    def post(self, request, pk):
+        projekt = get_object_or_404(Project, pk=pk)
+        if projekt.status == Project.Status.OFFEN:
+            messages.info(request, "Das Projekt ist bereits offen.")
+        else:
+            alt = projekt.get_status_display()
+            projekt.status = Project.Status.OFFEN
+            projekt.save(update_fields=["status", "updated_at"])
+            if projekt.stock_item:
+                projekt.stock_item.log_event(
+                    StockItemEvent.Kind.PROJEKT, alt, "Offen",
+                    by=request.user, note=f"Projekt „{projekt.title}“",
+                )
+            messages.success(
+                request, f"Projekt „{projekt.title}“ ist wieder offen."
+            )
         return redirect("inventory_manage:project_list")

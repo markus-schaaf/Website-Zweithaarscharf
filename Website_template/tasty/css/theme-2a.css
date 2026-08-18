@@ -2795,6 +2795,21 @@ h1 .badge {
 .wws-badge--b2b { border-color: var(--gold-dark); color: var(--gold-dark); }
 .wws-badge--off { border-color: var(--border-soft); color: var(--placeholder); }
 
+/* ---------- Festwert (Anzeige statt Eingabefeld) ---------- */
+/* Gleiche Hoehe und Rahmung wie ein Eingabefeld, damit das Formularraster
+   nicht springt - der Wert ist aber fest und kommt aus einer anderen Stelle. */
+.wws-festwert {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--bg-alt);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  color: var(--text);
+}
+.wws-festwert--leer { color: var(--placeholder); }
+
 /* ---------- Listenzeilen ---------- */
 .wws-row {
   position: relative;

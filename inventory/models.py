@@ -248,7 +248,7 @@ class StockItem(models.Model):
         elif not self.quantity:
             fehlt.append("Anzahl größer null")
         if not self.shop_images:
-            fehlt.append("mindestens ein Foto")
+            fehlt.append("mindestens ein Verkaufsbild")
         if self.status in (self.Status.VERKAUFT, self.Status.AUSGEMUSTERT):
             fehlt.append(
                 f"ein verkaufsfähiger Status (aktuell {self.get_status_display()})"
@@ -294,9 +294,13 @@ class StockItem(models.Model):
 
     @property
     def shop_images(self):
-        """Bilder fuer den Shop: Verkaufsbilder, sonst die Eingangsbilder."""
-        shop = list(self.images.filter(kind=StockItemImage.Kind.SHOP))
-        return shop or list(self.images.filter(kind=StockItemImage.Kind.EINGANG))
+        """Bilder fuer den Shop - nur Verkaufsbilder.
+
+        Bewusst ohne Rueckfall auf die Eingangsbilder: die zeigen den
+        Anlieferungszustand und haben im Shop nichts verloren. Ohne
+        Verkaufsbild meldet publish_blockers() das Stueck als nicht bereit.
+        """
+        return list(self.images.filter(kind=StockItemImage.Kind.SHOP))
 
     def log_event(self, kind, from_value, to_value, by=None, note=""):
         """Historien-Eintrag schreiben (wer/wann)."""
@@ -428,6 +432,10 @@ class Project(models.Model):
         ERLEDIGT = "erledigt", "Erledigt"
         STORNIERT = "storniert", "Storniert"
 
+    # Abgeschlossene Projekte verschwinden aus der Arbeitsliste und stehen im
+    # Archiv. Eine Quelle fuer beide Ansichten.
+    ARCHIV_STATUS = (Status.ERLEDIGT, Status.STORNIERT)
+
     title = models.CharField("Bezeichnung", max_length=120)
     stock_item = models.ForeignKey(
         StockItem, null=True, blank=True, on_delete=models.SET_NULL,
@@ -444,7 +452,6 @@ class Project(models.Model):
     target_structure = models.CharField("Schnitt", max_length=60, blank=True, default="")
     target_cap_type = models.CharField("Montur", max_length=80, blank=True, default="")
     target_density = models.CharField("Dichte", max_length=60, blank=True, default="")
-    target_size = models.CharField("Größe", max_length=60, blank=True, default="")
 
     notes = models.TextField("Kommentare", blank=True, default="")
     due_date = models.DateField("Fertig bis", null=True, blank=True)
@@ -465,7 +472,6 @@ class Project(models.Model):
         ("target_structure", "structure"),
         ("target_cap_type", "cap_type"),
         ("target_density", "density"),
-        ("target_size", "size"),
     )
 
     class Meta:

@@ -1,6 +1,6 @@
 {% extends "tasty/_base.html" %}
 
-{% block title %}Projekte &mdash; Zweithaar Schaaf{% endblock %}
+{% block title %}Projektarchiv &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
@@ -9,8 +9,8 @@
 <section class="hero hero--plain">
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
-    <h1>Pro<em>jekte</em></h1>
-    <p>Der nach der Beratung festgelegte Plan f&uuml;r ein Produkt. Erledigte wandern ins Archiv.</p>
+    <h1>Projekt<em>archiv</em></h1>
+    <p>Erledigte und stornierte Projekte. Zuletzt abgeschlossene stehen oben.</p>
   </div>
 </section>
 
@@ -23,17 +23,11 @@
     {% endif %}
 
     <div class="wws-actions">
-      <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:project_create' %}">
-        <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neues Projekt
-      </a>
-      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_archive' %}">
-        <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Archiv
-      </a>
-      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">
-        <svg class="wws-ico"><use href="#ico-karton"></use></svg>Bestand
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">
+        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Projekte
       </a>
       <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:home' %}">
-        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Zur&uuml;ck
+        <svg class="wws-ico"><use href="#ico-karton"></use></svg>Warenwirtschaft
       </a>
     </div>
 
@@ -45,8 +39,8 @@
               <span class="wws-row__no">{{ p.customer_display }}</span>
               <span class="wws-row__name">{{ p.title }}</span>
               <span class="wws-row__meta">
-                {% if p.stock_item %}{{ p.stock_item.inventory_no }}{% else %}noch ohne Bestandsst&uuml;ck{% endif %}
-                {% if p.due_date %}&middot; fertig bis {{ p.due_date|date:"d.m.Y" }}{% endif %}
+                {% if p.stock_item %}{{ p.stock_item.inventory_no }}{% else %}ohne Bestandsst&uuml;ck{% endif %}
+                &middot; abgeschlossen {{ p.updated_at|date:"d.m.Y" }}
               </span>
             </a>
             <p class="wws-row__badges">
@@ -60,7 +54,7 @@
             </p>
             <p class="wws-row__actions">
               <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:project_edit' p.pk %}">
-                <svg class="wws-ico"><use href="#ico-stift"></use></svg>Bearbeiten
+                <svg class="wws-ico"><use href="#ico-stift"></use></svg>Ansehen
               </a>
               {% if p.stock_item %}
                 <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_edit' p.stock_item.pk %}">
@@ -69,23 +63,20 @@
               {% endif %}
             </p>
           </div>
-          {% if p.status == "offen" %}
-            <form method="post" action="{% url 'inventory_manage:project_done' p.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="wws-btn wws-btn--secondary">
-                <svg class="wws-ico"><use href="#ico-haken"></use></svg>Erledigt
-              </button>
-            </form>
-          {% endif %}
+          <form method="post" action="{% url 'inventory_manage:project_reopen' p.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="wws-btn wws-btn--secondary">
+              <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Wieder &ouml;ffnen
+            </button>
+          </form>
         </div>
       {% empty %}
         <div class="wws-empty">
           <span class="wws-empty__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-mappe"></use></svg></span>
-          <p>Kein offenes Projekt. Ein Projekt h&auml;lt fest, was nach der Beratung
-            aus einem St&uuml;ck werden soll &ndash; abgeschlossene stehen im
-            <a href="{% url 'inventory_manage:project_archive' %}">Archiv</a>.</p>
-          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:project_create' %}">
-            <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neues Projekt
+          <p>Das Archiv ist leer. Sobald ein Projekt erledigt oder storniert ist,
+            wandert es hierher.</p>
+          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:project_list' %}">
+            <svg class="wws-ico"><use href="#ico-mappe"></use></svg>Zu den Projekten
           </a>
         </div>
       {% endfor %}

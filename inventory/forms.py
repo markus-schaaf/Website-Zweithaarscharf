@@ -24,7 +24,6 @@ CATALOG_MAP = {
     "target_structure": AttributeOption.Group.SCHNITT,
     "target_cap_type": AttributeOption.Group.MONTUR,
     "target_density": AttributeOption.Group.DICHTE,
-    "target_size": AttributeOption.Group.GROESSE,
 }
 
 
@@ -302,9 +301,11 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
 
 
 class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
+    # Die Groesse fehlt hier bewusst: sie kommt fest aus dem Bestandsstueck
+    # (dort beim Wareneingang erfasst) und ist im Projekt nicht waehlbar.
     catalog_fields = (
         "target_color", "target_length", "target_structure",
-        "target_cap_type", "target_density", "target_size",
+        "target_cap_type", "target_density",
     )
 
     class Meta:
@@ -321,7 +322,6 @@ class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
             "target_structure",
             "target_cap_type",
             "target_density",
-            "target_size",
             "notes",
         )
         widgets = {

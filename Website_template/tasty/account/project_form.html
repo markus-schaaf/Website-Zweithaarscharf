@@ -45,6 +45,13 @@
                 <svg class="wws-ico"><use href="#ico-haken"></use></svg>Als erledigt markieren
               </button>
             </form>
+          {% else %}
+            <form method="post" action="{% url 'inventory_manage:project_reopen' object.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="wws-btn wws-btn--primary">
+                <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Wieder &ouml;ffnen
+              </button>
+            </form>
           {% endif %}
           {% if object.stock_item %}
             <form method="post" action="{% url 'inventory_manage:project_apply' object.pk %}">
@@ -147,8 +154,15 @@
             {{ form.target_density }}{{ form.target_density.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.target_size.id_for_label }}">Gr&ouml;&szlig;e</label>
-            {{ form.target_size }}{{ form.target_size.errors }}
+            <label>Gr&ouml;&szlig;e</label>
+            {% if form.instance.stock_item %}
+              <p class="wws-festwert">{{ form.instance.stock_item.size|default:"&ndash;" }}</p>
+              <p class="form-hint">Kopfgr&ouml;&szlig;e des Bestandsst&uuml;cks, beim Wareneingang
+                festgelegt &ndash; sie l&auml;sst sich nicht umplanen.</p>
+            {% else %}
+              <p class="wws-festwert wws-festwert--leer">noch offen</p>
+              <p class="form-hint">Wird mit dem Bestandsst&uuml;ck festgelegt.</p>
+            {% endif %}
           </div>
         </div>
         <div class="form-row">

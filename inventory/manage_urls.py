@@ -37,6 +37,8 @@ urlpatterns = [
     path("projekte/<int:pk>/bearbeiten/", manage_views.ProjectUpdateView.as_view(), name="project_edit"),
     path("projekte/<int:pk>/plan-uebernehmen/", manage_views.ProjectApplyPlanView.as_view(), name="project_apply"),
     path("projekte/<int:pk>/erledigt/", manage_views.ProjectDoneView.as_view(), name="project_done"),
+    path("projekte/archiv/", manage_views.ProjectArchiveView.as_view(), name="project_archive"),
+    path("projekte/<int:pk>/wieder-oeffnen/", manage_views.ProjectReopenView.as_view(), name="project_reopen"),
     path("projekte/bestand-waehlen/", manage_views.ProjectPickStockView.as_view(), name="project_pick_stock"),
     path("kunden/suche/", manage_views.CustomerSearchView.as_view(), name="customer_search"),
 ]

@@ -575,7 +575,6 @@ class ProjectViewTest(StaffViewMixin, TestCase):
             "target_structure": "",
             "target_cap_type": "",
             "target_density": "",
-            "target_size": "",
             "notes": "Kundin moechte kuerzer.",
         }
         daten.update(overrides)
@@ -709,7 +708,18 @@ class PublishBlockersTest(TestCase):
 
     def test_ohne_foto_nicht_bereit(self):
         stueck = make_stock_item(self.lieferant)
-        self.assertIn("mindestens ein Foto", stueck.publish_blockers())
+        self.assertIn("mindestens ein Verkaufsbild", stueck.publish_blockers())
+
+    def test_eingangsbild_reicht_nicht(self):
+        """Eingangsbilder zeigen den Anlieferungszustand und duerfen nicht
+        stellvertretend in den Shop.
+        """
+        stueck = make_stock_item(self.lieferant)
+        StockItemImage.objects.create(
+            stock_item=stueck, image=make_image(), kind=StockItemImage.Kind.EINGANG
+        )
+        self.assertEqual(stueck.shop_images, [])
+        self.assertIn("mindestens ein Verkaufsbild", stueck.publish_blockers())
 
     def test_fehlende_haarangaben_werden_gemeldet(self):
         stueck = self._mit_bild(structure="", density="")
@@ -791,6 +801,82 @@ class StockItemDeleteTest(StaffViewMixin, TestCase):
     def test_b2c_bekommt_403(self):
         self.client.force_login(self.kunde)
         self.assertEqual(self.client.get(self._url()).status_code, 403)
+
+
+class ProjectArchiveTest(StaffViewMixin, TestCase):
+    """Abgeschlossene Projekte verlassen die Arbeitsliste und sind im Archiv
+    wiederzufinden - und von dort zurueckzuholen.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.stueck = make_stock_item(self.lieferant)
+        self.projekt = Project.objects.create(
+            title="Umbau Frau M.", stock_item=self.stueck,
+            status=Project.Status.ERLEDIGT,
+        )
+        self.offen = Project.objects.create(
+            title="Neuanfertigung", status=Project.Status.OFFEN
+        )
+
+    def test_arbeitsliste_zeigt_nur_offene(self):
+        response = self.client.get(reverse("inventory_manage:project_list"))
+        projekte = list(response.context["projekte"])
+        self.assertIn(self.offen, projekte)
+        self.assertNotIn(self.projekt, projekte)
+
+    def test_archiv_zeigt_abgeschlossene(self):
+        storniert = Project.objects.create(
+            title="Abgesagt", status=Project.Status.STORNIERT
+        )
+        response = self.client.get(reverse("inventory_manage:project_archive"))
+        projekte = list(response.context["projekte"])
+        self.assertIn(self.projekt, projekte)
+        self.assertIn(storniert, projekte)
+        self.assertNotIn(self.offen, projekte)
+
+    def test_wieder_oeffnen_setzt_status_und_schreibt_historie(self):
+        response = self.client.post(
+            reverse("inventory_manage:project_reopen", args=[self.projekt.pk])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.projekt.refresh_from_db()
+        self.assertEqual(self.projekt.status, Project.Status.OFFEN)
+        ereignis = self.stueck.events.filter(
+            kind=StockItemEvent.Kind.PROJEKT
+        ).latest("changed_at")
+        self.assertEqual(ereignis.from_value, "Erledigt")
+        self.assertEqual(ereignis.to_value, "Offen")
+
+    def test_offenes_projekt_bleibt_unveraendert(self):
+        self.client.post(
+            reverse("inventory_manage:project_reopen", args=[self.offen.pk])
+        )
+        self.offen.refresh_from_db()
+        self.assertEqual(self.offen.status, Project.Status.OFFEN)
+
+    def test_b2c_bekommt_403(self):
+        self.client.force_login(self.kunde)
+        self.assertEqual(
+            self.client.get(reverse("inventory_manage:project_archive")).status_code,
+            403,
+        )
+
+    def test_formular_zeigt_groesse_als_festwert(self):
+        """Die Kopfgroesse steht als Text da, nicht als Auswahlfeld."""
+        response = self.client.get(
+            reverse("inventory_manage:project_edit", args=[self.projekt.pk])
+        )
+        inhalt = response.content.decode()
+        self.assertContains(response, "wws-festwert")
+        self.assertIn(self.stueck.size, inhalt)
+        self.assertNotIn("target_size", inhalt)
+
+    def test_formular_ohne_stueck_meldet_offene_groesse(self):
+        response = self.client.get(
+            reverse("inventory_manage:project_edit", args=[self.offen.pk])
+        )
+        self.assertContains(response, "wws-festwert--leer")
 
 
 class ProjectPickStockTest(StaffViewMixin, TestCase):
