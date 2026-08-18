@@ -24,7 +24,7 @@ from django.views.generic import (
 )
 
 from accounts.views import RoleRequiredMixin
-from shop.models import Product
+from shop.models import Product, ProductImage
 from shop.services.imaging import normalize_uploads
 
 from .forms import (
@@ -651,8 +651,13 @@ class StockItemDeleteView(StaffMixin, DeleteView):
             return redirect("inventory_manage:stock_edit", pk=stueck.pk)
 
         nummer = stueck.inventory_no
-        # Dateien mit entfernen: Djangos delete() raeumt den Medienordner nicht auf
+        # Dateien mit entfernen: Djangos delete() raeumt den Medienordner nicht auf.
+        # Verkaufsbilder eines online gestellten Stuecks liegen aber unter
+        # demselben Pfad in der Shop-Galerie (sync_to_product kopiert nicht) -
+        # die muessen liegen bleiben, sonst verliert das Produkt seine Bilder.
         for bild in stueck.images.all():
+            if ProductImage.objects.filter(image=bild.image.name).exists():
+                continue
             bild.image.delete(save=False)
         response = super().form_valid(form)
         messages.success(self.request, f"Bestandsstück „{nummer}“ wurde gelöscht.")

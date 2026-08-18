@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from shop.models import CartItem, Product
+from shop.models import CartItem, Product, ProductImage
 
 from .models import (
     AttributeOption,
@@ -754,6 +754,22 @@ class StockItemDeleteTest(StaffViewMixin, TestCase):
         self.assertEqual(StockItem.objects.count(), 0)
         self.assertEqual(StockItemImage.objects.count(), 0)
         self.assertFalse(os.path.exists(pfad), "Bilddatei blieb im Medienordner liegen")
+
+    def test_shopbilder_bleiben_beim_loeschen_liegen(self):
+        """Online gestellte Stuecke teilen sich die Datei mit der Shop-Galerie
+        (sync_to_product kopiert nicht). Loeschen darf sie nicht mitnehmen.
+        """
+        bild = self.stueck.images.get()
+        pfad = bild.image.path
+        produkt = make_product("bob-klassik", image=bild.image.name)
+        ProductImage.objects.create(product=produkt, image=bild.image.name)
+        self.stueck.product = produkt
+        self.stueck.save(update_fields=["product"])
+
+        self.client.post(self._url())
+
+        self.assertEqual(StockItem.objects.count(), 0)
+        self.assertTrue(os.path.exists(pfad), "Shop-Galerie verlor ihre Bilddatei")
 
     def test_verkauftes_stueck_wird_geschuetzt(self):
         bestellung = Order.objects.create(customer_name="Frau M.", total=890)

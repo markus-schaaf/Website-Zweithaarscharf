@@ -1,4 +1,7 @@
+from django import forms
 from django.contrib import admin
+
+from shop.forms import NormalizedImageMixin
 
 from .models import (
     AttributeOption,
@@ -47,8 +50,19 @@ class StockItemEventInline(admin.TabularInline):
         return False
 
 
+# Siehe shop/admin.py: ohne eigenes Formular umgeht der Admin die
+# HEIC-Umwandlung aus shop/services/imaging.py.
+class StockItemImageAdminForm(NormalizedImageMixin, forms.ModelForm):
+    image_fields = ("image",)
+
+    class Meta:
+        model = StockItemImage
+        fields = "__all__"
+
+
 class StockItemImageInline(admin.TabularInline):
     model = StockItemImage
+    form = StockItemImageAdminForm
     extra = 0
     fields = ("image", "kind", "sort_order")
 

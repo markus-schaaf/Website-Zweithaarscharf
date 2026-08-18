@@ -1,5 +1,7 @@
+from django import forms
 from django.contrib import admin
 
+from .forms import NormalizedImageMixin
 from .models import (
     Cart,
     CartItem,
@@ -11,8 +13,27 @@ from .models import (
 )
 
 
+# Der Admin baut sich seine Formulare selbst und wuerde die Umwandlung sonst
+# umgehen - ein HEIC vom iPhone laege danach unanzeigbar im Medienordner.
+class ProductAdminForm(NormalizedImageMixin, forms.ModelForm):
+    image_fields = ("image",)
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+
+class ProductImageAdminForm(NormalizedImageMixin, forms.ModelForm):
+    image_fields = ("image",)
+
+    class Meta:
+        model = ProductImage
+        fields = "__all__"
+
+
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
+    form = ProductImageAdminForm
     extra = 0
 
 
@@ -23,6 +44,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "label")
     prepopulated_fields = {"slug": ("label",)}
     list_editable = ("is_active", "sort_order")
+    form = ProductAdminForm
     inlines = [ProductImageInline]
 
 
