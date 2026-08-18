@@ -18,6 +18,7 @@
 
 <section class="section section--tight">
   <div class="container container--shop">
+    {% include "tasty/_messages.html" %}
     <form class="wws-toolbar" method="get">
       {% if projekt_pk %}<input type="hidden" name="projekt" value="{{ projekt_pk }}">{% endif %}
       <div class="wws-toolbar__search">

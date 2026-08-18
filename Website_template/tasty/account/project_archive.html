@@ -16,11 +16,7 @@
 
 <section class="section section--tight">
   <div class="container container--shop">
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
+    {% include "tasty/_messages.html" %}
 
     <div class="wws-actions">
       <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">

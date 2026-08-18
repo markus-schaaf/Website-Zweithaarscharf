@@ -15,6 +15,7 @@
 
 <section class="section section--tight">
   <div class="container container--narrow">
+    {% include "tasty/_messages.html" %}
     <div class="form-card">
       <h2>{{ object.first_name }} {{ object.last_name }}</h2>
       <p class="text-muted">Registriert am {{ object.date_joined|date:"d.m.Y" }}</p>

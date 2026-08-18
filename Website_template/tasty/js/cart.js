@@ -69,6 +69,54 @@
     });
   }
 
+  /* ---------- Rueckmeldung ---------- */
+
+  // Eine Live-Region fuer alle Warenkorb-Aktionen. Sichtbar wird nichts,
+  // aber Screenreader sagen an, was passiert ist.
+  function announce(text) {
+    var region = document.getElementById('cart-status');
+    if (!region) {
+      region = document.createElement('p');
+      region.id = 'cart-status';
+      region.className = 'visually-hidden';
+      region.setAttribute('role', 'status');
+      region.setAttribute('aria-live', 'polite');
+      document.body.appendChild(region);
+    }
+    region.textContent = text;
+  }
+
+  // Sichtbarer Fehler mit Weg zurueck statt stiller Fehlschlag.
+  function showError(anchor, text, retry) {
+    if (!anchor) { return; }
+    var box = anchor.parentElement.querySelector('.action-error');
+    if (!box) {
+      box = document.createElement('p');
+      box.className = 'action-error';
+      box.setAttribute('role', 'alert');
+      anchor.parentElement.insertBefore(box, anchor.nextSibling);
+    }
+    box.textContent = text + ' ';
+    if (retry) {
+      var again = document.createElement('button');
+      again.type = 'button';
+      again.className = 'action-error__retry';
+      again.textContent = 'Erneut versuchen';
+      again.addEventListener('click', function () {
+        box.remove();
+        retry();
+      });
+      box.appendChild(again);
+    }
+    announce(text);
+  }
+
+  function clearError(anchor) {
+    if (!anchor || !anchor.parentElement) { return; }
+    var box = anchor.parentElement.querySelector('.action-error');
+    if (box) { box.remove(); }
+  }
+
   function setBadge(count) {
     /* Header-Badge + Klone im Off-Canvas-Menue */
     document.querySelectorAll('#cart-count, [data-cart-count]').forEach(function (el) {
@@ -100,26 +148,44 @@
     setBadge(cartCount(cart));
   }
 
+  function addToCart(btn) {
+    var productId = btn.dataset.productId;
+    clearError(btn);
+    if (!isAuth) {
+      addAnon(productId);
+      flashButton(btn);
+      announce('Zum Warenkorb hinzugefügt.');
+      return;
+    }
+    btn.disabled = true;
+    postJSON(API.add, { product_id: productId, quantity: 1 })
+      .then(function (resp) {
+        btn.disabled = false;
+        setBadge(resp.count);
+        flashButton(btn);
+        announce('Zum Warenkorb hinzugefügt. ' + resp.count + ' Artikel im Warenkorb.');
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        // Sitzung abgelaufen: still auf den lokalen Warenkorb ausweichen.
+        // 401 kommt vom View, 403 von der CSRF-Pruefung davor - beides heisst,
+        // dass die Anmeldung nicht mehr traegt.
+        if (err && (err.status === 401 || err.status === 403)) {
+          addAnon(productId);
+          flashButton(btn);
+          announce('Zum Warenkorb hinzugefügt.');
+          return;
+        }
+        showError(btn, 'Konnte nicht in den Warenkorb gelegt werden.', function () {
+          addToCart(btn);
+        });
+      });
+  }
+
   document.addEventListener('click', function (event) {
     var btn = event.target.closest('.js-add-to-cart');
     if (!btn) { return; }
-    var productId = btn.dataset.productId;
-    if (isAuth) {
-      postJSON(API.add, { product_id: productId, quantity: 1 })
-        .then(function (resp) {
-          setBadge(resp.count);
-          flashButton(btn);
-        })
-        .catch(function (err) {
-          if (err && err.status === 401) {
-            addAnon(productId);
-            flashButton(btn);
-          }
-        });
-    } else {
-      addAnon(productId);
-      flashButton(btn);
-    }
+    addToCart(btn);
   });
 
   /* ---------- Merge nach Login ---------- */
@@ -169,26 +235,48 @@
       }
     }
 
+    // Eine Stelle fuer alle drei Aktionen: Erfolg meldet, Fehler laesst die
+    // Zeile unveraendert und bietet einen zweiten Versuch an.
+    function run(row, request, erfolgstext, entfernen) {
+      var controls = row.querySelector('.qty-controls');
+      clearError(controls);
+      row.setAttribute('aria-busy', 'true');
+      request()
+        .then(function (resp) {
+          row.removeAttribute('aria-busy');
+          if (entfernen) { resp.removed = true; }
+          applyUpdate(row, resp);
+          announce(erfolgstext);
+        })
+        .catch(function () {
+          row.removeAttribute('aria-busy');
+          showError(controls, 'Änderung nicht gespeichert.', function () {
+            run(row, request, erfolgstext, entfernen);
+          });
+        });
+    }
+
     list.addEventListener('click', function (event) {
       var row = event.target.closest('.cart-item[data-product-id]');
       if (!row) { return; }
       var productId = row.dataset.productId;
 
       if (event.target.closest('.js-qty-plus')) {
-        postJSON(API.update, { product_id: productId, quantity: rowQty(row) + 1 })
-          .then(function (resp) { applyUpdate(row, resp); });
+        var mehr = rowQty(row) + 1;
+        run(row, function () {
+          return postJSON(API.update, { product_id: productId, quantity: mehr });
+        }, 'Menge auf ' + mehr + ' geändert.', false);
       } else if (event.target.closest('.js-qty-minus')) {
         var qty = rowQty(row);
         if (qty <= 1) { return; }
-        postJSON(API.update, { product_id: productId, quantity: qty - 1 })
-          .then(function (resp) { applyUpdate(row, resp); });
+        run(row, function () {
+          return postJSON(API.update, { product_id: productId, quantity: qty - 1 });
+        }, 'Menge auf ' + (qty - 1) + ' geändert.', false);
       } else if (event.target.closest('.js-remove')) {
         event.preventDefault();
-        postJSON(API.remove, { product_id: productId })
-          .then(function (resp) {
-            resp.removed = true;
-            applyUpdate(row, resp);
-          });
+        run(row, function () {
+          return postJSON(API.remove, { product_id: productId });
+        }, 'Artikel aus dem Warenkorb entfernt.', true);
       }
     });
   }
@@ -199,24 +287,48 @@
     var root = document.getElementById('cart-anon-root');
     if (!root) { return; }
 
-    fetch(API.products, { credentials: 'same-origin' })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var products = data.products || {};
-        var cart = readCart();
+    function load() {
+      fetch(API.products, { credentials: 'same-origin' })
+        .then(function (res) {
+          if (!res.ok) { throw res; }
+          return res.json();
+        })
+        .then(function (data) {
+          var products = data.products || {};
+          var cart = readCart();
 
-        // Produkte entfernen, die es nicht mehr gibt
-        var changed = false;
-        Object.keys(cart.items).forEach(function (id) {
-          if (!products[id]) {
-            delete cart.items[id];
-            changed = true;
-          }
+          // Produkte entfernen, die es nicht mehr gibt
+          var changed = false;
+          Object.keys(cart.items).forEach(function (id) {
+            if (!products[id]) {
+              delete cart.items[id];
+              changed = true;
+            }
+          });
+          if (changed) { writeCart(cart); }
+          setBadge(cartCount(cart));
+          render(root, products, cart);
+        })
+        .catch(function () {
+          // Ohne Fehlerzustand bliebe hier dauerhaft "wird geladen" stehen
+          root.innerHTML =
+            '<div class="cart-empty form-card">' +
+            '<h2>Der Warenkorb konnte nicht geladen werden.</h2>' +
+            '<p class="text-muted">Bitte prüfen Sie Ihre Verbindung.</p>' +
+            '</div>';
+          var again = document.createElement('button');
+          again.type = 'button';
+          again.className = 'btn btn-gold';
+          again.textContent = 'Erneut versuchen';
+          again.addEventListener('click', function () {
+            root.innerHTML = '<div class="cart-empty form-card"><h2>Ihr Warenkorb wird geladen …</h2></div>';
+            load();
+          });
+          root.querySelector('.cart-empty').appendChild(again);
+          announce('Der Warenkorb konnte nicht geladen werden.');
         });
-        if (changed) { writeCart(cart); }
-        setBadge(cartCount(cart));
-        render(root, products, cart);
-      });
+    }
+    load();
 
     function render(container, products, cart) {
       var ids = Object.keys(cart.items);
@@ -277,20 +389,25 @@
         var id = row.dataset.productId;
         var current = readCart();
 
+        var meldung;
         if (event.target.closest('.js-qty-plus')) {
           current.items[id] = Math.min((current.items[id] || 0) + 1, MAX_QTY);
+          meldung = 'Menge auf ' + current.items[id] + ' geändert.';
         } else if (event.target.closest('.js-qty-minus')) {
           if ((current.items[id] || 0) <= 1) { return; }
           current.items[id] -= 1;
+          meldung = 'Menge auf ' + current.items[id] + ' geändert.';
         } else if (event.target.closest('.js-remove')) {
           event.preventDefault();
           delete current.items[id];
+          meldung = 'Artikel aus dem Warenkorb entfernt.';
         } else {
           return;
         }
         writeCart(current);
         setBadge(cartCount(current));
         render(container, products, current);
+        announce(meldung);
       });
     }
   }

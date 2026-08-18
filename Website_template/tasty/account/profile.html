@@ -15,11 +15,7 @@
 
 <section class="section section--tight">
   <div class="container container--form">
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
+    {% include "tasty/_messages.html" %}
 
     <div class="form-card">
       <h2>Ihre Kontodaten</h2>

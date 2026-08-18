@@ -49,7 +49,7 @@
     </svg>
 
     <div class="shop-toolbar">
-      <div class="shop-tabs" role="tablist" aria-label="Produktkategorien">
+      <div class="shop-tabs" role="group" aria-label="Produktkategorien">
         <button type="button" class="pill shop-tab is-active" data-cat="all" aria-pressed="true">
           <svg class="shop-tab__icon" aria-hidden="true"><use href="#icon-all"></use></svg>
           <span class="shop-tab__label">Alle</span>
@@ -140,7 +140,7 @@
       </details>
 
         <span class="shop-activefilters" data-active-filters></span>
-        <span class="shop-count"><span data-shop-count>{{ products|length }}</span> Modelle</span>
+        <span class="shop-count" role="status" aria-live="polite"><span data-shop-count>{{ products|length }}</span> Modelle</span>
         <button type="button" class="shop-reset is-hidden" data-shop-reset>Filter zur&uuml;cksetzen</button>
         <div class="field shop-sort">
           <label for="shop-sort">Sortieren</label>
@@ -158,7 +158,7 @@
         {% include "tasty/_product_card.html" %}
       {% endfor %}
     </div>
-    <p class="shop-empty is-hidden" data-shop-empty>Keine Produkte f&uuml;r diese Auswahl. Bitte passen Sie die Filter an.</p>
+    <p class="shop-empty is-hidden" role="status" data-shop-empty>Keine Produkte f&uuml;r diese Auswahl. Bitte passen Sie die Filter an.</p>
   </div>
 </section>
 
@@ -191,5 +191,5 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script src="{% static 'js/shop-filter.js' %}?v=4"></script>
+  <script src="{% static 'js/shop-filter.js' %}?v=5"></script>
 {% endblock %}

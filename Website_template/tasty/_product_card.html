@@ -18,9 +18,9 @@
     <p class="product-card__name">{{ p.name }}</p>
   </a>
   {% if p.is_configurable %}
-    <span class="product-card__price">Rohpreis ab {{ p.price_display }},-</span>
+    <span class="product-card__price">Rohpreis ab {{ p.price_display }},- &euro;</span>
   {% else %}
-    <span class="product-card__price">ab {{ p.price_display }},-</span>
+    <span class="product-card__price">ab {{ p.price_display }},- &euro;</span>
   {% endif %}
   <p class="product-card__desc">{{ p.description }}</p>
   {% if p.is_configurable %}

@@ -64,7 +64,15 @@
     }
     ordered.forEach(function (card) { grid.appendChild(card); });
 
-    if (countEl) { countEl.textContent = String(visible.length); }
+    if (countEl) {
+      countEl.textContent = String(visible.length);
+      // Der Elternknoten traegt aria-live; das Wort danach muss mitwandern,
+      // sonst sagt der Screenreader nur eine nackte Zahl an.
+      var wortEl = countEl.parentElement;
+      if (wortEl) {
+        wortEl.lastChild.textContent = visible.length === 1 ? ' Modell' : ' Modelle';
+      }
+    }
     if (summaryLabel) {
       var chipCount = 0;
       Object.keys(state.filters).forEach(function (g) { chipCount += state.filters[g].size; });

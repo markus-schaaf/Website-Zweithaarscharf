@@ -36,31 +36,55 @@
     page.prepend(panel);
     page.prepend(toggle);
 
-    function close() {
+    function isOpen() {
+      return document.body.classList.contains('offcanvas');
+    }
+    // Geschlossen darf das Panel weder fokussierbar noch vorlesbar sein.
+    // inert deckt beides ab; aria-hidden ist der Rueckfall fuer aeltere Browser.
+    function setInert(inert) {
+      panel.inert = inert;
+      if (inert) {
+        panel.setAttribute('aria-hidden', 'true');
+      } else {
+        panel.removeAttribute('aria-hidden');
+      }
+    }
+    function close(returnFocus) {
+      if (!isOpen()) { return; }
       document.body.classList.remove('offcanvas', 'overflow');
       toggle.classList.remove('active');
       toggle.setAttribute('aria-expanded', 'false');
+      setInert(true);
+      if (returnFocus) { toggle.focus(); }
     }
     function open() {
       document.body.classList.add('offcanvas', 'overflow');
       toggle.classList.add('active');
       toggle.setAttribute('aria-expanded', 'true');
+      setInert(false);
+      var first = panel.querySelector('a, button');
+      if (first) { first.focus(); }
     }
+    setInert(true);
 
     toggle.addEventListener('click', function () {
-      if (document.body.classList.contains('offcanvas')) { close(); } else { open(); }
+      if (isOpen()) { close(true); } else { open(); }
     });
     document.addEventListener('click', function (event) {
-      if (!document.body.classList.contains('offcanvas')) { return; }
-      if (!panel.contains(event.target) && !toggle.contains(event.target)) { close(); }
+      if (!isOpen()) { return; }
+      if (!panel.contains(event.target) && !toggle.contains(event.target)) { close(false); }
+    });
+    // Klick auf einen Menuepunkt: Seite wechselt, Menue soll nicht offen bleiben
+    panel.addEventListener('click', function (event) {
+      if (event.target.closest('a')) { close(false); }
     });
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') { close(); }
+      if (event.key === 'Escape') { close(true); }
     });
     // Nur schließen, wenn zur Desktop-Navigation gewechselt wird (76em ~ 1216px);
     // mobile Browser feuern resize schon beim Ein-/Ausblenden der URL-Leiste
     window.addEventListener('resize', function () {
-      if (window.innerWidth > 1216) { close(); }
+      if (window.innerWidth > 1216) { close(false); }
     });
   }
 
@@ -137,15 +161,64 @@
     }, { passive: true, once: true });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      buildOffcanvas();
-      initScrollFx();
-      initProductMarquee();
+  /* ---------- Formulare: Doppel-Absenden verhindern, Zustand zeigen ---------- */
+  function initFormFeedback() {
+    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function (form) {
+      if (form.hasAttribute('data-no-busy')) { return; }
+      form.addEventListener('submit', function () {
+        // Ungueltige Felder: der Browser bricht ab, dann darf nichts sperren
+        if (typeof form.checkValidity === 'function' && !form.checkValidity()) { return; }
+        if (form.dataset.busy === '1') { return; }
+        form.dataset.busy = '1';
+        form.setAttribute('aria-busy', 'true');
+        // Erst nach dem Serialisieren sperren, sonst faellt ein benannter
+        // Absende-Knopf aus den uebertragenen Daten heraus.
+        window.setTimeout(function () {
+          form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (btn) {
+            if (btn.tagName === 'BUTTON') {
+              btn.dataset.labelOriginal = btn.textContent;
+              btn.textContent = 'Wird gesendet …';
+            }
+            btn.disabled = true;
+          });
+        }, 0);
+      });
     });
-  } else {
+  }
+
+  /* ---------- Meldungen und Fehler sichtbar machen ---------- */
+  // Nach einem POST-Redirect steht die Erfolgsmeldung oft unterhalb des
+  // sichtbaren Bereichs. Sie wird angesteuert und fokussiert, damit sie
+  // ankommt - visuell wie akustisch.
+  function focusFeedback() {
+    var target = document.querySelector('.messages li')
+      || document.querySelector('.form-errors')
+      || document.querySelector('[aria-invalid="true"]');
+    if (!target) { return; }
+
+    // focus() scrollt selbst und beachtet dabei scroll-padding-top,
+    // bleibt also nicht unter dem Sticky-Header haengen.
+    var invalid = document.querySelector('[aria-invalid="true"]');
+    if (invalid) {
+      invalid.focus();
+      return;
+    }
+    var box = target.closest('.messages, .form-errors') || target;
+    if (!box.hasAttribute('tabindex')) { box.setAttribute('tabindex', '-1'); }
+    box.focus();
+  }
+
+  function init() {
     buildOffcanvas();
     initScrollFx();
     initProductMarquee();
+    initFormFeedback();
+    focusFeedback();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 }());

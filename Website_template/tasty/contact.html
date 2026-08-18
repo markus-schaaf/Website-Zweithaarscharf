@@ -32,11 +32,7 @@
         <h2>Nachricht senden</h2>
         <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir antworten Ihnen so schnell wie m&ouml;glich.</p>
 
-        {% if messages %}
-          <ul class="messages">
-            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-          </ul>
-        {% endif %}
+        {% include "tasty/_messages.html" %}
 
         <form method="post" action="{% url 'contact' %}">
           {% csrf_token %}
@@ -44,27 +40,9 @@
             <div class="form-errors">{{ form.non_field_errors }}</div>
           {% endif %}
           <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
-          <div class="form-row">
-            <div class="field">
-              <label for="{{ form.name.id_for_label }}">Ihr Name *</label>
-              {{ form.name }}
-              {{ form.name.errors }}
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="field">
-              <label for="{{ form.email.id_for_label }}">Ihre E-Mail-Adresse *</label>
-              {{ form.email }}
-              {{ form.email.errors }}
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="field">
-              <label for="{{ form.message.id_for_label }}">Ihre Nachricht *</label>
-              {{ form.message }}
-              {{ form.message.errors }}
-            </div>
-          </div>
+          <div class="form-row">{% include "tasty/_field.html" with field=form.name label="Ihr Name" %}</div>
+          <div class="form-row">{% include "tasty/_field.html" with field=form.email label="Ihre E-Mail-Adresse" %}</div>
+          <div class="form-row">{% include "tasty/_field.html" with field=form.message label="Ihre Nachricht" %}</div>
           <div class="form-row mb-0">
             <button type="submit" class="btn btn-gold btn-block">Nachricht senden</button>
           </div>

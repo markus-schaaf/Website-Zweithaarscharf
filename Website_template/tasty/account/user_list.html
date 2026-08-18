@@ -19,11 +19,7 @@
 
 <section class="section section--tight">
   <div class="container">
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
+    {% include "tasty/_messages.html" %}
 
     <div class="form-card table-scroll">
       <table class="account-table account-table--users">

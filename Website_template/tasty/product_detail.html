@@ -22,7 +22,7 @@
     "@type": "Offer",
     "price": "{{ product.price|stringformat:'.2f' }}",
     "priceCurrency": "EUR",
-    "availability": "https://schema.org/InStock",
+    "availability": "https://schema.org/{% if product.is_sold_out %}OutOfStock{% else %}InStock{% endif %}",
     "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
   }
 }
@@ -33,7 +33,13 @@
 
 <section class="section">
   <div class="container">
-    <p style="margin-bottom: 1.5rem;"><a href="{% url 'wigs' %}">&larr; Zur&uuml;ck zum Shop</a></p>
+    <nav class="breadcrumb" aria-label="Sie befinden sich hier">
+      <ol>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'wigs' %}">Shop</a></li>
+        <li aria-current="page">{{ product.name }}</li>
+      </ol>
+    </nav>
 
     <div class="split product-detail">
 
@@ -54,11 +60,13 @@
           <img class="img-tile" id="gallery-main" src="{{ product.image.url }}" alt="{{ product.name }}">
           {% if product.images.all %}
             <div class="gallery-thumbs" data-gallery-thumbs>
-              <button type="button" class="gallery-thumb is-active" data-full="{{ product.image.url }}">
+              <button type="button" class="gallery-thumb is-active" data-full="{{ product.image.url }}"
+                      aria-label="Bild 1 anzeigen" aria-pressed="true">
                 <img src="{{ product.image.url }}" alt="" loading="lazy">
               </button>
               {% for extra in product.images.all %}
-                <button type="button" class="gallery-thumb" data-full="{{ extra.image.url }}">
+                <button type="button" class="gallery-thumb" data-full="{{ extra.image.url }}"
+                        aria-label="Bild {{ forloop.counter|add:1 }} anzeigen" aria-pressed="false">
                   <img src="{{ extra.image.url }}" alt="" loading="lazy">
                 </button>
               {% endfor %}
@@ -75,7 +83,7 @@
 
       <div>
         <span class="eyebrow">{{ product.get_category_display }}</span>
-        <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <h1 class="title-with-badge">
           {{ product.name }}
           {% if product.is_sold_out %}
             <span class="badge badge-soldout">Verkauft</span>
@@ -196,7 +204,9 @@
     if (!btn) { return; }
     main.src = btn.dataset.full;
     thumbs.querySelectorAll('.gallery-thumb').forEach(function (t) {
-      t.classList.toggle('is-active', t === btn);
+      var aktiv = t === btn;
+      t.classList.toggle('is-active', aktiv);
+      t.setAttribute('aria-pressed', aktiv ? 'true' : 'false');
     });
   });
 }());

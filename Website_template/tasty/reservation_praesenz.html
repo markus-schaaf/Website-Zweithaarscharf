@@ -72,11 +72,7 @@
         <h2>Pr&auml;senz-Termin anfragen</h2>
         <p class="text-muted">F&uuml;llen Sie das Formular aus &ndash; wir melden uns zeitnah bei Ihnen, um den Termin zu best&auml;tigen.</p>
 
-        {% if messages %}
-          <ul class="messages">
-            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-          </ul>
-        {% endif %}
+        {% include "tasty/_messages.html" %}
 
         <form method="post" action="{% url 'reservation_praesenz' %}">
           {% csrf_token %}
@@ -85,51 +81,31 @@
           {% endif %}
           <div class="hp-field" aria-hidden="true">{{ form.website }}</div>
           <div class="form-row">
-            <div class="field">
-              <label for="{{ form.name.id_for_label }}">Vor- und Nachname *</label>
-              {{ form.name }}
-              {{ form.name.errors }}
-            </div>
+            {% include "tasty/_field.html" with field=form.name label="Vor- und Nachname" %}
           </div>
           <div class="form-row form-row--2">
-            <div class="field">
-              <label for="{{ form.email.id_for_label }}">E-Mail-Adresse *</label>
-              {{ form.email }}
-              {{ form.email.errors }}
-            </div>
-            <div class="field">
-              <label for="{{ form.phone.id_for_label }}">Telefonnummer</label>
-              {{ form.phone }}
-              {{ form.phone.errors }}
-            </div>
+            {% include "tasty/_field.html" with field=form.email label="E-Mail-Adresse" %}
+            {% include "tasty/_field.html" with field=form.phone label="Telefonnummer" %}
           </div>
           <div class="form-row">
-            <div class="field">
-              <label for="{{ form.topic.id_for_label }}">Art der Beratung *</label>
-              {{ form.topic }}
-              {{ form.topic.errors }}
-            </div>
+            {% include "tasty/_field.html" with field=form.topic label="Art der Beratung" %}
           </div>
           <div class="form-row">
-            <div class="field">
-              <label for="{{ form.preferred_datetime.id_for_label }}">Wunschtermin (Datum &amp; Uhrzeit) *</label>
-              {{ form.preferred_datetime }}
-              {{ form.preferred_datetime.errors }}
-            </div>
+            {% include "tasty/_field.html" with field=form.preferred_datetime label="Wunschtermin (Datum &amp; Uhrzeit)" %}
           </div>
           <div class="form-row">
-            <div class="field">
-              <label for="{{ form.message.id_for_label }}">Ihre Nachricht / W&uuml;nsche</label>
-              {{ form.message }}
-              {{ form.message.errors }}
-            </div>
+            {% include "tasty/_field.html" with field=form.message label="Ihre Nachricht / Wünsche" %}
           </div>
           <div class="form-row">
             <div class="field-checkbox">
               {{ form.consent }}
               <label for="{{ form.consent.id_for_label }}" class="label-plain">Ich habe die <a href="{% url 'pages:datenschutz' %}" target="_blank">Datenschutzhinweise</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Terminvereinbarung einverstanden. *</label>
             </div>
-            {{ form.consent.errors }}
+            {% if form.consent.errors %}
+              <ul class="errorlist" id="{{ form.consent.auto_id }}_error">
+                {% for error in form.consent.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endif %}
           </div>
           <div class="form-row mb-0">
             <button type="submit" class="btn btn-gold btn-block">Termin anfragen</button>

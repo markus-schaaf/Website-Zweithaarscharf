@@ -16,11 +16,7 @@
 
 <section class="section section--tight">
   <div class="container">
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
+    {% include "tasty/_messages.html" %}
 
     <div class="btn-row mb-24">
       <a class="wws-btn wws-btn--primary" href="{% url 'shop_manage:group_create' %}">Neue Gruppe</a>

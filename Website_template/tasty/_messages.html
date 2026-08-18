@@ -1,0 +1,9 @@
+{% comment %}
+Systemmeldungen. role="status" sorgt dafuer, dass Screenreader sie ansagen;
+main.js scrollt sie nach einem Redirect in den sichtbaren Bereich.
+{% endcomment %}
+{% if messages %}
+  <ul class="messages" role="status" tabindex="-1">
+    {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+  </ul>
+{% endif %}

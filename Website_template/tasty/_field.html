@@ -1,0 +1,18 @@
+{% comment %}
+Ein Formularfeld: Beschriftung, Eingabe, Hilfetext, Fehler.
+Aufruf: include "tasty/_field.html" with field=form.name label="Ihr Name"
+Ohne "label" wird die Beschriftung aus dem Formular uebernommen.
+
+Die IDs _helptext und _error sind nicht frei gewaehlt: Django setzt
+aria-describedby und aria-invalid am Eingabefeld genau auf diese Werte.
+{% endcomment %}
+<div class="field{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{% if label %}{{ label }}{% else %}{{ field.label }}{% endif %}{% if field.field.required %} *{% endif %}</label>
+  {{ field }}
+  {% if field.help_text %}<span class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</span>{% endif %}
+  {% if field.errors %}
+    <ul class="errorlist" id="{{ field.auto_id }}_error">
+      {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+</div>

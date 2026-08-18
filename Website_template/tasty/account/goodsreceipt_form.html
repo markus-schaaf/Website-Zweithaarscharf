@@ -17,6 +17,7 @@
 
 <section class="section section--tight">
   <div class="container container--form">
+    {% include "tasty/_messages.html" %}
     <div class="form-card">
       <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
@@ -137,4 +138,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=3"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=4"></script>{% endblock %}
