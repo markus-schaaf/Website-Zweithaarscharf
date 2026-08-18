@@ -653,10 +653,14 @@ class StockItemDeleteView(StaffMixin, DeleteView):
         nummer = stueck.inventory_no
         # Dateien mit entfernen: Djangos delete() raeumt den Medienordner nicht auf.
         # Verkaufsbilder eines online gestellten Stuecks liegen aber unter
-        # demselben Pfad in der Shop-Galerie (sync_to_product kopiert nicht) -
-        # die muessen liegen bleiben, sonst verliert das Produkt seine Bilder.
+        # demselben Pfad im Shop (sync_to_product kopiert nicht) - die muessen
+        # liegen bleiben, sonst verliert das Produkt seine Bilder. Beide Seiten
+        # pruefen: das erste Bild ist Product.image, der Rest ProductImage.
         for bild in stueck.images.all():
-            if ProductImage.objects.filter(image=bild.image.name).exists():
+            name = bild.image.name
+            if ProductImage.objects.filter(image=name).exists():
+                continue
+            if Product.objects.filter(image=name).exists():
                 continue
             bild.image.delete(save=False)
         response = super().form_valid(form)

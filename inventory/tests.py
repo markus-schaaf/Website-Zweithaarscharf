@@ -521,16 +521,17 @@ class PublishViewTest(StaffViewMixin, TestCase):
         self.assertEqual(self.stueck.product, produkt)
 
     def test_galerie_kommt_aus_dem_bestand(self):
+        """Bei einem einzigen Verkaufsbild bleibt die Galerie leer - das Bild
+        ist das Hauptbild und wuerde sonst doppelt erscheinen.
+        """
         self.client.post(
             reverse("inventory_manage:stock_publish", args=[self.stueck.pk]),
             self._daten(),
         )
         produkt = Product.objects.get(name="Bob Klassik Blond")
         bestandsbild = self.stueck.images.get()
-        self.assertEqual(
-            [b.image.name for b in produkt.images.all()], [bestandsbild.image.name]
-        )
         self.assertEqual(produkt.image.name, bestandsbild.image.name)
+        self.assertEqual(list(produkt.images.all()), [])
 
     def test_ohne_foto_kein_onlinestellen(self):
         self.stueck.images.all().delete()
@@ -801,6 +802,61 @@ class StockItemDeleteTest(StaffViewMixin, TestCase):
     def test_b2c_bekommt_403(self):
         self.client.force_login(self.kunde)
         self.assertEqual(self.client.get(self._url()).status_code, 403)
+
+
+class ShopGalerieTest(StaffViewMixin, TestCase):
+    """Was aus dem Bestand in die Shop-Galerie wandert - und in welcher Reihenfolge."""
+
+    def setUp(self):
+        super().setUp()
+        self.stueck = make_stock_item(self.lieferant)
+        self.bilder = [
+            StockItemImage.objects.create(
+                stock_item=self.stueck, image=make_image(f"shop-{i}.jpg"),
+                kind=StockItemImage.Kind.SHOP, sort_order=i,
+            )
+            for i in range(3)
+        ]
+        self.produkt = make_product("bob-klassik")
+        self.stueck.product = self.produkt
+        self.stueck.save(update_fields=["product"])
+
+    def test_erstes_bild_ist_nur_hauptbild(self):
+        """Drei Fotos ergeben ein Hauptbild und zwei Galeriebilder - sonst
+        zeigt die Produktseite das erste doppelt.
+        """
+        self.stueck.sync_to_product()
+        self.produkt.refresh_from_db()
+        self.assertEqual(self.produkt.image.name, self.bilder[0].image.name)
+        galerie = [b.image.name for b in self.produkt.images.all()]
+        self.assertEqual(galerie, [self.bilder[1].image.name, self.bilder[2].image.name])
+        self.assertNotIn(self.produkt.image.name, galerie)
+
+    def test_reihenfolge_aus_dem_bestand_wird_uebernommen(self):
+        self.bilder[2].sort_order = 0
+        self.bilder[2].save(update_fields=["sort_order"])
+        self.bilder[0].sort_order = 2
+        self.bilder[0].save(update_fields=["sort_order"])
+
+        self.stueck.sync_to_product()
+        self.produkt.refresh_from_db()
+        self.assertEqual(self.produkt.image.name, self.bilder[2].image.name)
+        self.assertEqual(
+            [b.image.name for b in self.produkt.images.all()],
+            [self.bilder[1].image.name, self.bilder[0].image.name],
+        )
+
+    def test_hauptbilddatei_ueberlebt_das_loeschen_des_stuecks(self):
+        """Das Hauptbild steht nur noch in Product.image, nicht mehr in der
+        Galerie - die Loeschsperre muss beide Seiten pruefen.
+        """
+        self.stueck.sync_to_product()
+        pfad = self.bilder[0].image.path
+        self.client.post(
+            reverse("inventory_manage:stock_delete", args=[self.stueck.pk])
+        )
+        self.assertEqual(StockItem.objects.count(), 0)
+        self.assertTrue(os.path.exists(pfad), "Hauptbild des Produkts wurde gelöscht")
 
 
 class ProjectArchiveTest(StaffViewMixin, TestCase):

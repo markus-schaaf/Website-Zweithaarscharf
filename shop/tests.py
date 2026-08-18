@@ -1,13 +1,23 @@
+import io
 import json
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
-from .models import Cart, CartItem, Product
+from .models import Cart, CartItem, Product, ProductImage
 
 User = get_user_model()
+
+
+def make_image(name="foto.jpg"):
+    """Kleines echtes JPEG - ImageField prueft den Dateiinhalt."""
+    puffer = io.BytesIO()
+    Image.new("RGB", (8, 8), "white").save(puffer, format="JPEG")
+    return SimpleUploadedFile(name, puffer.getvalue(), content_type="image/jpeg")
 
 
 def make_product(slug, category=Product.Category.BESTAND, audience=Product.Audience.B2C):
@@ -106,3 +116,69 @@ class CartApiTest(TestCase):
         # 1 (vorhanden) + 3 (gemergt); konfigurierbares Produkt wird ignoriert
         self.assertEqual(item.quantity, 4)
         self.assertEqual(CartItem.objects.count(), 1)
+
+
+class GalerieReihenfolgeTest(TestCase):
+    """Die Reihenfolge der Galeriebilder wird im Produktformular gepflegt."""
+
+    def setUp(self):
+        self.staff = User.objects.create_user(
+            email="staff@example.com", password="pass12345",
+            role=User.Role.ALL_POWER,
+        )
+        self.client.force_login(self.staff)
+        self.produkt = make_product("galerie-produkt")
+        self.bilder = [
+            ProductImage.objects.create(
+                product=self.produkt, image=make_image(f"g{i}.jpg"), sort_order=i
+            )
+            for i in range(3)
+        ]
+
+    def _daten(self, **overrides):
+        daten = {
+            "name": self.produkt.name,
+            "label": self.produkt.label,
+            "category": self.produkt.category,
+            "audience": self.produkt.audience,
+            "price": "100.00",
+            "stock_mode": self.produkt.stock_mode,
+            "stock_quantity": self.produkt.stock_quantity,
+            "sort_order": self.produkt.sort_order,
+            "is_active": "on",
+        }
+        daten.update(overrides)
+        return daten
+
+    def _url(self):
+        return reverse("shop_manage:product_edit", args=[self.produkt.pk])
+
+    def test_reihenfolge_wird_gespeichert(self):
+        umgedreht = [str(b.pk) for b in reversed(self.bilder)]
+        response = self.client.post(
+            self._url(), self._daten(image_order_galerie=umgedreht)
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            [str(b.pk) for b in self.produkt.images.all()], umgedreht
+        )
+
+    def test_geloeschtes_bild_verschiebt_die_uebrigen_nicht(self):
+        response = self.client.post(self._url(), self._daten(
+            delete_images_galerie=[str(self.bilder[0].pk)],
+            image_order_galerie=[str(b.pk) for b in self.bilder],
+        ))
+        self.assertEqual(response.status_code, 302)
+        uebrig = list(self.produkt.images.all())
+        self.assertEqual([b.pk for b in uebrig],
+                         [self.bilder[1].pk, self.bilder[2].pk])
+        self.assertEqual([b.sort_order for b in uebrig], [0, 1])
+
+    def test_neues_bild_haengt_sich_hinten_an(self):
+        response = self.client.post(self._url(), self._daten(
+            image_order_galerie=[str(b.pk) for b in self.bilder],
+            extra_images=make_image("neu.jpg"),
+        ))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.produkt.images.count(), 4)
+        self.assertEqual(self.produkt.images.last().sort_order, 3)

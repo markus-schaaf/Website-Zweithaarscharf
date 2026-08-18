@@ -1633,36 +1633,6 @@ button.nav-action:focus {
 .manage-card__actions a { color: var(--gold-text); }
 .manage-card__actions a:hover { color: var(--gold-dark); }
 
-/* Bearbeiten-Formular: Galeriebilder mit Loeschen-Checkbox */
-.extra-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.extra-images__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.extra-images__item img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--border-soft);
-  background: var(--bg-alt);
-  display: block;
-}
-.extra-images__item span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* ---------- Warenkorb ---------- */
 .qty-controls {
   display: inline-flex;

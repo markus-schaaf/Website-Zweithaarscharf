@@ -1,4 +1,5 @@
 {% extends "tasty/_base.html" %}
+{% load static %}
 
 {% block title %}{% if object %}Produkt bearbeiten{% else %}Neues Produkt{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
@@ -86,19 +87,7 @@
         {% if form.instance.pk %}
         <div class="form-row">
           <div class="field">
-            <label for="extra-images">Weitere Bilder (Galerie)</label>
-            {% if form.instance.images.all %}
-              <div class="extra-images">
-                {% for img in form.instance.images.all %}
-                  <label class="extra-images__item">
-                    <img src="{{ img.image.url }}" alt="" loading="lazy">
-                    <span><input type="checkbox" name="delete_images" value="{{ img.pk }}"> L&ouml;schen</span>
-                  </label>
-                {% endfor %}
-              </div>
-            {% endif %}
-            <input type="file" id="extra-images" name="extra_images" multiple accept="image/*">
-            <p class="form-hint">Mehrfachauswahl m&ouml;glich &ndash; wird als Galerie auf der Produktseite gezeigt.</p>
+            {% include "tasty/account/_image_uploader.html" with kind="galerie" bilder=form.instance.images.all upload_name="extra_images" titel="Weitere Bilder (Galerie)" hinweis="Reihenfolge mit den Pfeilen ändern - genau so erscheinen die Bilder auf der Produktseite, hinter dem Produktbild." %}
           </div>
         </div>
         {% endif %}
@@ -207,3 +196,5 @@
 </section>
 
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=3"></script>{% endblock %}

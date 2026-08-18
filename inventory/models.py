@@ -351,10 +351,15 @@ class StockItem(models.Model):
         bilder = self.shop_images
         allein = produkt.stock_items.exclude(pk=self.pk).count() == 0
         if bilder and (allein or not produkt.images.exists()):
+            # Das erste Verkaufsbild ist das Hauptbild, die Galerie haelt nur
+            # die weiteren - so ist ProductImage gemeint ("zusaetzliches
+            # Galeriebild"). Lag das erste auch in der Galerie, zeigte die
+            # Produktseite es doppelt: einmal als Hauptbild, einmal als
+            # erste Miniatur.
             produkt.images.all().delete()
             ProductImage.objects.bulk_create([
                 ProductImage(product=produkt, image=b.image.name, sort_order=i)
-                for i, b in enumerate(bilder)
+                for i, b in enumerate(bilder[1:])
             ])
             produkt.image = bilder[0].image.name
             produkt.save(update_fields=["image"])

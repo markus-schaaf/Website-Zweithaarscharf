@@ -62,17 +62,29 @@ class ProduktBearbeitenView(RoleRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Galeriebilder: angehakte loeschen, neue anlegen
-        delete_ids = self.request.POST.getlist("delete_images")
+        # Galeriebilder: angehakte loeschen, Reihenfolge uebernehmen, neue anhaengen
+        delete_ids = self.request.POST.getlist("delete_images_galerie")
         if delete_ids:
             form.instance.images.filter(pk__in=delete_ids).delete()
+
+        # Die Reihenfolge kommt als Liste von Bild-IDs so, wie die Kacheln im
+        # Formular stehen - genau so erscheint die Galerie auf der Produktseite.
+        order = [
+            pk for pk in self.request.POST.getlist("image_order_galerie")
+            if pk not in delete_ids
+        ]
+        for position, pk in enumerate(order):
+            form.instance.images.filter(pk=pk).update(sort_order=position)
+
         neue = self.request.FILES.getlist("extra_images")
         if neue:
             # iPhone-Fotos kommen als HEIC an - umwandeln, sonst zeigt sie
             # spaeter kein Browser an.
             try:
-                for f in normalize_uploads(neue):
-                    ProductImage.objects.create(product=form.instance, image=f)
+                for i, f in enumerate(normalize_uploads(neue)):
+                    ProductImage.objects.create(
+                        product=form.instance, image=f, sort_order=len(order) + i
+                    )
             except ValidationError as fehler:
                 for meldung in fehler.messages:
                     messages.warning(self.request, meldung)
