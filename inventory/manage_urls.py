@@ -27,6 +27,14 @@ urlpatterns = [
     path("bestand/<int:pk>/ausmustern/", manage_views.StockItemRetireView.as_view(), name="stock_retire"),
     path("bestand/<int:pk>/verkaufen/", manage_views.StockItemSellView.as_view(), name="stock_sell"),
 
+    # Bestellware (Lieferantenkatalog)
+    path("bestellware/", manage_views.CatalogItemListView.as_view(), name="catalog_list"),
+    path("bestellware/neu/", manage_views.CatalogItemCreateView.as_view(), name="catalog_create"),
+    path("bestellware/<int:pk>/bearbeiten/", manage_views.CatalogItemUpdateView.as_view(), name="catalog_edit"),
+    path("bestellware/<int:pk>/onlinestellen/", manage_views.CatalogItemPublishView.as_view(), name="catalog_publish"),
+    path("bestellware/<int:pk>/zurueckziehen/", manage_views.CatalogItemUnpublishView.as_view(), name="catalog_unpublish"),
+    path("bestellware/<int:pk>/loeschen/", manage_views.CatalogItemDeleteView.as_view(), name="catalog_delete"),
+
     # Verkäufe
     path("verkaeufe/", manage_views.OrderListView.as_view(), name="order_list"),
     path("verkaeufe/<int:pk>/erneut-senden/", manage_views.OrderResendView.as_view(), name="order_resend"),

@@ -23,6 +23,14 @@
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
+        {% if katalog_artikel %}
+          <p class="form-hint form-hint--warn">
+            Vorbelegt aus dem Bestellartikel
+            <a href="{% url 'inventory_manage:catalog_edit' katalog_artikel.pk %}">{{ katalog_artikel.product_name }}</a>.
+            Der Einkaufspreis fehlt bewusst &ndash; hier z&auml;hlt der Betrag von der Rechnung.
+          </p>
+        {% endif %}
+
         <h2 class="form-section"><svg class="wws-ico"><use href="#ico-karton"></use></svg>Art der Ware</h2>
         <div class="form-row form-row--2">
           <div class="field">

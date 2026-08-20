@@ -10,7 +10,8 @@
   <div class="container">
     <span class="eyebrow">Verwaltung</span>
     <h1>Waren<em>wirtschaft</em></h1>
-    <p>Bestand erfassen, Projekte planen, Ware online stellen und verkaufen.</p>
+    <p>Bestand erfassen, Bestellware pflegen, Projekte planen, Ware online
+      stellen und verkaufen.</p>
   </div>
 </section>
 
@@ -48,6 +49,19 @@
           <div class="wws-tile__actions">
             <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:project_list' %}">Projekte</a>
             <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:project_create' %}">
+              <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neu
+            </a>
+          </div>
+        </article>
+
+        <article class="wws-tile">
+          <span class="wws-tile__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-lkw"></use></svg></span>
+          <p class="wws-tile__zahl">{{ anzahl_bestellware }}</p>
+          <p class="wws-tile__label">Artikel in der Bestellware</p>
+          <p class="wws-tile__meta">nicht am Lager, {{ anzahl_bestellware_online }} davon im Shop</p>
+          <div class="wws-tile__actions">
+            <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:catalog_list' %}">Bestellware</a>
+            <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:catalog_create' %}">
               <svg class="wws-ico"><use href="#ico-plus"></use></svg>Neu
             </a>
           </div>

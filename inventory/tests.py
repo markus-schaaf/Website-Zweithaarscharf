@@ -14,6 +14,8 @@ from shop.models import CartItem, Product, ProductImage
 
 from .models import (
     AttributeOption,
+    CatalogItem,
+    CatalogItemImage,
     Order,
     OrderItem,
     Project,
@@ -80,6 +82,30 @@ def make_stock_item(supplier, product=None, **overrides):
     }
     daten.update(overrides)
     return StockItem.objects.create(**daten)
+
+
+def make_catalog_item(supplier, **overrides):
+    """Vollstaendig gepflegter Bestellartikel - so, dass er online darf."""
+    daten = {
+        "supplier": supplier,
+        "supplier_article_no": f"EW-{CatalogItem.objects.count() + 1:04d}",
+        "product_name": "Modell Sunrise",
+        "shop_category": Product.Category.KUNSTHAAR_PERUECKE,
+        "sale_price": 340,
+        "list_price": 190,
+        "delivery_days": 10,
+        "description": "Gewelltes Kunsthaarmodell mit Monofilament-Scheitel.",
+        "color": "Blond",
+        "length": "45 cm",
+        "size": "54 cm",
+        "structure": "Gewellt",
+        "cap_type": "Monofilament",
+        "density": "Mittel",
+    }
+    daten.update(overrides)
+    artikel = CatalogItem.objects.create(**daten)
+    CatalogItemImage.objects.create(catalog_item=artikel, image=make_image().name)
+    return artikel
 
 
 class NumberingTest(TestCase):
@@ -1056,3 +1082,241 @@ class CustomerSearchTest(StaffViewMixin, TestCase):
         self.client.force_login(self.kunde)
         response = self.client.get(reverse("inventory_manage:customer_search"))
         self.assertEqual(response.status_code, 403)
+
+
+class CatalogItemTest(StaffViewMixin, TestCase):
+    """Bestellware: Artikel, die wir anbieten, ohne sie am Lager zu haben."""
+
+    def setUp(self):
+        super().setUp()
+        for gruppe, wert in (
+            (AttributeOption.Group.FARBE, "Blond"),
+            (AttributeOption.Group.FARBE, "Naturbraun"),
+            (AttributeOption.Group.LAENGE, "45 cm"),
+            (AttributeOption.Group.GROESSE, "54 cm"),
+        ):
+            AttributeOption.objects.create(group=gruppe, name=wert)
+
+    def _daten(self, **overrides):
+        daten = {
+            "supplier": self.lieferant.pk,
+            "supplier_article_no": "EW-4711",
+            "product_name": "Modell Sunrise",
+            "shop_category": Product.Category.KUNSTHAAR_PERUECKE,
+            "sale_price": "340",
+            "delivery_days": "10",
+            "availability": CatalogItem.Availability.LIEFERBAR,
+            "description": "Gewelltes Kunsthaarmodell.",
+            "color": "Blond",
+            "length": "45 cm",
+            "size": "54 cm",
+            "is_active": "on",
+        }
+        daten.update(overrides)
+        return daten
+
+    def test_anlegen(self):
+        response = self.client.post(
+            reverse("inventory_manage:catalog_create"), self._daten()
+        )
+        self.assertEqual(response.status_code, 302)
+        artikel = CatalogItem.objects.get()
+        self.assertEqual(artikel.supplier_article_no, "EW-4711")
+        self.assertEqual(artikel.delivery_days, 10)
+
+    def test_haarware_braucht_farbe_laenge_groesse(self):
+        response = self.client.post(
+            reverse("inventory_manage:catalog_create"),
+            self._daten(color="", length="", size=""),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(response.context["form"].errors), {"color", "length", "size"}
+        )
+
+    def test_zubehoer_braucht_keine_haarangaben(self):
+        response = self.client.post(
+            reverse("inventory_manage:catalog_create"),
+            self._daten(
+                shop_category=Product.Category.ZUBEHOER,
+                product_name="Perückenständer",
+                color="", length="", size="",
+            ),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CatalogItem.objects.get().shop_category, "zubehoer")
+
+    def test_blocker_nennt_bild_und_lieferzeit(self):
+        artikel = CatalogItem.objects.create(
+            supplier=self.lieferant, supplier_article_no="EW-1",
+            product_name="Ohne alles",
+            shop_category=Product.Category.KUNSTHAAR_PERUECKE,
+            sale_price=200, description="Text", color="Blond",
+            length="45 cm", size="54 cm", structure="Gewellt",
+            cap_type="Monofilament", density="Mittel",
+        )
+        blocker = artikel.publish_blockers()
+        self.assertIn("Lieferzeit", blocker)
+        self.assertIn("mindestens ein Verkaufsbild", blocker)
+
+    def test_nicht_lieferbar_blockiert(self):
+        artikel = make_catalog_item(
+            self.lieferant, availability=CatalogItem.Availability.AUSGELAUFEN
+        )
+        self.assertFalse(artikel.ist_veroeffentlichbar)
+
+    def test_artikelnummer_je_lieferant_nur_einmal(self):
+        make_catalog_item(self.lieferant, supplier_article_no="EW-9")
+        response = self.client.post(
+            reverse("inventory_manage:catalog_create"),
+            self._daten(supplier_article_no="EW-9"),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CatalogItem.objects.count(), 1)
+
+
+class CatalogItemPublishTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.artikel = make_catalog_item(self.lieferant)
+
+    def _daten(self, **overrides):
+        daten = {
+            "product": "",
+            "name": "Kunsthaarperücke Sunrise",
+            "label": "Sunrise",
+            "category": Product.Category.KUNSTHAAR_PERUECKE,
+            "price": "340",
+            "audience": StockItem.Audience.ALLE,
+        }
+        daten.update(overrides)
+        return daten
+
+    def test_online_stellen_setzt_lieferzeit_und_kein_track_stock(self):
+        response = self.client.post(
+            reverse("inventory_manage:catalog_publish", args=[self.artikel.pk]),
+            self._daten(),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.artikel.refresh_from_db()
+        produkt = self.artikel.product
+        self.assertIsNotNone(produkt)
+        self.assertEqual(produkt.delivery_days, 10)
+        self.assertTrue(produkt.ist_bestellware)
+        # Ohne Bestandsstueck waere das Produkt sonst sofort ausverkauft.
+        self.assertFalse(produkt.track_stock)
+        self.assertFalse(produkt.is_sold_out)
+
+    def test_unvollstaendiger_artikel_geht_nicht_online(self):
+        self.artikel.delivery_days = None
+        self.artikel.save()
+        response = self.client.post(
+            reverse("inventory_manage:catalog_publish", args=[self.artikel.pk]),
+            self._daten(),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.artikel.refresh_from_db()
+        self.assertIsNone(self.artikel.product)
+
+    def test_variantenliste_landet_am_produkt(self):
+        blond = AttributeOption.objects.create(
+            group=AttributeOption.Group.FARBE, name="Blond"
+        )
+        braun = AttributeOption.objects.create(
+            group=AttributeOption.Group.FARBE, name="Naturbraun"
+        )
+        self.artikel.available_colors.set([blond, braun])
+        self.client.post(
+            reverse("inventory_manage:catalog_publish", args=[self.artikel.pk]),
+            self._daten(),
+        )
+        self.artikel.refresh_from_db()
+        self.assertIn("Blond", self.artikel.product.available_variants)
+        self.assertIn("Naturbraun", self.artikel.product.available_variants)
+
+    def test_zurueckziehen(self):
+        self.client.post(
+            reverse("inventory_manage:catalog_publish", args=[self.artikel.pk]),
+            self._daten(),
+        )
+        self.client.post(
+            reverse("inventory_manage:catalog_unpublish", args=[self.artikel.pk])
+        )
+        self.artikel.refresh_from_db()
+        self.assertIsNone(self.artikel.product)
+
+
+class CatalogToStockTest(StaffViewMixin, TestCase):
+    """Ware trifft ein: aus dem Bestellartikel wird ein Bestandsstueck."""
+
+    def setUp(self):
+        super().setUp()
+        for gruppe, wert in (
+            (AttributeOption.Group.FARBE, "Blond"),
+            (AttributeOption.Group.LAENGE, "45 cm"),
+            (AttributeOption.Group.GROESSE, "54 cm"),
+        ):
+            AttributeOption.objects.create(group=gruppe, name=wert)
+        self.artikel = make_catalog_item(self.lieferant)
+
+    def test_wareneingang_ist_vorbelegt(self):
+        response = self.client.get(
+            reverse("inventory_manage:stock_create"),
+            {"katalog": self.artikel.pk},
+        )
+        initial = response.context["form"].initial
+        self.assertEqual(initial["product_name"], self.artikel.product_name)
+        self.assertEqual(initial["supplier_article_no"], self.artikel.supplier_article_no)
+        self.assertEqual(initial["color"], "Blond")
+        self.assertEqual(response.context["katalog_artikel"], self.artikel)
+
+    def test_offenes_projekt_wird_gemeldet(self):
+        Project.objects.create(title="Umbau Frau M.", catalog_item=self.artikel)
+        response = self.client.post(
+            reverse("inventory_manage:stock_create") + f"?katalog={self.artikel.pk}",
+            {
+                "supplier": self.lieferant.pk,
+                "product_name": "Modell Sunrise",
+                "invoice_no": "RE-7",
+                "purchase_price": "190",
+                "received_at": "2026-08-20",
+                "shop_category": Product.Category.KUNSTHAAR_PERUECKE,
+                "color": "Blond", "length": "45 cm", "size": "54 cm",
+                "quantity": "1",
+                "eingang_images": make_image(),
+            },
+            follow=True,
+        )
+        self.assertEqual(StockItem.objects.count(), 1)
+        texte = [str(m) for m in response.context["messages"]]
+        self.assertTrue(any("Umbau Frau M." in t for t in texte), texte)
+
+
+class ProjectCatalogTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.artikel = make_catalog_item(self.lieferant)
+
+    def test_bestandsstueck_sticht_den_bestellartikel(self):
+        projekt = Project.objects.create(
+            title="Sunrise für Frau M.", catalog_item=self.artikel
+        )
+        self.assertEqual(projekt.ware, self.artikel)
+
+        projekt.stock_item = make_stock_item(self.lieferant)
+        projekt.save()
+        projekt.refresh_from_db()
+        self.assertIsNone(projekt.catalog_item)
+        self.assertEqual(projekt.ware, projekt.stock_item)
+
+    def test_auswahlseite_zeigt_bestellware(self):
+        response = self.client.get(
+            reverse("inventory_manage:project_pick_stock"), {"quelle": "bestellware"}
+        )
+        self.assertEqual(list(response.context["stuecke"]), [self.artikel])
+        self.assertEqual(response.context["auswahl_feld"], "bestellware")
+
+    def test_auswahlseite_zeigt_standardmaessig_den_bestand(self):
+        stueck = make_stock_item(self.lieferant)
+        response = self.client.get(reverse("inventory_manage:project_pick_stock"))
+        self.assertEqual(list(response.context["stuecke"]), [stueck])

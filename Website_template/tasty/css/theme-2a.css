@@ -1482,6 +1482,19 @@ body.offcanvas #page:after {
   margin: 6px 0 0 0;
 }
 
+/* Lieferzeit bei Bestellware - Ware, die erst geordert wird */
+.lieferzeit {
+  font-size: 0.9375rem;
+  color: var(--gold-dark);
+  margin: 12px 0 0 0;
+}
+
+.product-card__lieferzeit {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0 0 8px 0;
+}
+
 /* Hinweis, der auffallen soll - nicht Fehler, nur Achtung */
 .form-hint--warn {
   color: var(--gold-dark);
@@ -2868,6 +2881,32 @@ h1 .badge {
 .wws-badge--storniert { border-color: #e8bcbc; background: var(--wws-rot-bg); color: var(--error); }
 .wws-badge--offen { border-color: var(--gold-cream); background: var(--wws-gold-bg); color: var(--gold-dark); }
 .wws-badge--erledigt { border-color: #b6d8c4; background: var(--wws-gruen-bg); color: var(--wws-gruen); }
+.wws-badge--lieferbar { border-color: #b6d8c4; background: var(--wws-gruen-bg); color: var(--wws-gruen); }
+.wws-badge--pausiert { border-color: var(--gold-cream); background: var(--wws-gold-bg); color: var(--gold-dark); }
+.wws-badge--ausgelaufen { border-color: var(--border-soft); background: var(--wws-rot-bg); color: var(--error); }
+
+/* Mehrfachauswahl (Farb- und Groessenpalette der Bestellware) */
+.wws-feldname {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  margin-bottom: 6px;
+}
+
+.wws-checkliste {
+  max-height: 14rem;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--wws-radius);
+  padding: 10px 12px;
+  background: var(--white);
+}
+
+.wws-checkliste ul { list-style: none; margin: 0; padding: 0; }
+
+.wws-checkliste li { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+
+.wws-checkliste label { margin: 0; font-size: 0.9375rem; }
 .wws-badge--shop { border-color: var(--gold); background: var(--gold-cream); color: #6b5227; }
 .wws-badge--b2b { border-color: var(--gold-dark); color: var(--gold-dark); }
 .wws-badge--off { border-color: var(--border-soft); color: var(--placeholder); }

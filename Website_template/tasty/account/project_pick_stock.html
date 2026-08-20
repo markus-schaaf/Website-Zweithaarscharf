@@ -1,7 +1,7 @@
 {% extends "tasty/_base.html" %}
 {% load static %}
 
-{% block title %}Bestandsst&uuml;ck w&auml;hlen &mdash; Zweithaar Schaaf{% endblock %}
+{% block title %}Ware w&auml;hlen &mdash; Zweithaar Schaaf{% endblock %}
 {% block body_class %}page-account{% endblock %}
 
 {% block content %}
@@ -10,8 +10,9 @@
 <section class="hero hero--plain">
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Projekt</span>
-    <h1>Bestandsst&uuml;ck <em>w&auml;hlen</em></h1>
-    <p>Nur Per&uuml;cken und Topper &ndash; an Zubeh&ouml;r und Pflegeprodukten gibt es nichts zu planen.
+    <h1>Ware <em>w&auml;hlen</em></h1>
+    <p>Aus dem eigenen Bestand oder aus der Bestellware. Nur Per&uuml;cken und Topper
+      &ndash; an Zubeh&ouml;r und Pflegeprodukten gibt es nichts zu planen.
       Ihre bisherigen Eingaben sind gesichert.</p>
   </div>
 </section>
@@ -19,12 +20,21 @@
 <section class="section section--tight">
   <div class="container container--shop">
     {% include "tasty/_messages.html" %}
+
+    <nav class="wws-chips" aria-label="Quelle w&auml;hlen">
+      <a class="wws-chip{% if quelle == 'bestand' %} is-active{% endif %}"
+         href="?{% if projekt_pk %}projekt={{ projekt_pk }}&amp;{% endif %}quelle=bestand{% if suche %}&amp;q={{ suche|urlencode }}{% endif %}">Bestand</a>
+      <a class="wws-chip{% if quelle == 'bestellware' %} is-active{% endif %}"
+         href="?{% if projekt_pk %}projekt={{ projekt_pk }}&amp;{% endif %}quelle=bestellware{% if suche %}&amp;q={{ suche|urlencode }}{% endif %}">Bestellware</a>
+    </nav>
+
     <form class="wws-toolbar" method="get">
       {% if projekt_pk %}<input type="hidden" name="projekt" value="{{ projekt_pk }}">{% endif %}
+      <input type="hidden" name="quelle" value="{{ quelle }}">
       <div class="wws-toolbar__search">
         <input type="search" name="q" value="{{ suche }}" autofocus
-               placeholder="Produktnummer, Name, Farbe, L&auml;nge, Hersteller &hellip;"
-               autocomplete="off" enterkeyhint="search" aria-label="Bestand durchsuchen">
+               placeholder="Nummer, Name, Farbe, Lieferant &hellip;"
+               autocomplete="off" enterkeyhint="search" aria-label="Ware durchsuchen">
         <button type="submit" class="wws-btn wws-btn--primary">
           <svg class="wws-ico"><use href="#ico-lupe"></use></svg>Suchen
         </button>
@@ -33,7 +43,7 @@
 
     <div class="wws-picks">
       {% for s in stuecke %}
-        <a class="wws-pick" href="{% if projekt_pk %}{% url 'inventory_manage:project_edit' projekt_pk %}{% else %}{% url 'inventory_manage:project_create' %}{% endif %}?bestand={{ s.pk }}">
+        <a class="wws-pick" href="{% if projekt_pk %}{% url 'inventory_manage:project_edit' projekt_pk %}{% else %}{% url 'inventory_manage:project_create' %}{% endif %}?{{ auswahl_feld }}={{ s.pk }}">
           <span class="wws-pick__img">
             {% if s.cover_image %}
               <img src="{{ s.cover_image.image.url }}" alt="" loading="lazy">
@@ -42,7 +52,7 @@
             {% endif %}
           </span>
           <span class="wws-pick__body">
-            <span class="wws-row__no">{{ s.inventory_no }}</span>
+            <span class="wws-row__no">{% if quelle == "bestellware" %}{{ s.supplier_article_no }}{% else %}{{ s.inventory_no }}{% endif %}</span>
             <span class="wws-pick__name">{{ s.product_name|default:"Ohne Namen" }}</span>
             <span class="wws-row__meta">
               {{ s.get_shop_category_display }}
@@ -50,7 +60,12 @@
               {% if s.length %}&middot; {{ s.length }}{% endif %}
             </span>
             <span class="wws-row__badges">
-              <span class="wws-badge wws-badge--{{ s.status }}">{{ s.get_status_display }}</span>
+              {% if quelle == "bestellware" %}
+                <span class="wws-badge wws-badge--{{ s.availability }}">{{ s.get_availability_display }}</span>
+                {% if s.delivery_days %}<span class="wws-badge">{{ s.delivery_days }} Werktage</span>{% endif %}
+              {% else %}
+                <span class="wws-badge wws-badge--{{ s.status }}">{{ s.get_status_display }}</span>
+              {% endif %}
               {% if s.work_state %}
                 <span class="wws-badge wws-badge--{{ s.work_state.0 }}">{{ s.work_state.1 }}</span>
               {% endif %}
@@ -60,10 +75,17 @@
       {% empty %}
         <div class="wws-empty">
           <span class="wws-empty__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-karton"></use></svg></span>
-          <p>{% if suche %}Kein Per&uuml;cken- oder Topperdatensatz passt zu &bdquo;{{ suche }}&ldquo;.{% else %}Es gibt noch keine Per&uuml;cken oder Topper im Bestand.{% endif %}</p>
-          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
-            <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
-          </a>
+          {% if quelle == "bestellware" %}
+            <p>{% if suche %}Kein Bestellartikel passt zu &bdquo;{{ suche }}&ldquo;.{% else %}Es gibt noch keine Per&uuml;cken oder Topper in der Bestellware.{% endif %}</p>
+            <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:catalog_create' %}">
+              <svg class="wws-ico"><use href="#ico-plus"></use></svg>Bestellartikel anlegen
+            </a>
+          {% else %}
+            <p>{% if suche %}Kein Per&uuml;cken- oder Topperdatensatz passt zu &bdquo;{{ suche }}&ldquo;.{% else %}Es gibt noch keine Per&uuml;cken oder Topper im Bestand.{% endif %}</p>
+            <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
+              <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
+            </a>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

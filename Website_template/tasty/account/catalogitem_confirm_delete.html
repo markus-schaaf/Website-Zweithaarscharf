@@ -1,0 +1,70 @@
+{% extends "tasty/_base.html" %}
+
+{% block title %}{{ object.product_name }} l&ouml;schen &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+{% include "tasty/account/_wws_icons.html" %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Bestellware</span>
+    <h1>Wirklich <em>l&ouml;schen</em>?</h1>
+    <p>{{ object.supplier_article_no }} &middot; {{ object.product_name }}</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    {% include "tasty/_messages.html" %}
+    <div class="form-card">
+      <div class="wws-delete">
+        {% if object.cover_image %}
+          <img class="wws-delete__img" src="{{ object.cover_image.image.url }}" alt="">
+        {% endif %}
+        <div>
+          <h2 class="wws-delete__name">{{ object.product_name }}</h2>
+          <p class="wws-delete__meta">
+            {{ object.get_shop_category_display|default:"ohne Kategorie" }}
+            &middot; {{ object.supplier.name }}
+            {% if object.color %}&middot; {{ object.color }}{% endif %}
+          </p>
+          <p class="wws-row__badges">
+            <span class="wws-badge wws-badge--{{ object.availability }}">{{ object.get_availability_display }}</span>
+            {% if object.product_id %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
+          </p>
+        </div>
+      </div>
+
+      <p>Gel&ouml;scht werden dieser Datensatz{% if anzahl_bilder %},
+        {{ anzahl_bilder }} Foto{{ anzahl_bilder|pluralize:"s" }} samt Dateien{% endif %}.
+        Das l&auml;sst sich nicht r&uuml;ckg&auml;ngig machen.</p>
+
+      <p class="form-hint">Bereits eingetroffene Ware ist davon nicht betroffen &ndash;
+        die liegt als eigenes Bestandsst&uuml;ck im Bestand.</p>
+
+      {% if anzahl_projekte %}
+        <p class="form-hint"><strong>Achtung:</strong> {{ anzahl_projekte }}
+          Projekt{{ anzahl_projekte|pluralize:"e" }} verweis{{ anzahl_projekte|pluralize:"t,en" }}
+          auf diesen Artikel. Dort steht danach keine geplante Ware mehr.</p>
+      {% endif %}
+      {% if object.product_id %}
+        <p class="form-hint">Das Shop-Produkt &bdquo;{{ object.product.name }}&ldquo;
+          bleibt bestehen und wird weiter angeboten. Wenn es verschwinden soll,
+          vorher aus dem Shop nehmen oder in der Produktverwaltung deaktivieren.</p>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+          <button type="submit" class="wws-btn wws-btn--danger">
+            <svg class="wws-ico"><use href="#ico-papierkorb"></use></svg>Endg&uuml;ltig l&ouml;schen
+          </button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:catalog_edit' object.pk %}">Abbrechen</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

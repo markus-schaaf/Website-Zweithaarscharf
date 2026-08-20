@@ -23,6 +23,9 @@
     <span class="product-card__price">ab {{ p.price_display }},- &euro;</span>
   {% endif %}
   <p class="product-card__desc">{{ p.description }}</p>
+  {% if p.ist_bestellware %}
+    <p class="product-card__lieferzeit">Lieferzeit ca. {{ p.delivery_days }} Werktage</p>
+  {% endif %}
   {% if p.is_configurable %}
     <a class="btn btn-gold product-card__btn" href="{% url 'product_detail' p.slug %}">Konfigurieren</a>
   {% elif p.is_sold_out %}

@@ -114,6 +114,17 @@ class Product(models.Model):
     content_amount = models.CharField("Inhalt / Menge", max_length=40, blank=True, default="")
     usage_notes = models.TextField("Anwendung", blank=True, default="")
 
+    # Bestellware: Ware, die wir anbieten, ohne sie am Lager zu haben. Beide
+    # Felder werden aus inventory.CatalogItem nachgezogen und sind sonst leer.
+    # Bewusst als fertiger Text statt als Bezug, damit shop weiterhin nichts
+    # aus inventory importieren muss (siehe Kommentar bei with_stock).
+    delivery_days = models.PositiveSmallIntegerField(
+        "Lieferzeit (Werktage)", null=True, blank=True
+    )
+    available_variants = models.TextField(
+        "Auch erhältlich in", blank=True, default=""
+    )
+
     is_active = models.BooleanField("Aktiv", default=True)
     sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -268,6 +279,11 @@ class Product(models.Model):
     @property
     def is_orderable(self):
         return not self.is_configurable and not self.is_sold_out
+
+    @property
+    def ist_bestellware(self):
+        """Wird auf Bestellung beim Lieferanten geordert, liegt nicht im Lager."""
+        return self.delivery_days is not None
 
     # Illustrations-Fallback je Kategorie, solange kein echtes Foto hochgeladen ist
     PLACEHOLDER_IMAGES = {

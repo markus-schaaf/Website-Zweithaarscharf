@@ -1,0 +1,150 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}Bestellware &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+{% include "tasty/account/_wws_icons.html" %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Warenwirtschaft</span>
+    <h1>Bestell<em>ware</em></h1>
+    <p>Artikel unserer Lieferanten, die wir anbieten, ohne sie am Lager zu haben.
+      Bestellt eine Kundin, wird erst dann beim Lieferanten geordert.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--shop">
+    {% include "tasty/_messages.html" %}
+
+    <div class="wws-actions">
+      <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:catalog_create' %}">
+        <svg class="wws-ico"><use href="#ico-plus"></use></svg>Bestellartikel anlegen
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_list' %}">
+        <svg class="wws-ico"><use href="#ico-karton"></use></svg>Bestand
+      </a>
+      <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:home' %}">
+        <svg class="wws-ico"><use href="#ico-pfeil-links"></use></svg>Zur&uuml;ck
+      </a>
+    </div>
+
+    <form class="wws-toolbar" method="get" data-wws-filter>
+      <div class="wws-toolbar__search">
+        <input type="search" name="q" value="{{ filter.q }}" placeholder="Name, Artikelnummer, Lieferant &hellip;"
+               autocomplete="off" enterkeyhint="search" aria-label="Bestellware durchsuchen">
+        <button type="submit" class="wws-btn wws-btn--primary">Suchen</button>
+      </div>
+
+      <div class="wws-selects">
+        <label class="wws-select">
+          <span>Kategorie</span>
+          <select name="kategorie" data-wws-submit>
+            <option value="">Alle</option>
+            {% for value, label in kategorien %}
+              <option value="{{ value }}"{% if filter.kategorie == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="wws-select">
+          <span>Lieferant</span>
+          <select name="hersteller" data-wws-submit>
+            <option value="">Alle</option>
+            {% for l in lieferanten %}
+              <option value="{{ l.pk }}"{% if filter.hersteller == l.pk|stringformat:"s" %} selected{% endif %}>{{ l.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="wws-select">
+          <span>Lieferbarkeit</span>
+          <select name="lieferbar" data-wws-submit>
+            <option value="">Alle</option>
+            {% for value, label in lieferbarkeiten %}
+              <option value="{{ value }}"{% if filter.lieferbar == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="wws-select">
+          <span>Shop</span>
+          <select name="shop" data-wws-submit>
+            <option value="">Alle</option>
+            <option value="ja"{% if filter.shop == "ja" %} selected{% endif %}>Ver&ouml;ffentlicht</option>
+            <option value="nein"{% if filter.shop == "nein" %} selected{% endif %}>Nicht ver&ouml;ffentlicht</option>
+          </select>
+        </label>
+      </div>
+    </form>
+
+    <div class="wws-list">
+      {% for a in artikel %}
+        <div class="wws-row">
+          <a class="wws-row__img" href="{% url 'inventory_manage:catalog_edit' a.pk %}">
+            {% if a.cover_image %}
+              <img src="{{ a.cover_image.image.url }}" alt="" loading="lazy">
+            {% else %}
+              <span class="wws-row__noimg">kein Bild</span>
+            {% endif %}
+          </a>
+          <div class="wws-row__main">
+            <a class="wws-row__link" href="{% url 'inventory_manage:catalog_edit' a.pk %}">
+              <span class="wws-row__no">{{ a.supplier_article_no }}</span>
+              <span class="wws-row__name">{{ a.product_name }}</span>
+              <span class="wws-row__meta">
+                {{ a.get_shop_category_display|default:"ohne Kategorie" }}
+                &middot; {{ a.supplier.name }}
+                {% if a.ist_projektfaehig and a.color %}&middot; {{ a.color }}{% endif %}
+                {% if a.delivery_days %}&middot; Lieferzeit {{ a.delivery_days }} Werktage{% endif %}
+              </span>
+            </a>
+            <p class="wws-row__badges">
+              <span class="wws-badge wws-badge--{{ a.availability }}">{{ a.get_availability_display }}</span>
+              {% if a.work_state %}
+                <span class="wws-badge wws-badge--{{ a.work_state.0 }}">{{ a.work_state.1 }}</span>
+              {% endif %}
+              {% if a.product_id %}<span class="wws-badge wws-badge--shop">Im Shop</span>{% endif %}
+              {% if a.audience == "b2b" %}<span class="wws-badge wws-badge--b2b">Nur B2B</span>{% endif %}
+              {% if not a.is_active %}<span class="wws-badge wws-badge--ausgemustert">Wird nicht angeboten</span>{% endif %}
+            </p>
+            <p class="wws-row__actions">
+              <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:catalog_edit' a.pk %}">
+                <svg class="wws-ico"><use href="#ico-stift"></use></svg>Bearbeiten
+              </a>
+              {% if a.product_id or a.ist_veroeffentlichbar %}
+                <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:catalog_publish' a.pk %}">
+                  <svg class="wws-ico"><use href="#ico-etikett"></use></svg>{% if a.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}
+                </a>
+              {% else %}
+                <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:catalog_edit' a.pk %}"
+                   title="Es fehlen noch Angaben zum Onlinestellen">
+                  <svg class="wws-ico"><use href="#ico-warnung"></use></svg>Angaben fehlen
+                </a>
+              {% endif %}
+              <a class="wws-btn wws-btn--quiet" href="{% url 'inventory_manage:stock_create' %}?katalog={{ a.pk }}">
+                <svg class="wws-ico"><use href="#ico-lkw"></use></svg>Ware eingetroffen
+              </a>
+            </p>
+          </div>
+          <div class="wws-row__price">
+            {% if a.sale_price %}{{ a.sale_price|floatformat:0 }},&ndash; &euro;{% else %}&ndash;{% endif %}
+            <span class="wws-row__ek">Liste {{ a.list_price|floatformat:0|default:"&ndash;" }}</span>
+          </div>
+        </div>
+      {% empty %}
+        <div class="wws-empty">
+          <span class="wws-empty__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-etikett"></use></svg></span>
+          <p>{% if filter.q or filter.kategorie or filter.hersteller or filter.lieferbar or filter.shop %}Kein Bestellartikel passt zu dieser Suche.{% else %}Noch keine Bestellware angelegt.{% endif %}</p>
+          <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:catalog_create' %}">
+            <svg class="wws-ico"><use href="#ico-plus"></use></svg>Bestellartikel anlegen
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=6"></script>{% endblock %}

@@ -105,6 +105,9 @@
         {% if product.detail_attributes %}
           <table class="attr-table">
             <tbody>
+              {% if product.available_variants %}
+                <tr><th scope="row">Auch erh&auml;ltlich in</th><td>{{ product.available_variants }}</td></tr>
+              {% endif %}
               {% for label, value in product.detail_attributes %}
                 <tr>
                   <th scope="row">{{ label }}</th>
@@ -163,7 +166,10 @@
         {% else %}
 
           <button type="button" class="btn btn-gold js-add-to-cart" data-product-id="{{ product.id }}">In den Warenkorb</button>
-          {% if product.track_stock and product.stock_mode == "menge" %}
+          {% if product.ist_bestellware %}
+            <p class="lieferzeit">Wird f&uuml;r Sie bestellt &ndash; Lieferzeit ca.
+              {{ product.delivery_days }} Werktage.</p>
+          {% elif product.track_stock and product.stock_mode == "menge" %}
             <p class="form-hint">Noch {{ product.available_count }} auf Lager.</p>
           {% endif %}
 

@@ -1,0 +1,209 @@
+{% extends "tasty/_base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}{{ object.product_name }} bearbeiten{% else %}Bestellartikel anlegen{% endif %} &mdash; Zweithaar Schaaf{% endblock %}
+{% block body_class %}page-account{% endblock %}
+
+{% block content %}
+{% include "tasty/account/_wws_icons.html" %}
+
+<section class="hero hero--plain">
+  <div class="container">
+    <span class="eyebrow">Verwaltung &middot; Bestellware</span>
+    <h1>{% if object %}Bestell<em>artikel</em>{% else %}Neuer <em>Bestellartikel</em>{% endif %}</h1>
+    <p>Ware, die wir anbieten, ohne sie am Lager zu haben. Produktnummer, Status
+      und Wareneingangsdaten entstehen erst, wenn die Ware tats&auml;chlich eintrifft.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--form">
+    {% include "tasty/_messages.html" %}
+
+    {% if blocker %}
+      <div class="form-errors">
+        <p><strong>Zum Onlinestellen fehlt noch:</strong> {{ blocker|join:", " }}.</p>
+      </div>
+    {% endif %}
+
+    <div class="form-card">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-karton"></use></svg>Art der Ware</h2>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.shop_category.id_for_label }}">Shop-Kategorie *</label>
+            {{ form.shop_category }}{{ form.shop_category.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.delivery_days.id_for_label }}">Lieferzeit in Werktagen *</label>
+            {{ form.delivery_days }}{{ form.delivery_days.errors }}
+            <p class="form-hint">Wird der Kundin auf der Produktseite genannt.</p>
+          </div>
+        </div>
+
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-lkw"></use></svg>Lieferant</h2>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.supplier.id_for_label }}">Lieferant *</label>
+            {{ form.supplier }}{{ form.supplier.errors }}
+            <p class="form-hint">
+              <a href="{% url 'inventory_manage:supplier_create' %}?next={% url 'inventory_manage:catalog_create' %}">+ Neuen Lieferanten anlegen</a>
+            </p>
+          </div>
+          <div class="field">
+            <label for="{{ form.supplier_article_no.id_for_label }}">Artikelnummer des Lieferanten *</label>
+            {{ form.supplier_article_no }}{{ form.supplier_article_no.errors }}
+            <p class="form-hint">Damit wird der Artikel bestellt. Ohne sie geht nichts.</p>
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.product_name.id_for_label }}">Produktname *</label>
+            {{ form.product_name }}{{ form.product_name.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.availability.id_for_label }}">Lieferbarkeit</label>
+            {{ form.availability }}{{ form.availability.errors }}
+          </div>
+        </div>
+
+        <div data-haar-felder="{{ form.haar_kategorien }}">
+          <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Abgebildete Ausf&uuml;hrung</h2>
+          <p class="form-section__hint">Nur f&uuml;r Per&uuml;cken und Topper. Das ist die Ausf&uuml;hrung
+            auf den Fotos &ndash; die weiteren Farben und Gr&ouml;&szlig;en kommen darunter.</p>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.color.id_for_label }}">Farbe *</label>
+              {{ form.color }}{{ form.color.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.length.id_for_label }}">L&auml;nge *</label>
+              {{ form.length }}{{ form.length.errors }}
+            </div>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e *</label>
+              {{ form.size }}{{ form.size.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.structure.id_for_label }}">Schnitt</label>
+              {{ form.structure }}{{ form.structure.errors }}
+            </div>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.cap_type.id_for_label }}">Montur</label>
+              {{ form.cap_type }}{{ form.cap_type.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.density.id_for_label }}">Dichte</label>
+              {{ form.density }}{{ form.density.errors }}
+            </div>
+          </div>
+
+          <h2 class="form-section"><svg class="wws-ico"><use href="#ico-etikett"></use></svg>Auch erh&auml;ltlich in</h2>
+          <p class="form-section__hint">Was der Lieferant sonst noch f&uuml;hrt. Steht auf der
+            Produktseite; die konkrete Ausf&uuml;hrung wird im Gespr&auml;ch festgelegt.</p>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <span class="wws-feldname">Farben</span>
+              <div class="wws-checkliste">{{ form.available_colors }}</div>
+              {{ form.available_colors.errors }}
+            </div>
+            <div class="field">
+              <span class="wws-feldname">Gr&ouml;&szlig;en</span>
+              <div class="wws-checkliste">{{ form.available_sizes }}</div>
+              {{ form.available_sizes.errors }}
+            </div>
+          </div>
+        </div>
+
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-kamera"></use></svg>Bilder</h2>
+        <div class="form-row">
+          {% include "tasty/account/_image_uploader.html" with kind="shop" bilder=shop_bilder upload_name="shop_images" titel="Verkaufsbilder" hinweis="Meist die Bilder des Lieferanten. Erscheinen im Shop in genau dieser Reihenfolge. Pflicht fürs Onlinestellen." %}
+        </div>
+
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-kasse"></use></svg>Preise</h2>
+        <div class="form-row form-row--2">
+          <div class="field">
+            <label for="{{ form.list_price.id_for_label }}">Listenpreis des Lieferanten (&euro;)</label>
+            {{ form.list_price }}{{ form.list_price.errors }}
+            <p class="form-hint">Kalkulationsgrundlage. Der tats&auml;chlich bezahlte Preis
+              steht sp&auml;ter beim Wareneingang.</p>
+          </div>
+          <div class="field">
+            <label for="{{ form.sale_price.id_for_label }}">Verkaufspreis (&euro;) *</label>
+            {{ form.sale_price }}{{ form.sale_price.errors }}
+          </div>
+        </div>
+
+        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-info"></use></svg>Shop und Notizen</h2>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.description.id_for_label }}">Shop-Beschreibung *</label>
+            {{ form.description }}{{ form.description.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.notes.id_for_label }}">Interne Notizen</label>
+            {{ form.notes }}{{ form.notes.errors }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-checkbox">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}">Wird angeboten</label>
+          </div>
+        </div>
+
+        <div class="form-actions form-actions--sticky">
+          <button type="submit" class="wws-btn wws-btn--primary">Speichern</button>
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:catalog_list' %}">Abbrechen</a>
+          {% if object %}
+            <a class="wws-btn wws-btn--danger" href="{% url 'inventory_manage:catalog_delete' object.pk %}">L&ouml;schen</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    {% if object %}
+      <div class="wws-actions">
+        <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:stock_create' %}?katalog={{ object.pk }}">
+          <svg class="wws-ico"><use href="#ico-lkw"></use></svg>Ware eingetroffen
+        </a>
+        {% if object.product_id or object.ist_veroeffentlichbar %}
+          <a class="wws-btn wws-btn--secondary" href="{% url 'inventory_manage:catalog_publish' object.pk %}">
+            <svg class="wws-ico"><use href="#ico-etikett"></use></svg>{% if object.product_id %}Zuordnung &auml;ndern{% else %}Online stellen{% endif %}
+          </a>
+        {% endif %}
+        {% if object.product_id %}
+          <form method="post" action="{% url 'inventory_manage:catalog_unpublish' object.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="wws-btn wws-btn--quiet">Aus dem Shop nehmen</button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% if projekte %}
+        <div class="wws-group">
+          <h2 class="wws-group__title">Projekte auf diesem Artikel</h2>
+          <ul>
+            {% for p in projekte %}
+              <li><a href="{% url 'inventory_manage:project_edit' p.pk %}">{{ p.title }}</a>
+                &ndash; {{ p.get_status_display }}, {{ p.customer_display }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=6"></script>{% endblock %}

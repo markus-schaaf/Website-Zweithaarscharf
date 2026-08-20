@@ -29,6 +29,7 @@ from shop.services.imaging import normalize_uploads
 
 from .forms import (
     AttributeOptionForm,
+    CatalogItemForm,
     GoodsReceiptForm,
     ProjectForm,
     StockItemForm,
@@ -38,6 +39,7 @@ from .forms import (
 )
 from .models import (
     AttributeOption,
+    CatalogItem,
     Order,
     OrderItem,
     Project,
@@ -59,36 +61,48 @@ class StaffMixin(RoleRequiredMixin):
 
 # --- Bilder ----------------------------------------------------------------
 
-def save_images(stock_item, dateien, kind, start=0):
+def save_images(owner, dateien, kind, start=0):
     """Bereits umgewandelte Dateien als Bilder anhaengen.
+
+    Funktioniert fuer Bestandsstuecke und fuer Bestellartikel: beide fuehren
+    ihre Bilder unter related_name "images". Bestellartikel haben kein
+    kind-Feld (sie kennen nur Verkaufsbilder), dort wird kind leer uebergeben.
 
     Das Umwandeln passiert bewusst eine Ebene hoeher (normalize_uploads), damit
     unlesbare Dateien als Formularfehler erscheinen und ein Wareneingang mit
     mehreren Stueck die Fotos nur einmal durch Pillow schickt.
     """
-    StockItemImage.objects.bulk_create([
-        StockItemImage(stock_item=stock_item, image=f, kind=kind, sort_order=start + i)
+    modell = owner.images.model
+    gemeinsam = {owner.images.field.name: owner}
+    if kind:
+        gemeinsam["kind"] = kind
+    modell.objects.bulk_create([
+        modell(image=f, sort_order=start + i, **gemeinsam)
         for i, f in enumerate(dateien)
     ])
 
 
-def apply_image_changes(request, stock_item, kind, upload_field):
+def apply_image_changes(request, owner, gruppe, upload_field, kind=None):
     """Loeschen, Neusortieren und Hochladen fuer eine Bildergruppe.
+
+    `gruppe` ist der Namensraum der Formularfelder (delete_images_<gruppe>,
+    image_order_<gruppe>); `kind` der Wert fuers Modell und faellt auf die
+    Gruppe zurueck. Bestellartikel uebergeben kind="" - sie haben das Feld nicht.
 
     Gibt die Meldungen unlesbarer Dateien zurueck; der Rest wird gespeichert,
     damit ein einzelnes kaputtes Foto nicht den ganzen Vorgang verwirft.
     """
-    delete_ids = request.POST.getlist(f"delete_images_{kind}")
+    delete_ids = request.POST.getlist(f"delete_images_{gruppe}")
     if delete_ids:
-        stock_item.images.filter(pk__in=delete_ids).delete()
+        owner.images.filter(pk__in=delete_ids).delete()
 
     # Reihenfolge kommt als Liste von Bild-IDs in der neuen Sortierung
     order = [
-        pk for pk in request.POST.getlist(f"image_order_{kind}")
+        pk for pk in request.POST.getlist(f"image_order_{gruppe}")
         if pk not in delete_ids
     ]
     for position, pk in enumerate(order):
-        stock_item.images.filter(pk=pk).update(sort_order=position)
+        owner.images.filter(pk=pk).update(sort_order=position)
 
     neue = request.FILES.getlist(upload_field)
     if not neue:
@@ -97,7 +111,9 @@ def apply_image_changes(request, stock_item, kind, upload_field):
         umgewandelt = normalize_uploads(neue)
     except ValidationError as fehler:
         return fehler.messages
-    save_images(stock_item, umgewandelt, kind, start=len(order))
+    save_images(
+        owner, umgewandelt, gruppe if kind is None else kind, start=len(order)
+    )
     return []
 
 
@@ -117,6 +133,10 @@ class HomeView(StaffMixin, TemplateView):
         ).count()
         ctx["anzahl_projekte"] = Project.objects.filter(
             status=Project.Status.OFFEN
+        ).count()
+        ctx["anzahl_bestellware"] = CatalogItem.objects.filter(is_active=True).count()
+        ctx["anzahl_bestellware_online"] = CatalogItem.objects.filter(
+            is_active=True, product__isnull=False
         ).count()
         ctx["anzahl_verkaeufe"] = Order.objects.count()
         ctx["anzahl_lieferanten"] = Supplier.objects.count()
@@ -310,12 +330,38 @@ class StockItemCreateView(StaffMixin, CreateView):
     template_name = "tasty/account/goodsreceipt_form.html"
     success_url = reverse_lazy("inventory_manage:stock_list")
 
+    # Feld am Bestellartikel -> Feld im Wareneingang. Der Listenpreis wird
+    # bewusst nicht uebernommen: beim Wareneingang zaehlt der tatsaechlich
+    # bezahlte Preis, und der steht auf der Rechnung.
+    KATALOG_FELDER = (
+        "supplier", "supplier_article_no", "product_name", "shop_category",
+        "color", "length", "size", "structure", "density", "cap_type",
+        "sale_price", "description",
+    )
+
     def get_initial(self):
         initial = super().get_initial()
         supplier_id = self.request.GET.get("supplier")
         if supplier_id:
             initial["supplier"] = supplier_id
+
+        artikel = self.katalog_artikel()
+        if artikel:
+            for name in self.KATALOG_FELDER:
+                initial[name] = getattr(artikel, name)
         return initial
+
+    def katalog_artikel(self):
+        """Bestellartikel aus ?katalog=<pk>, falls die Ware daher kommt."""
+        pk = self.request.GET.get("katalog")
+        if not pk or not pk.isdigit():
+            return None
+        return CatalogItem.objects.filter(pk=int(pk)).first()
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["katalog_artikel"] = self.katalog_artikel()
+        return ctx
 
     def form_valid(self, form):
         bilder = self.request.FILES.getlist("eingang_images")
@@ -386,6 +432,17 @@ class StockItemCreateView(StaffMixin, CreateView):
                 self.request,
                 f"Erfasst: {erste}" + ("" if einzeln else f" ({menge} Stück)"),
             )
+        artikel = self.katalog_artikel()
+        if artikel:
+            offen = artikel.projects.filter(status=Project.Status.OFFEN)
+            if offen.exists():
+                titel = ", ".join(p.title for p in offen)
+                messages.info(
+                    self.request,
+                    f"Auf „{artikel.product_name}“ warten noch offene Projekte "
+                    f"({titel}). Dort jetzt das neue Bestandsstück zuordnen.",
+                )
+
         # Nicht get_success_url(): es gibt kein einzelnes self.object.
         return HttpResponseRedirect(str(self.success_url))
 
@@ -705,6 +762,222 @@ class StockItemUnpublishView(StaffMixin, View):
         return redirect("inventory_manage:stock_edit", pk=pk)
 
 
+# --- Bestellware -----------------------------------------------------------
+
+class CatalogItemListView(StaffMixin, ListView):
+    model = CatalogItem
+    template_name = "tasty/account/catalogitem_list.html"
+    context_object_name = "artikel"
+
+    def get_queryset(self):
+        qs = CatalogItem.objects.select_related(
+            "supplier", "product"
+        ).prefetch_related("images", "projects")
+
+        suche = self.request.GET.get("q", "").strip()
+        if suche:
+            qs = qs.filter(
+                Q(product_name__icontains=suche)
+                | Q(supplier_article_no__icontains=suche)
+                | Q(supplier__name__icontains=suche)
+                | Q(color__icontains=suche)
+            )
+
+        kategorie = self.request.GET.get("kategorie", "")
+        if kategorie in dict(StockItem.SHOP_CATEGORIES):
+            qs = qs.filter(shop_category=kategorie)
+
+        hersteller = self.request.GET.get("hersteller", "")
+        if hersteller.isdigit():
+            qs = qs.filter(supplier_id=int(hersteller))
+
+        lieferbar = self.request.GET.get("lieferbar", "")
+        if lieferbar in CatalogItem.Availability.values:
+            qs = qs.filter(availability=lieferbar)
+
+        shop = self.request.GET.get("shop", "")
+        if shop == "ja":
+            qs = qs.filter(product__isnull=False)
+        elif shop == "nein":
+            qs = qs.filter(product__isnull=True)
+
+        return qs.order_by("product_name", "id")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["filter"] = {
+            "q": self.request.GET.get("q", ""),
+            "kategorie": self.request.GET.get("kategorie", ""),
+            "hersteller": self.request.GET.get("hersteller", ""),
+            "lieferbar": self.request.GET.get("lieferbar", ""),
+            "shop": self.request.GET.get("shop", ""),
+        }
+        ctx["kategorien"] = StockItem.SHOP_CATEGORIES
+        ctx["lieferbarkeiten"] = CatalogItem.Availability.choices
+        ctx["lieferanten"] = Supplier.objects.all()
+        ctx["anzahl_gesamt"] = CatalogItem.objects.count()
+        return ctx
+
+
+class CatalogItemMixin:
+    model = CatalogItem
+    form_class = CatalogItemForm
+    template_name = "tasty/account/catalogitem_form.html"
+    success_url = reverse_lazy("inventory_manage:catalog_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self.object:
+            ctx["shop_bilder"] = self.object.images.all()
+            ctx["projekte"] = self.object.projects.all()
+            ctx["blocker"] = self.object.publish_blockers()
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        artikel = form.instance
+        # kind leer: Bestellartikel kennen nur Verkaufsbilder.
+        for meldung in apply_image_changes(
+            self.request, artikel, "shop", "shop_images", kind=""
+        ):
+            messages.warning(self.request, meldung)
+        if artikel.product_id:
+            artikel.sync_to_product()
+        messages.success(
+            self.request, f"Bestellartikel „{artikel.product_name}“ gespeichert."
+        )
+        return response
+
+
+class CatalogItemCreateView(CatalogItemMixin, StaffMixin, CreateView):
+    def get_initial(self):
+        initial = super().get_initial()
+        supplier_id = self.request.GET.get("supplier")
+        if supplier_id:
+            initial["supplier"] = supplier_id
+        return initial
+
+
+class CatalogItemUpdateView(CatalogItemMixin, StaffMixin, UpdateView):
+    pass
+
+
+class CatalogItemPublishView(StaffMixin, FormView):
+    """Bestellartikel einem Shop-Produkt zuordnen.
+
+    Fast identisch zum Bestand, mit einem Unterschied: track_stock bleibt aus.
+    Bestellware ist nie ausverkauft, sie hat eine Lieferzeit.
+    """
+
+    form_class = StockItemPublishForm
+    template_name = "tasty/account/catalogitem_publish.html"
+    success_url = reverse_lazy("inventory_manage:catalog_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        self.artikel = get_object_or_404(CatalogItem, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        return {
+            "product": self.artikel.product_id,
+            "name": self.artikel.product_name,
+            "label": self.artikel.product_name[:60],
+            "category": (
+                self.artikel.shop_category or Product.Category.KUNSTHAAR_PERUECKE
+            ),
+            "price": self.artikel.sale_price,
+        }
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["artikel"] = self.artikel
+        ctx["bilder"] = self.artikel.shop_images
+        ctx["blocker"] = self.artikel.publish_blockers()
+        return ctx
+
+    def form_valid(self, form):
+        daten = form.cleaned_data
+        produkt = daten.get("product")
+
+        blocker = self.artikel.publish_blockers()
+        if blocker:
+            form.add_error(
+                None,
+                "Vor dem Onlinestellen fehlt noch: " + ", ".join(blocker) + ".",
+            )
+            return self.form_invalid(form)
+
+        with transaction.atomic():
+            self.artikel.audience = daten["audience"]
+            if produkt is None:
+                produkt = Product(
+                    name=daten["name"],
+                    label=daten["label"],
+                    category=daten["category"],
+                    price=daten["price"],
+                )
+                produkt.ensure_slug()
+            # Bestellware richtet sich nicht nach dem Lager - sonst waere sie
+            # sofort ausverkauft, weil es kein Bestandsstueck gibt.
+            produkt.track_stock = False
+            produkt.save()
+            self.artikel.product = produkt
+            self.artikel.save(update_fields=["product", "audience", "updated_at"])
+            self.artikel.sync_to_product()
+
+        messages.success(
+            self.request,
+            f"„{self.artikel.product_name}“ ist jetzt als Bestellware im Shop "
+            f"(„{produkt.name}“).",
+        )
+        return HttpResponseRedirect(str(self.success_url))
+
+
+class CatalogItemUnpublishView(StaffMixin, View):
+    """Verknuepfung zum Shop-Produkt loesen (POST-only)."""
+
+    def post(self, request, pk):
+        artikel = get_object_or_404(CatalogItem, pk=pk)
+        if artikel.product_id:
+            artikel.product = None
+            artikel.save(update_fields=["product", "updated_at"])
+            messages.success(request, "Aus dem Shop genommen.")
+        return redirect("inventory_manage:catalog_edit", pk=pk)
+
+
+class CatalogItemDeleteView(StaffMixin, DeleteView):
+    """Bestellartikel entfernen - nach Rueckfrage.
+
+    Anders als beim Bestand haengt hier keine Rechnungshistorie dran; nur die
+    Bilddateien muessen mit weg, wenn sie nicht im Shop weiterverwendet werden.
+    """
+
+    model = CatalogItem
+    template_name = "tasty/account/catalogitem_confirm_delete.html"
+    success_url = reverse_lazy("inventory_manage:catalog_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["anzahl_bilder"] = self.object.images.count()
+        ctx["anzahl_projekte"] = self.object.projects.count()
+        return ctx
+
+    def form_valid(self, form):
+        artikel = self.object
+        name = artikel.product_name
+        # Wie beim Bestand: Dateien, die im Shop weiterleben, bleiben liegen.
+        for bild in artikel.images.all():
+            dateiname = bild.image.name
+            if ProductImage.objects.filter(image=dateiname).exists():
+                continue
+            if Product.objects.filter(image=dateiname).exists():
+                continue
+            bild.image.delete(save=False)
+        response = super().form_valid(form)
+        messages.success(self.request, f"Bestellartikel „{name}“ wurde gelöscht.")
+        return response
+
+
 # --- Projekte --------------------------------------------------------------
 
 class ProjectListView(StaffMixin, ListView):
@@ -777,6 +1050,9 @@ class ProjectCreateView(ProjectMixin, StaffMixin, CreateView):
         stueck_id = self.request.GET.get("bestand")
         if stueck_id and stueck_id.isdigit():
             initial["stock_item"] = stueck_id
+        artikel_id = self.request.GET.get("bestellware")
+        if artikel_id and artikel_id.isdigit():
+            initial["catalog_item"] = artikel_id
         return initial
 
     def form_valid(self, form):
@@ -789,13 +1065,15 @@ class ProjectUpdateView(ProjectMixin, StaffMixin, UpdateView):
 
 
 class ProjectPickStockView(StaffMixin, ListView):
-    """Bestandsstueck fuer ein Projekt aussuchen - mit Bildern statt Auswahlliste.
+    """Ware fuer ein Projekt aussuchen - mit Bildern statt Auswahlliste.
+
+    Zwei Quellen: der eigene Bestand und die Bestellware. Beides sind
+    Kacheln derselben Seite, umgeschaltet ueber ?quelle=.
 
     Wird per POST aus dem Projektformular aufgerufen; die bereits eingegebenen
     Werte wandern in die Session und kommen nach der Auswahl zurueck.
     """
 
-    model = StockItem
     template_name = "tasty/account/project_pick_stock.html"
     context_object_name = "stuecke"
 
@@ -814,7 +1092,35 @@ class ProjectPickStockView(StaffMixin, ListView):
         }
         return redirect(request.get_full_path())
 
+    @property
+    def quelle(self):
+        return (
+            "bestellware"
+            if self.request.GET.get("quelle") == "bestellware"
+            else "bestand"
+        )
+
     def get_queryset(self):
+        suche = self.request.GET.get("q", "").strip()
+        if self.quelle == "bestellware":
+            qs = (
+                CatalogItem.objects
+                .filter(
+                    shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN,
+                    is_active=True,
+                )
+                .select_related("supplier")
+                .prefetch_related("images", "projects")
+            )
+            if suche:
+                qs = qs.filter(
+                    Q(product_name__icontains=suche)
+                    | Q(supplier_article_no__icontains=suche)
+                    | Q(color__icontains=suche)
+                    | Q(supplier__name__icontains=suche)
+                )
+            return qs.order_by("product_name", "id")
+
         qs = (
             StockItem.objects
             .filter(shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN)
@@ -824,7 +1130,6 @@ class ProjectPickStockView(StaffMixin, ListView):
             .select_related("supplier")
             .prefetch_related("images", "projects")
         )
-        suche = self.request.GET.get("q", "").strip()
         if suche:
             qs = qs.filter(
                 Q(inventory_no__icontains=suche)
@@ -840,6 +1145,11 @@ class ProjectPickStockView(StaffMixin, ListView):
         ctx["suche"] = self.request.GET.get("q", "")
         # Zurueck ins Formular: bei bestehenden Projekten zur Bearbeitung
         ctx["projekt_pk"] = self.request.GET.get("projekt", "")
+        ctx["quelle"] = self.quelle
+        # Name des GET-Parameters, mit dem das Formular die Auswahl entgegennimmt
+        ctx["auswahl_feld"] = (
+            "bestellware" if self.quelle == "bestellware" else "bestand"
+        )
         return ctx
 
 

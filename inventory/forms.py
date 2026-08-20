@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import AttributeOption, Project, StockItem, Supplier
+from .models import AttributeOption, CatalogItem, Project, StockItem, Supplier
 
 # <input type="date"> bzw. datetime-local akzeptieren nur ISO. Ohne festes
 # format rendert Django den deutschen Wert, den der Browser verwirft - das Feld
@@ -314,6 +314,79 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
             self.fields["quantity"].help_text = "Wie viele davon im Lager liegen."
 
 
+class CatalogItemForm(CatalogFieldsMixin, forms.ModelForm):
+    """Bestellartikel pflegen: Ware, die wir anbieten, ohne sie am Lager zu
+    haben. Lieferant und dessen Artikelnummer sind Pflicht - ohne sie laesst
+    sich nichts nachbestellen.
+    """
+
+    catalog_fields = ("color", "length", "size", "structure", "density", "cap_type")
+
+    # Nur bei Haarware Pflicht, wie im Wareneingang. Geprueft in clean(),
+    # weil die Kategorie erst dort feststeht.
+    required_haar_fields = ("color", "length", "size")
+
+    class Meta:
+        model = CatalogItem
+        fields = (
+            "shop_category",
+            "supplier",
+            "supplier_article_no",
+            "product_name",
+            "color",
+            "length",
+            "size",
+            "structure",
+            "density",
+            "cap_type",
+            "available_colors",
+            "available_sizes",
+            "list_price",
+            "sale_price",
+            "delivery_days",
+            "availability",
+            "is_active",
+            "description",
+            "notes",
+        )
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 4}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+            "available_colors": forms.CheckboxSelectMultiple,
+            "available_sizes": forms.CheckboxSelectMultiple,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_catalog()
+        for name in self.catalog_fields + ("list_price", "description", "notes"):
+            self.fields[name].required = False
+        self.fields["supplier"].empty_label = "Bitte wählen"
+        self.fields["shop_category"].choices = [
+            ("", "Bitte wählen")
+        ] + list(StockItem.SHOP_CATEGORIES)
+        # Die Palette kommt aus demselben Wertekatalog wie die Einzelangaben.
+        # label_from_instance: __str__ setzt "Farbe: " davor, was in einer
+        # Liste mit der Ueberschrift "Farben" nur stoert.
+        for name, gruppe in (
+            ("available_colors", AttributeOption.Group.FARBE),
+            ("available_sizes", AttributeOption.Group.GROESSE),
+        ):
+            feld = self.fields[name]
+            feld.queryset = AttributeOption.objects.filter(
+                group=gruppe, is_active=True
+            )
+            feld.label_from_instance = lambda option: option.name
+
+    def clean(self):
+        daten = super().clean()
+        if daten.get("shop_category") in StockItem.PROJEKTFAEHIGE_KATEGORIEN:
+            for name in self.required_haar_fields:
+                if not daten.get(name):
+                    self.add_error(name, "Dieses Feld ist erforderlich.")
+        return daten
+
+
 class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
     # Die Groesse fehlt hier bewusst: sie kommt fest aus dem Bestandsstueck
     # (dort beim Wareneingang erfasst) und ist im Projekt nicht waehlbar.
@@ -327,6 +400,7 @@ class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
         fields = (
             "title",
             "stock_item",
+            "catalog_item",
             "customer",
             "customer_name",
             "status",
@@ -347,12 +421,21 @@ class ProjectForm(CatalogFieldsMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self._apply_catalog()
         self.fields["stock_item"].empty_label = "Noch kein Bestandsstück"
+        self.fields["catalog_item"].empty_label = "Kein Bestellartikel"
         self.fields["customer"].empty_label = "Kein Kundenkonto"
-        # Nur handwerklich bearbeitbare Ware: an Pflegeprodukten oder Top
-        # Holdern gibt es nichts zu planen.
+        # Nur handwerklich bearbeitbare Ware: an Zubehoer oder Pflegeprodukten
+        # gibt es nichts zu planen.
         self.fields["stock_item"].queryset = (
             StockItem.objects
             .filter(shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN)
             .exclude(status=StockItem.Status.AUSGEMUSTERT)
             .order_by("-created_at")
+        )
+        self.fields["catalog_item"].queryset = (
+            CatalogItem.objects
+            .filter(
+                shop_category__in=StockItem.PROJEKTFAEHIGE_KATEGORIEN,
+                is_active=True,
+            )
+            .order_by("product_name")
         )

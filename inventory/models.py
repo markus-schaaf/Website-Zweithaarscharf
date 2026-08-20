@@ -403,6 +403,249 @@ class StockItemEvent(models.Model):
         return f"{self.stock_item.inventory_no}: {self.from_value} -> {self.to_value}"
 
 
+class CatalogItem(models.Model):
+    """Artikel eines Lieferanten, den wir anbieten, ohne ihn am Lager zu haben.
+
+    Bestellt eine Kundin, wird erst dann beim Lieferanten geordert. Deshalb
+    gibt es hier weder Produktnummer noch Verfuegbarkeits-Status noch
+    Wareneingangsdaten - die entstehen erst, wenn die Ware als StockItem
+    eintrifft.
+
+    Ein Eintrag ist ein *Modell*, keine einzelne Ausfuehrung: color, length und
+    Co. beschreiben die abgebildete Hauptausfuehrung (der Shop-Filter braucht
+    genau einen Wert je Produkt), available_colors und available_sizes halten
+    fest, worin das Modell sonst noch lieferbar ist.
+    """
+
+    class Availability(models.TextChoices):
+        LIEFERBAR = "lieferbar", "Lieferbar"
+        PAUSIERT = "pausiert", "Vorübergehend nicht lieferbar"
+        AUSGELAUFEN = "ausgelaufen", "Ausgelaufen"
+
+    # Pflicht, anders als beim Bestandsstueck: ohne Lieferant und ohne dessen
+    # Artikelnummer laesst sich nichts nachbestellen.
+    supplier = models.ForeignKey(
+        Supplier, on_delete=models.PROTECT, related_name="catalog_items",
+        verbose_name="Lieferant"
+    )
+    supplier_article_no = models.CharField(
+        "Artikelnummer des Lieferanten", max_length=60
+    )
+    product_name = models.CharField("Produktname", max_length=120)
+
+    shop_category = models.CharField(
+        "Shop-Kategorie", max_length=20, choices=StockItem.SHOP_CATEGORIES,
+        blank=True, default=""
+    )
+    audience = models.CharField(
+        "Zielgruppe", max_length=5, choices=StockItem.Audience.choices,
+        default=StockItem.Audience.ALLE
+    )
+
+    # Hauptausfuehrung - das, was auf den Bildern zu sehen ist.
+    color = models.CharField("Farbe", max_length=80, blank=True, default="")
+    length = models.CharField("Länge", max_length=60, blank=True, default="")
+    size = models.CharField("Größe", max_length=60, blank=True, default="")
+    structure = models.CharField("Schnitt", max_length=60, blank=True, default="")
+    density = models.CharField("Dichte", max_length=60, blank=True, default="")
+    cap_type = models.CharField("Montur", max_length=80, blank=True, default="")
+
+    available_colors = models.ManyToManyField(
+        AttributeOption, blank=True, related_name="catalog_colors",
+        verbose_name="Auch erhältlich in diesen Farben"
+    )
+    available_sizes = models.ManyToManyField(
+        AttributeOption, blank=True, related_name="catalog_sizes",
+        verbose_name="Auch erhältlich in diesen Größen"
+    )
+
+    # Listenpreis statt Einkaufspreis: es gibt noch keine Rechnung, nur die
+    # Preisliste des Lieferanten als Kalkulationsgrundlage.
+    list_price = models.DecimalField(
+        "Listenpreis des Lieferanten", max_digits=8, decimal_places=2,
+        null=True, blank=True
+    )
+    sale_price = models.DecimalField(
+        "Verkaufspreis", max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    delivery_days = models.PositiveSmallIntegerField(
+        "Lieferzeit (Werktage)", null=True, blank=True,
+        help_text="Wird der Kundin auf der Produktseite genannt."
+    )
+    availability = models.CharField(
+        "Lieferbarkeit", max_length=12, choices=Availability.choices,
+        default=Availability.LIEFERBAR
+    )
+    is_active = models.BooleanField("Wird angeboten", default=True)
+
+    description = models.TextField("Shop-Beschreibung", blank=True, default="")
+    notes = models.TextField("Interne Notizen", blank=True, default="")
+
+    product = models.ForeignKey(
+        "shop.Product", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="catalog_items", verbose_name="Produkt (Shop)"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Bestellartikel"
+        verbose_name_plural = "Bestellware"
+        ordering = ["product_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["supplier", "supplier_article_no"],
+                name="uniq_lieferant_artikelnummer",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.supplier_article_no} · {self.product_name}"
+
+    @property
+    def ist_projektfaehig(self):
+        return self.shop_category in StockItem.PROJEKTFAEHIGE_KATEGORIEN
+
+    @property
+    def ist_lieferbar(self):
+        return self.availability == self.Availability.LIEFERBAR
+
+    # Die Haarangaben heissen genauso wie am Bestandsstueck - deshalb wird
+    # StockItem.PFLICHT_HAAR hier wiederverwendet statt kopiert.
+    PFLICHT_IMMER = (
+        ("product_name", "Produktname"),
+        ("supplier_article_no", "Artikelnummer des Lieferanten"),
+        ("sale_price", "Verkaufspreis"),
+        ("shop_category", "Shop-Kategorie"),
+        ("description", "Beschreibung für die Produktseite"),
+        ("delivery_days", "Lieferzeit"),
+    )
+
+    def publish_blockers(self):
+        """Angaben, die vor dem Onlinestellen noch fehlen (leer = bereit)."""
+        fehlt = [
+            label for name, label in self.PFLICHT_IMMER
+            if not getattr(self, name)
+        ]
+        if self.ist_projektfaehig:
+            fehlt += [
+                label for name, label in StockItem.PFLICHT_HAAR
+                if not getattr(self, name)
+            ]
+        if not self.shop_images:
+            fehlt.append("mindestens ein Verkaufsbild")
+        if not self.ist_lieferbar:
+            fehlt.append(
+                f"ein lieferbarer Artikel (aktuell {self.get_availability_display()})"
+            )
+        return fehlt
+
+    @property
+    def ist_veroeffentlichbar(self):
+        return not self.publish_blockers()
+
+    @property
+    def work_state(self):
+        """Arbeitsstand aus den Projekten, wie beim Bestandsstueck."""
+        projekte = list(self.projects.all())
+        if not projekte:
+            return None
+        if any(p.status == Project.Status.OFFEN for p in projekte):
+            return ("offen", "Geplant")
+        return None
+
+    @property
+    def cover_image(self):
+        return self.images.first()
+
+    @property
+    def shop_images(self):
+        """Bestellartikel kennen nur Verkaufsbilder - einen Anlieferungs-
+        zustand gibt es hier noch gar nicht.
+        """
+        return list(self.images.all())
+
+    @property
+    def is_published(self):
+        return self.product_id is not None
+
+    @property
+    def variants_note(self):
+        """Zeile "Auch erhältlich in" fuer die Produktseite."""
+        teile = []
+        farben = [o.name for o in self.available_colors.all()]
+        if farben:
+            teile.append("Farben: " + ", ".join(farben))
+        groessen = [o.name for o in self.available_sizes.all()]
+        if groessen:
+            teile.append("Größen: " + ", ".join(groessen))
+        return " · ".join(teile)
+
+    def sync_to_product(self):
+        """Eigenschaften, Lieferzeit und Galerie ins Shop-Produkt nachziehen.
+
+        Wie StockItem.sync_to_product, aber ohne Bestandsfuehrung: ein
+        Bestellartikel ist nie ausverkauft, dafuer traegt das Produkt die
+        Lieferzeit und die Variantenliste.
+        """
+        produkt = self.product
+        if produkt is None:
+            return None
+
+        produkt.hair_color = self.color
+        produkt.hair_length = self.length
+        produkt.hair_size = self.size
+        produkt.hair_structure = self.structure
+        produkt.hair_density = self.density
+        produkt.cap_type = self.cap_type
+        if self.audience:
+            produkt.audience = self.audience
+        if self.description:
+            produkt.description = self.description
+        produkt.delivery_days = self.delivery_days
+        produkt.available_variants = self.variants_note
+        produkt.save()
+
+        bilder = self.shop_images
+        allein = (
+            produkt.catalog_items.exclude(pk=self.pk).count() == 0
+            and produkt.stock_items.count() == 0
+        )
+        if bilder and (allein or not produkt.images.exists()):
+            produkt.images.all().delete()
+            ProductImage.objects.bulk_create([
+                ProductImage(product=produkt, image=b.image.name, sort_order=i)
+                for i, b in enumerate(bilder[1:])
+            ])
+            produkt.image = bilder[0].image.name
+            produkt.save(update_fields=["image"])
+        return produkt
+
+
+class CatalogItemImage(models.Model):
+    """Fotos eines Bestellartikels - meist die Bilder des Lieferanten.
+
+    Anders als beim Bestandsstueck gibt es keine Eingangsbilder, deshalb auch
+    kein kind-Feld: alles hier ist Verkaufsbild.
+    """
+
+    catalog_item = models.ForeignKey(
+        CatalogItem, on_delete=models.CASCADE, related_name="images"
+    )
+    image = models.ImageField("Bild", upload_to="katalog/%Y/%m/")
+    sort_order = models.PositiveSmallIntegerField("Sortierung", default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Bild zum Bestellartikel"
+        verbose_name_plural = "Bilder zur Bestellware"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"Bild zu {self.catalog_item.supplier_article_no}"
+
+
 class Project(models.Model):
     """Der nach der Kundenberatung festgelegte Plan fuer ein Produkt.
 
@@ -423,6 +666,13 @@ class Project(models.Model):
     stock_item = models.ForeignKey(
         StockItem, null=True, blank=True, on_delete=models.SET_NULL,
         related_name="projects", verbose_name="Bestandsstück"
+    )
+    # Alternative zum Bestandsstueck: geplant wird an Ware, die noch bestellt
+    # werden muss. Sobald ein konkretes Stueck da ist, sticht es den Plan
+    # (siehe save()).
+    catalog_item = models.ForeignKey(
+        "CatalogItem", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="projects", verbose_name="Bestellartikel"
     )
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
@@ -464,6 +714,18 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        # Ein Projekt haengt an genau einer Ware. Das physische Stueck sticht
+        # den Katalogeintrag, sobald es zugeordnet ist.
+        if self.stock_item_id:
+            self.catalog_item = None
+        return super().save(*args, **kwargs)
+
+    @property
+    def ware(self):
+        """Das Bezugsobjekt des Projekts - Bestandsstück oder Bestellartikel."""
+        return self.stock_item or self.catalog_item
 
     @property
     def customer_display(self):
