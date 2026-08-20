@@ -32,9 +32,9 @@
           <div class="field">
             <label for="{{ form.quantity.id_for_label }}">Anzahl *</label>
             {{ form.quantity }}{{ form.quantity.errors }}
-            <p class="form-hint">Bei Per&uuml;cken und Rohlingen entsteht je St&uuml;ck ein
-              eigener Datensatz mit eigener Produktnummer. Bei Pflege, Zubeh&ouml;r und
-              Top Holdern ein Datensatz mit dieser Menge im Lager.</p>
+            <p class="form-hint">Bei Per&uuml;cken und Toppern entsteht je St&uuml;ck ein
+              eigener Datensatz mit eigener Produktnummer. Bei Zubeh&ouml;r und
+              Pflegeprodukten ein Datensatz mit dieser Menge im Lager.</p>
           </div>
         </div>
 
@@ -55,57 +55,63 @@
 
         <div class="form-row form-row--2">
           <div class="field">
+            <label for="{{ form.supplier_article_no.id_for_label }}">Artikelnummer des Lieferanten</label>
+            {{ form.supplier_article_no }}{{ form.supplier_article_no.errors }}
+            <p class="form-hint">Die Nummer, unter der der Lieferant den Artikel f&uuml;hrt &ndash; f&uuml;rs Nachbestellen. Optional.</p>
+            <p class="form-hint form-hint--warn" data-artikelnummer-hinweis hidden>
+              Achtung: Alle <span data-artikelnummer-anzahl>2</span> St&uuml;ck bekommen dieselbe Artikelnummer.
+            </p>
+          </div>
+          <div class="field">
             <label for="{{ form.invoice_no.id_for_label }}">Rechnungsnummer *</label>
             {{ form.invoice_no }}{{ form.invoice_no.errors }}
           </div>
+        </div>
+
+        <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.received_at.id_for_label }}">Lieferdatum *</label>
             {{ form.received_at }}{{ form.received_at.errors }}
           </div>
-        </div>
-
-        <div class="form-row form-row--2">
           <div class="field">
             <label for="{{ form.purchase_price.id_for_label }}">EK-Preis (&euro;) *</label>
             {{ form.purchase_price }}{{ form.purchase_price.errors }}
           </div>
-          <div class="field">
-            <label for="{{ form.vat_rate.id_for_label }}">Bezahlte Mehrwertsteuer *</label>
-            {{ form.vat_rate }}{{ form.vat_rate.errors }}
-          </div>
         </div>
 
-        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
-        <p class="form-section__hint">Auswahlwerte pflegen Sie unter
-          <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.color.id_for_label }}">Farbe *</label>
-            {{ form.color }}{{ form.color.errors }}
+        <div data-haar-felder="{{ form.haar_kategorien }}">
+          <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
+          <p class="form-section__hint">Nur f&uuml;r Per&uuml;cken und Topper. Auswahlwerte pflegen Sie unter
+            <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.color.id_for_label }}">Farbe *</label>
+              {{ form.color }}{{ form.color.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.length.id_for_label }}">L&auml;nge *</label>
+              {{ form.length }}{{ form.length.errors }}
+            </div>
           </div>
-          <div class="field">
-            <label for="{{ form.length.id_for_label }}">L&auml;nge *</label>
-            {{ form.length }}{{ form.length.errors }}
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e *</label>
+              {{ form.size }}{{ form.size.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.structure.id_for_label }}">Schnitt</label>
+              {{ form.structure }}{{ form.structure.errors }}
+            </div>
           </div>
-        </div>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e *</label>
-            {{ form.size }}{{ form.size.errors }}
-          </div>
-          <div class="field">
-            <label for="{{ form.structure.id_for_label }}">Schnitt</label>
-            {{ form.structure }}{{ form.structure.errors }}
-          </div>
-        </div>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.cap_type.id_for_label }}">Montur</label>
-            {{ form.cap_type }}{{ form.cap_type.errors }}
-          </div>
-          <div class="field">
-            <label for="{{ form.density.id_for_label }}">Dichte</label>
-            {{ form.density }}{{ form.density.errors }}
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.cap_type.id_for_label }}">Montur</label>
+              {{ form.cap_type }}{{ form.cap_type.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.density.id_for_label }}">Dichte</label>
+              {{ form.density }}{{ form.density.errors }}
+            </div>
           </div>
         </div>
 
@@ -126,6 +132,14 @@
             {{ form.notes }}{{ form.notes.errors }}
           </div>
         </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="{{ form.description.id_for_label }}">Shop-Beschreibung</label>
+            {{ form.description }}{{ form.description.errors }}
+            <p class="form-hint">Text f&uuml;r die Produktseite. Wird f&uuml;r die
+              Ver&ouml;ffentlichung ben&ouml;tigt und kann sp&auml;ter nachgetragen werden.</p>
+          </div>
+        </div>
 
         <div class="form-actions form-actions--sticky">
           <button type="submit" class="wws-btn wws-btn--primary">Speichern</button>
@@ -138,4 +152,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=4"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=6"></script>{% endblock %}

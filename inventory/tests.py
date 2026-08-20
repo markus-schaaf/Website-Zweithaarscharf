@@ -50,7 +50,7 @@ def make_product(slug, **overrides):
         "name": f"Produkt {slug}",
         "label": slug,
         "slug": slug,
-        "category": Product.Category.BESTAND,
+        "category": Product.Category.ECHTHAAR_PERUECKE,
         "price": 890,
     }
     daten.update(overrides)
@@ -68,7 +68,7 @@ def make_stock_item(supplier, product=None, **overrides):
         "product_name": "Bob Klassik",
         "invoice_no": "RE-1",
         "purchase_price": 300,
-        "shop_category": Product.Category.BESTAND,
+        "shop_category": Product.Category.ECHTHAAR_PERUECKE,
         "sale_price": 890,
         "description": "Schulterlanges Modell, glatt.",
         "color": "Blond",
@@ -138,12 +138,11 @@ class GoodsReceiptViewTest(StaffViewMixin, TestCase):
 
     def _daten(self, **overrides):
         daten = {
-            "shop_category": Product.Category.BESTAND,
+            "shop_category": Product.Category.ECHTHAAR_PERUECKE,
             "supplier": self.lieferant.pk,
             "product_name": "Bob Klassik",
             "invoice_no": "RE-2026-001",
             "purchase_price": "320",
-            "vat_rate": "19.00",
             "color": "Blond",
             "length": "50 cm",
             "size": "54 cm",
@@ -223,18 +222,60 @@ class GoodsReceiptViewTest(StaffViewMixin, TestCase):
 
     def test_peruecke_ergibt_einen_datensatz_je_stueck(self):
         self.client.post(reverse("inventory_manage:stock_create"), self._daten(
-            quantity="3", shop_category=Product.Category.BESTAND,
+            quantity="3", shop_category=Product.Category.ECHTHAAR_PERUECKE,
         ))
         self.assertEqual(StockItem.objects.count(), 3)
         for stueck in StockItem.objects.all():
             self.assertEqual(stueck.stock_mode, StockItem.StockMode.EINZELSTUECK)
             self.assertEqual(stueck.quantity, 1)
 
-    def test_rohling_wird_auf_b2b_gesetzt(self):
+    def test_artikelnummer_gilt_fuer_alle_stuecke(self):
+        """Die Nummer des Lieferanten gehoert zum Artikel, nicht zum Stueck."""
         self.client.post(reverse("inventory_manage:stock_create"), self._daten(
-            quantity="1", shop_category=Product.Category.ROHLING,
+            quantity="3", supplier_article_no="EW-4711",
         ))
-        self.assertEqual(StockItem.objects.get().audience, StockItem.Audience.B2B)
+        nummern = set(StockItem.objects.values_list("supplier_article_no", flat=True))
+        self.assertEqual(StockItem.objects.count(), 3)
+        self.assertEqual(nummern, {"EW-4711"})
+
+    def test_artikelnummer_ist_optional(self):
+        response = self.client.post(reverse("inventory_manage:stock_create"), self._daten(
+            quantity="1",
+        ))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(StockItem.objects.get().supplier_article_no, "")
+
+    def test_topper_ergibt_einen_datensatz_je_stueck(self):
+        self.client.post(reverse("inventory_manage:stock_create"), self._daten(
+            quantity="2", shop_category=Product.Category.KUNSTHAAR_TOPPER,
+        ))
+        self.assertEqual(StockItem.objects.count(), 2)
+        for stueck in StockItem.objects.all():
+            self.assertEqual(stueck.stock_mode, StockItem.StockMode.EINZELSTUECK)
+
+    def test_zubehoer_braucht_keine_haarangaben(self):
+        """Farbe, Laenge und Groesse gibt es an einem Perueckenstaender nicht."""
+        daten = self._daten(
+            quantity="5", shop_category=Product.Category.ZUBEHOER,
+            product_name="Perückenständer Holz", color="", length="", size="",
+        )
+        response = self.client.post(reverse("inventory_manage:stock_create"), daten)
+        self.assertEqual(response.status_code, 302)
+        stueck = StockItem.objects.get()
+        self.assertEqual(stueck.stock_mode, StockItem.StockMode.MENGE)
+        self.assertEqual(stueck.quantity, 5)
+        # Ohne Farbe und Laenge steht der Produktname in der Nummer.
+        self.assertEqual(stueck.inventory_no, "EW-PER-0001")
+
+    def test_haarware_braucht_farbe_laenge_groesse(self):
+        response = self.client.post(
+            reverse("inventory_manage:stock_create"),
+            self._daten(shop_category=Product.Category.ECHTHAAR_TOPPER,
+                        color="", length="", size=""),
+        )
+        self.assertEqual(response.status_code, 200)
+        fehlend = set(response.context["form"].errors)
+        self.assertEqual(fehlend, {"color", "length", "size"})
 
     def test_lieferdatum_ist_vorbelegt(self):
         """Leeres Datumsfeld sah auf dem iPhone wie ein Fehler aus."""
@@ -451,9 +492,9 @@ class PublishViewTest(StaffViewMixin, TestCase):
             "product": "",
             "name": "Bob Klassik Blond",
             "label": "Bob Klassik",
-            "category": Product.Category.BESTAND,
+            "category": Product.Category.ECHTHAAR_PERUECKE,
             "price": "890",
-            "audience": StockItem.Audience.B2C,
+            "audience": StockItem.Audience.ALLE,
         }
         daten.update(overrides)
         return daten
@@ -478,17 +519,6 @@ class PublishViewTest(StaffViewMixin, TestCase):
         self.stueck.refresh_from_db()
         self.assertEqual(self.stueck.audience, StockItem.Audience.B2B)
         self.assertEqual(self.stueck.product.audience, StockItem.Audience.B2B)
-
-    def test_rohling_darf_nicht_an_alle_kunden(self):
-        self.stueck.shop_category = Product.Category.ROHLING
-        self.stueck.save()
-        response = self.client.post(
-            reverse("inventory_manage:stock_publish", args=[self.stueck.pk]),
-            self._daten(category=Product.Category.ROHLING,
-                        audience=StockItem.Audience.B2C),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("audience", response.context["form"].errors)
 
     def test_unvollstaendiges_stueck_geht_nicht_online(self):
         self.stueck.sale_price = None
@@ -935,6 +965,21 @@ class ProjectArchiveTest(StaffViewMixin, TestCase):
         self.assertContains(response, "wws-festwert--leer")
 
 
+class StockItemListSucheTest(StaffViewMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.stueck = make_stock_item(
+            self.lieferant, product_name="Bob", supplier_article_no="EW-4711"
+        )
+        self.anderes = make_stock_item(self.lieferant, product_name="Long Layers")
+
+    def test_suche_findet_ueber_die_lieferanten_artikelnummer(self):
+        response = self.client.get(
+            reverse("inventory_manage:stock_list"), {"q": "4711"}
+        )
+        self.assertEqual(list(response.context["stuecke"]), [self.stueck])
+
+
 class ProjectPickStockTest(StaffViewMixin, TestCase):
     def setUp(self):
         super().setUp()
@@ -944,7 +989,7 @@ class ProjectPickStockTest(StaffViewMixin, TestCase):
             shop_category=Product.Category.PFLEGE,
         )
 
-    def test_nur_peruecken_und_rohlinge_stehen_zur_wahl(self):
+    def test_nur_haarware_steht_zur_wahl(self):
         response = self.client.get(reverse("inventory_manage:project_pick_stock"))
         gezeigt = list(response.context["stuecke"])
         self.assertIn(self.peruecke, gezeigt)

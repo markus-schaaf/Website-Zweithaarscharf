@@ -20,7 +20,8 @@ def make_image(name="foto.jpg"):
     return SimpleUploadedFile(name, puffer.getvalue(), content_type="image/jpeg")
 
 
-def make_product(slug, category=Product.Category.BESTAND, audience=Product.Audience.B2C):
+def make_product(slug, category=Product.Category.ECHTHAAR_PERUECKE,
+                 audience=Product.Audience.ALLE):
     return Product.objects.create(
         name=f"Produkt {slug}",
         label=slug.upper(),
@@ -32,29 +33,51 @@ def make_product(slug, category=Product.Category.BESTAND, audience=Product.Audie
 
 
 class ProductVisibilityTest(TestCase):
+    """Die Zielgruppe ist dreiwertig: alle / nur b2c / nur b2b."""
+
     @classmethod
     def setUpTestData(cls):
-        cls.b2c_product = make_product("b2c-produkt")
+        cls.alle_product = make_product("alle-produkt")
+        cls.b2c_product = make_product("b2c-produkt", audience=Product.Audience.B2C)
         cls.b2b_product = make_product("b2b-produkt", audience=Product.Audience.B2B)
         cls.b2c_user = User.objects.create_user(email="b2c@example.com", password="pass12345")
         cls.b2b_user = User.objects.create_user(
             email="b2b@example.com", password="pass12345", role=User.Role.B2B
         )
+        cls.staff = User.objects.create_user(
+            email="chef@example.com", password="pass12345", role=User.Role.ALL_POWER
+        )
 
-    def test_anonymous_sees_only_b2c(self):
-        response = self.client.get(reverse("product_detail", args=["b2b-produkt"]))
-        self.assertEqual(response.status_code, 404)
-        response = self.client.get(reverse("product_detail", args=["b2c-produkt"]))
-        self.assertEqual(response.status_code, 200)
+    def _status(self, slug):
+        return self.client.get(reverse("product_detail", args=[slug])).status_code
 
-    def test_b2b_user_sees_b2b_product(self):
+    def test_anonymous_sieht_alle_und_b2c(self):
+        self.assertEqual(self._status("alle-produkt"), 200)
+        self.assertEqual(self._status("b2c-produkt"), 200)
+        self.assertEqual(self._status("b2b-produkt"), 404)
+
+    def test_b2c_kunde_sieht_kein_b2b(self):
+        self.client.force_login(self.b2c_user)
+        self.assertEqual(self._status("alle-produkt"), 200)
+        self.assertEqual(self._status("b2c-produkt"), 200)
+        self.assertEqual(self._status("b2b-produkt"), 404)
+
+    def test_b2b_kunde_sieht_b2b_aber_kein_reines_b2c(self):
         self.client.force_login(self.b2b_user)
-        response = self.client.get(reverse("product_detail", args=["b2b-produkt"]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._status("alle-produkt"), 200)
+        self.assertEqual(self._status("b2b-produkt"), 200)
+        self.assertEqual(self._status("b2c-produkt"), 404)
 
-    def test_b2c_products_not_in_sitemap_for_b2b_only(self):
+    def test_verwaltung_sieht_alles(self):
+        """All Power prueft die Listings und braucht dafuer jede Zielgruppe."""
+        self.client.force_login(self.staff)
+        for slug in ("alle-produkt", "b2c-produkt", "b2b-produkt"):
+            self.assertEqual(self._status(slug), 200)
+
+    def test_b2b_produkte_nicht_in_der_sitemap(self):
         response = self.client.get(reverse("sitemap"))
         content = response.content.decode()
+        self.assertIn("alle-produkt", content)
         self.assertIn("b2c-produkt", content)
         self.assertNotIn("b2b-produkt", content)
 

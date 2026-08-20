@@ -1482,6 +1482,14 @@ body.offcanvas #page:after {
   margin: 6px 0 0 0;
 }
 
+/* Hinweis, der auffallen soll - nicht Fehler, nur Achtung */
+.form-hint--warn {
+  color: var(--gold-dark);
+  background: var(--gold-tint);
+  border-left: 3px solid var(--gold-cream);
+  padding: 8px 10px;
+}
+
 /* ---------- Konto / Auth ---------- */
 .field input[type="password"] {
   width: 100%;

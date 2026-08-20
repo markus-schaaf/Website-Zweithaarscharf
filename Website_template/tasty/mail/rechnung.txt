@@ -8,7 +8,6 @@ Positionen
   Produktnummer: {{ pos.stock_item.inventory_no|default:"-" }}
   Menge: {{ pos.quantity }}
   Einzelpreis: {{ pos.price }} EUR
-  Mehrwertsteuersatz: {{ pos.stock_item.vat_rate|default:"-" }} %
 {% endfor %}
 Summe: {{ order.total }} EUR
 {% if order.note %}

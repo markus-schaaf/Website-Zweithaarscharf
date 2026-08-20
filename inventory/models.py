@@ -2,8 +2,6 @@
 Historie, Bestellungen. Siehe WARENWIRTSCHAFT_PLAN.md.
 """
 
-from decimal import Decimal
-
 from django.conf import settings
 from django.db import models
 
@@ -85,7 +83,8 @@ class StockItem(models.Model):
         MENGE = "menge", "Mengenartikel"
 
     class Audience(models.TextChoices):
-        B2C = "b2c", "Alle Kunden"
+        ALLE = "alle", "Alle Kunden"
+        B2C = "b2c", "Nur B2C"
         B2B = "b2b", "Nur B2B"
 
     # Konfigurierbare Peruecken entstehen nicht aus dem Bestand, sondern bleiben
@@ -97,13 +96,9 @@ class StockItem(models.Model):
     ]
 
     # Handwerklich bearbeitbare Ware: nur diese kann in ein Projekt und ist
-    # zugleich immer ein Einzelstueck mit eigener Produktnummer. Pflege,
-    # Zubehoer und Top Holder sind Mengenartikel. Eine Quelle fuer Formulare,
-    # Auswahlseiten und Vorlagen.
-    PROJEKTFAEHIGE_KATEGORIEN = (
-        ShopProduct.Category.BESTAND,
-        ShopProduct.Category.ROHLING,
-    )
+    # zugleich immer ein Einzelstueck mit eigener Produktnummer. Zubehoer und
+    # Pflegeprodukte sind Mengenartikel.
+    PROJEKTFAEHIGE_KATEGORIEN = ShopProduct.HAARWAREN
 
     @classmethod
     def mode_for_category(cls, shop_category):
@@ -111,14 +106,6 @@ class StockItem(models.Model):
         if shop_category in cls.PROJEKTFAEHIGE_KATEGORIEN:
             return cls.StockMode.EINZELSTUECK
         return cls.StockMode.MENGE
-
-    # Als Decimal, nicht als TextChoices: die Auswahl eines DecimalField wird
-    # zu Decimal gecastet und wuerde gegen String-Schluessel nicht validieren.
-    VAT_RATES = [
-        (Decimal("19.00"), "19 %"),
-        (Decimal("7.00"), "7 %"),
-        (Decimal("0.00"), "0 %"),
-    ]
 
     # Zuordnung zum Shop-Katalog erst, wenn das Stueck online gestellt wird.
     product = models.ForeignKey(
@@ -131,13 +118,14 @@ class StockItem(models.Model):
         verbose_name="Hersteller"
     )
     product_name = models.CharField("Produktname", max_length=120, default="")
+    # Nummer des Lieferanten, unter der er den Artikel fuehrt - fuers
+    # Nachbestellen. Nicht zu verwechseln mit der eigenen inventory_no.
+    supplier_article_no = models.CharField(
+        "Artikelnummer des Lieferanten", max_length=60, blank=True, default=""
+    )
     invoice_no = models.CharField("Rechnungsnummer", max_length=60, default="")
     purchase_price = models.DecimalField(
         "Einkaufspreis", max_digits=8, decimal_places=2, null=True, blank=True
-    )
-    vat_rate = models.DecimalField(
-        "Mehrwertsteuersatz", max_digits=4, decimal_places=2,
-        choices=VAT_RATES, default=Decimal("19.00")
     )
     color = models.CharField("Farbe", max_length=80, default="")
     length = models.CharField("Länge", max_length=60, default="")
@@ -158,10 +146,10 @@ class StockItem(models.Model):
 
     # Verkaufsdaten fuer die Veroeffentlichung im Shop
     shop_category = models.CharField(
-        "Shop-Kategorie", max_length=10, choices=SHOP_CATEGORIES, blank=True, default=""
+        "Shop-Kategorie", max_length=20, choices=SHOP_CATEGORIES, blank=True, default=""
     )
     audience = models.CharField(
-        "Zielgruppe", max_length=3, choices=Audience.choices, default=Audience.B2C
+        "Zielgruppe", max_length=5, choices=Audience.choices, default=Audience.ALLE
     )
     sale_price = models.DecimalField(
         "Verkaufspreis", max_digits=8, decimal_places=2, null=True, blank=True
@@ -196,13 +184,10 @@ class StockItem(models.Model):
 
     def save(self, *args, **kwargs):
         # Bestandsart wird nicht mehr von Hand gepflegt, sondern folgt der
-        # Kategorie: Peruecken und Rohlinge sind Einzelstuecke, alles andere
-        # ist Mengenware.
+        # Kategorie: Haarware sind Einzelstuecke, Zubehoer und Pflege sind
+        # Mengenware.
         if self.shop_category:
             self.stock_mode = self.mode_for_category(self.shop_category)
-        # Rohlinge sind Handelsware fuer Kollegen, nie fuer Endkunden.
-        if self.shop_category == ShopProduct.Category.ROHLING:
-            self.audience = self.Audience.B2B
         return super().save(*args, **kwargs)
 
     @property
@@ -276,13 +261,6 @@ class StockItem(models.Model):
         if any(p.status == Project.Status.ERLEDIGT for p in projekte):
             return ("erledigt", "Fertig")
         return None
-
-    @property
-    def vat_amount(self):
-        """Aus EK-Preis und Satz berechnete Mehrwertsteuer (nur Anzeige)."""
-        if self.purchase_price is None:
-            return None
-        return (self.purchase_price * self.vat_rate / 100).quantize(Decimal("0.01"))
 
     @property
     def cover_image(self):

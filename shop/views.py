@@ -81,23 +81,26 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
         products = Product.objects.visible_for(self.request.user).with_stock()
         context["active"] = "home"
-        context["home_products"] = products.exclude(
-            category=Product.Category.ROHLING
-        )[:8]
+        context["home_products"] = products[:8]
         return context
 
 
 class WigsView(TemplateView):
     template_name = "tasty/menu.html"
 
-    # Kurze Tab-Labels + ob die Kategorie Haar-Filter (Farbe/Laenge/Struktur) hat
+    # Kurzes Tab-Label + Piktogramm. Das Icon steht bewusst hier und nicht im
+    # Template: die Symbol-IDs in menu.html sind eine eigene, kleinere Menge
+    # als die Kategorien, sonst zeigte eine neue Kategorie stumm ein leeres
+    # Icon. Haar-Filter (Farbe/Laenge/Montur) blendet das Template anhand von
+    # HAARWAREN ein.
     CATEGORY_TABS = (
-        (Product.Category.KONFIG, "Maßanfertigung", False),
-        (Product.Category.BESTAND, "Im Bestand", True),
-        (Product.Category.PFLEGE, "Pflege", False),
-        (Product.Category.ZUBEHOER, "Zubehör", False),
-        (Product.Category.TOPHOLDER, "Top Holder", False),
-        (Product.Category.ROHLING, "Rohlinge (B2B)", True),
+        (Product.Category.ECHTHAAR_PERUECKE, "Echthaarperücke", "peruecke"),
+        (Product.Category.ECHTHAAR_TOPPER, "Echthaartopper", "topper"),
+        (Product.Category.KUNSTHAAR_PERUECKE, "Kunsthaarperücke", "kunsthaar"),
+        (Product.Category.KUNSTHAAR_TOPPER, "Kunsthaartopper", "topper"),
+        (Product.Category.ZUBEHOER, "Zubehör", "zubehoer"),
+        (Product.Category.PFLEGE, "Pflege", "pflege"),
+        (Product.Category.KONFIG, "Maßanfertigung", "konfig"),
     )
     COLOR_LABELS = (
         ("blond", "Blond"),
@@ -152,8 +155,13 @@ class WigsView(TemplateView):
 
         present_categories = {p.category for p in products}
         categories = [
-            {"value": value, "label": label, "has_attrs": has_attrs}
-            for value, label, has_attrs in self.CATEGORY_TABS
+            {
+                "value": value,
+                "label": label,
+                "icon": icon,
+                "has_attrs": value in Product.HAARWAREN,
+            }
+            for value, label, icon in self.CATEGORY_TABS
             if value in present_categories
         ]
 

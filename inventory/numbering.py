@@ -1,5 +1,8 @@
-"""Vergabe der eigenen Produktnummer, Format: EW-BLO-50-0001
-(Hersteller-Kuerzel, Farbe auf 3 Zeichen, Laenge in cm, laufende Nummer).
+"""Vergabe der eigenen Produktnummer.
+
+Haarware: EW-BLO-50-0001 (Hersteller-Kuerzel, Farbe auf 3 Zeichen, Laenge in
+cm, laufende Nummer). Zubehoer und Pflegeprodukte haben weder Farbe noch
+Laenge, dort steht der Produktname an dieser Stelle: EW-SHA-0001.
 """
 
 import re
@@ -12,8 +15,8 @@ from .models import Supplier
 UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 
 
-def _color_part(color):
-    plain = unicodedata.normalize("NFKD", color.lower().translate(UMLAUTE))
+def _letter_part(text):
+    plain = unicodedata.normalize("NFKD", (text or "").lower().translate(UMLAUTE))
     letters = re.sub(r"[^a-z]", "", plain).upper()
     return letters[:3].ljust(3, "X")
 
@@ -23,11 +26,11 @@ def _length_part(length):
     return match.group(1) if match else "XX"
 
 
-def build_inventory_no(supplier, color, length, counter):
-    return (
-        f"{supplier.code.upper()}-{_color_part(color)}-"
-        f"{_length_part(length)}-{counter:04d}"
-    )
+def build_inventory_no(supplier, color, length, counter, product_name=""):
+    code = supplier.code.upper()
+    if not color and not length:
+        return f"{code}-{_letter_part(product_name)}-{counter:04d}"
+    return f"{code}-{_letter_part(color)}-{_length_part(length)}-{counter:04d}"
 
 
 def reserve_numbers(supplier, count):

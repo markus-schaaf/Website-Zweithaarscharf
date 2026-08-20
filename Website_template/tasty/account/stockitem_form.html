@@ -115,18 +115,19 @@
             {{ form.supplier }}{{ form.supplier.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.invoice_no.id_for_label }}">Rechnungsnummer</label>
-            {{ form.invoice_no }}{{ form.invoice_no.errors }}
+            <label for="{{ form.supplier_article_no.id_for_label }}">Artikelnummer des Lieferanten</label>
+            {{ form.supplier_article_no }}{{ form.supplier_article_no.errors }}
+            <p class="form-hint">Gilt f&uuml;r den Artikel, nicht f&uuml;r dieses eine St&uuml;ck.</p>
           </div>
         </div>
         <div class="form-row form-row--2">
           <div class="field">
-            <label for="{{ form.purchase_price.id_for_label }}">EK-Preis (&euro;)</label>
-            {{ form.purchase_price }}{{ form.purchase_price.errors }}
+            <label for="{{ form.invoice_no.id_for_label }}">Rechnungsnummer</label>
+            {{ form.invoice_no }}{{ form.invoice_no.errors }}
           </div>
           <div class="field">
-            <label for="{{ form.vat_rate.id_for_label }}">Bezahlte Mehrwertsteuer</label>
-            {{ form.vat_rate }}{{ form.vat_rate.errors }}
+            <label for="{{ form.purchase_price.id_for_label }}">EK-Preis (&euro;)</label>
+            {{ form.purchase_price }}{{ form.purchase_price.errors }}
           </div>
         </div>
         <div class="form-row form-row--2">
@@ -140,37 +141,39 @@
           </div>
         </div>
 
-        <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
-        <p class="form-section__hint">Auswahlwerte pflegen Sie unter
-          <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.color.id_for_label }}">Farbe</label>
-            {{ form.color }}{{ form.color.errors }}
+        <div data-haar-felder="{{ form.haar_kategorien }}">
+          <h2 class="form-section"><svg class="wws-ico"><use href="#ico-palette"></use></svg>Eigenschaften</h2>
+          <p class="form-section__hint">Nur f&uuml;r Per&uuml;cken und Topper. Auswahlwerte pflegen Sie unter
+            <a href="{% url 'inventory_manage:attribute_list' %}">Auswahlwerte</a>.</p>
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.color.id_for_label }}">Farbe</label>
+              {{ form.color }}{{ form.color.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.length.id_for_label }}">L&auml;nge</label>
+              {{ form.length }}{{ form.length.errors }}
+            </div>
           </div>
-          <div class="field">
-            <label for="{{ form.length.id_for_label }}">L&auml;nge</label>
-            {{ form.length }}{{ form.length.errors }}
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e</label>
+              {{ form.size }}{{ form.size.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.structure.id_for_label }}">Schnitt</label>
+              {{ form.structure }}{{ form.structure.errors }}
+            </div>
           </div>
-        </div>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.size.id_for_label }}">Gr&ouml;&szlig;e</label>
-            {{ form.size }}{{ form.size.errors }}
-          </div>
-          <div class="field">
-            <label for="{{ form.structure.id_for_label }}">Schnitt</label>
-            {{ form.structure }}{{ form.structure.errors }}
-          </div>
-        </div>
-        <div class="form-row form-row--2">
-          <div class="field">
-            <label for="{{ form.cap_type.id_for_label }}">Montur</label>
-            {{ form.cap_type }}{{ form.cap_type.errors }}
-          </div>
-          <div class="field">
-            <label for="{{ form.density.id_for_label }}">Dichte</label>
-            {{ form.density }}{{ form.density.errors }}
+          <div class="form-row form-row--2">
+            <div class="field">
+              <label for="{{ form.cap_type.id_for_label }}">Montur</label>
+              {{ form.cap_type }}{{ form.cap_type.errors }}
+            </div>
+            <div class="field">
+              <label for="{{ form.density.id_for_label }}">Dichte</label>
+              {{ form.density }}{{ form.density.errors }}
+            </div>
           </div>
         </div>
 
@@ -275,4 +278,4 @@
 
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=4"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/wws.js' %}?v=6"></script>{% endblock %}

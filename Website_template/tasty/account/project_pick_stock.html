@@ -11,7 +11,7 @@
   <div class="container">
     <span class="eyebrow">Verwaltung &middot; Projekt</span>
     <h1>Bestandsst&uuml;ck <em>w&auml;hlen</em></h1>
-    <p>Nur Per&uuml;cken und Rohlinge &ndash; an Pflegeprodukten gibt es nichts zu planen.
+    <p>Nur Per&uuml;cken und Topper &ndash; an Zubeh&ouml;r und Pflegeprodukten gibt es nichts zu planen.
       Ihre bisherigen Eingaben sind gesichert.</p>
   </div>
 </section>
@@ -60,7 +60,7 @@
       {% empty %}
         <div class="wws-empty">
           <span class="wws-empty__ico"><svg class="wws-ico wws-ico--lg"><use href="#ico-karton"></use></svg></span>
-          <p>{% if suche %}Kein Per&uuml;cken- oder Rohlingsdatensatz passt zu &bdquo;{{ suche }}&ldquo;.{% else %}Es gibt noch keine Per&uuml;cken oder Rohlinge im Bestand.{% endif %}</p>
+          <p>{% if suche %}Kein Per&uuml;cken- oder Topperdatensatz passt zu &bdquo;{{ suche }}&ldquo;.{% else %}Es gibt noch keine Per&uuml;cken oder Topper im Bestand.{% endif %}</p>
           <a class="wws-btn wws-btn--primary" href="{% url 'inventory_manage:stock_create' %}">
             <svg class="wws-ico"><use href="#ico-plus"></use></svg>Wareneingang erfassen
           </a>

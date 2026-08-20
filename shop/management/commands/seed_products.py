@@ -5,11 +5,14 @@ from django.utils.text import slugify
 
 from shop.models import ConfiguratorGroup, ConfiguratorOption, Product
 from zweithaarschaaf.demo_products import (
-    BESTAND_PRODUCTS,
+    B2B_PRODUCTS,
     CONFIGURATOR_GROUPS,
+    ECHTHAAR_PERUECKE_PRODUCTS,
+    ECHTHAAR_TOPPER_PRODUCTS,
     KONFIG_PRODUCTS,
+    KUNSTHAAR_PERUECKE_PRODUCTS,
+    KUNSTHAAR_TOPPER_PRODUCTS,
     PFLEGE_PRODUCTS,
-    ROHLING_PRODUCTS,
     TOPHOLDER_PRODUCTS,
     ZUBEHOER_PRODUCTS,
 )
@@ -37,11 +40,14 @@ class Command(BaseCommand):
         created_count = 0
         for category, products in (
             (Product.Category.KONFIG, KONFIG_PRODUCTS),
-            (Product.Category.BESTAND, BESTAND_PRODUCTS),
-            (Product.Category.PFLEGE, PFLEGE_PRODUCTS),
+            (Product.Category.ECHTHAAR_PERUECKE, ECHTHAAR_PERUECKE_PRODUCTS),
+            (Product.Category.ECHTHAAR_PERUECKE, B2B_PRODUCTS),
+            (Product.Category.ECHTHAAR_TOPPER, ECHTHAAR_TOPPER_PRODUCTS),
+            (Product.Category.KUNSTHAAR_PERUECKE, KUNSTHAAR_PERUECKE_PRODUCTS),
+            (Product.Category.KUNSTHAAR_TOPPER, KUNSTHAAR_TOPPER_PRODUCTS),
             (Product.Category.ZUBEHOER, ZUBEHOER_PRODUCTS),
-            (Product.Category.TOPHOLDER, TOPHOLDER_PRODUCTS),
-            (Product.Category.ROHLING, ROHLING_PRODUCTS),
+            (Product.Category.ZUBEHOER, TOPHOLDER_PRODUCTS),
+            (Product.Category.PFLEGE, PFLEGE_PRODUCTS),
         ):
             for index, entry in enumerate(products):
                 slug = slugify(f"{category}-{entry['label']}")
@@ -49,7 +55,7 @@ class Command(BaseCommand):
                     "name": entry["display_name"],
                     "label": entry["label"],
                     "category": category,
-                    "audience": entry.get("audience", Product.Audience.B2C),
+                    "audience": entry.get("audience", Product.Audience.ALLE),
                     "price": Decimal(entry["price"].replace(".", "")),
                     "badge": entry["badge"] or "",
                     "description": entry["desc"],

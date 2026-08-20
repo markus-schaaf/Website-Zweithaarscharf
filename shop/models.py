@@ -27,26 +27,42 @@ class ProductQuerySet(models.QuerySet):
     def visible_for(self, user):
         """Aktive Produkte, die dieser Besucher sehen darf (user darf anonym sein).
 
-        B2B-Produkte sehen nur B2B-Kunden sowie All Power/Admin (Pruefrecht);
-        alle anderen (inkl. anonym) sehen nur die B2C-Produkte.
+        Die Zielgruppe ist dreiwertig: "alle" sieht jeder, "b2b" nur B2B-Kunden,
+        "b2c" nur Endkunden. All Power/Admin sehen alles (Pruefrecht).
         """
         qs = self.filter(is_active=True)
-        if user.is_authenticated and user.can_see_b2b_products:
-            return qs
-        return qs.filter(audience=Product.Audience.B2C)
+        if user.is_authenticated:
+            if user.can_manage_products:
+                return qs
+            if user.can_see_b2b_products:
+                return qs.filter(
+                    audience__in=(Product.Audience.B2B, Product.Audience.ALLE)
+                )
+        return qs.filter(audience__in=(Product.Audience.B2C, Product.Audience.ALLE))
 
 
 class Product(models.Model):
     class Category(models.TextChoices):
-        KONFIG = "konfig", "Echthaarperücken konfigurierbar"
-        BESTAND = "bestand", "Echthaarperücken im Bestand"
-        PFLEGE = "pflege", "Pflegeprodukte"
+        ECHTHAAR_PERUECKE = "echthaar_peruecke", "Echthaarperücke"
+        ECHTHAAR_TOPPER = "echthaar_topper", "Echthaartopper"
+        KUNSTHAAR_PERUECKE = "kunsthaar_peruecke", "Kunsthaarperücke"
+        KUNSTHAAR_TOPPER = "kunsthaar_topper", "Kunsthaartopper"
         ZUBEHOER = "zubehoer", "Perücken Zubehör"
-        TOPHOLDER = "topholder", "Top Holder"
-        ROHLING = "rohling", "Rohlinge (B2B)"
+        PFLEGE = "pflege", "Pflegeprodukte (Hair Care)"
+        KONFIG = "konfig", "Maßanfertigung"
+
+    # Haarware: hat Haarattribute, ist Einzelstueck und kann in ein Projekt.
+    # Eine Quelle fuer Shop-Filter, Erfassungsformular und Warenwirtschaft.
+    HAARWAREN = (
+        Category.ECHTHAAR_PERUECKE,
+        Category.ECHTHAAR_TOPPER,
+        Category.KUNSTHAAR_PERUECKE,
+        Category.KUNSTHAAR_TOPPER,
+    )
 
     class Audience(models.TextChoices):
-        B2C = "b2c", "Alle Kunden"
+        ALLE = "alle", "Alle Kunden"
+        B2C = "b2c", "Nur B2C"
         B2B = "b2b", "Nur B2B"
 
     class Badge(models.TextChoices):
@@ -56,9 +72,9 @@ class Product(models.Model):
     name = models.CharField("Name", max_length=120)
     label = models.CharField("Kurzlabel", max_length=60)
     slug = models.SlugField(max_length=80, unique=True)
-    category = models.CharField("Kategorie", max_length=10, choices=Category.choices)
+    category = models.CharField("Kategorie", max_length=20, choices=Category.choices)
     audience = models.CharField(
-        "Zielgruppe", max_length=3, choices=Audience.choices, default=Audience.B2C
+        "Zielgruppe", max_length=5, choices=Audience.choices, default=Audience.ALLE
     )
     price = models.DecimalField("Preis (ab)", max_digits=8, decimal_places=2)
     badge = models.CharField("Badge", max_length=10, choices=Badge.choices, blank=True, default="")
@@ -256,8 +272,10 @@ class Product(models.Model):
     # Illustrations-Fallback je Kategorie, solange kein echtes Foto hochgeladen ist
     PLACEHOLDER_IMAGES = {
         Category.KONFIG: "images/wigs/wig-curly-volume.svg",
-        Category.BESTAND: "images/wigs/wig-classic.svg",
-        Category.ROHLING: "images/wigs/wig-long-layers.svg",
+        Category.ECHTHAAR_PERUECKE: "images/wigs/wig-classic.svg",
+        Category.KUNSTHAAR_PERUECKE: "images/wigs/wig-long-layers.svg",
+        Category.ECHTHAAR_TOPPER: "images/wigs/wig-classic.svg",
+        Category.KUNSTHAAR_TOPPER: "images/wigs/wig-long-layers.svg",
     }
 
     @property
@@ -275,12 +293,7 @@ class Product(models.Model):
     @property
     def detail_attributes(self):
         """(Label, Wert)-Paare fuer die Detailseite — nur befuellte Felder."""
-        accessory = {
-            self.Category.PFLEGE,
-            self.Category.ZUBEHOER,
-            self.Category.TOPHOLDER,
-        }
-        if self.category in accessory:
+        if self.category not in self.HAARWAREN:
             field_names = ("content_amount", "usage_notes")
         else:
             field_names = (

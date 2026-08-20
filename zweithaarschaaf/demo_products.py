@@ -4,8 +4,8 @@ Wird nicht mehr direkt gerendert, sondern per `manage.py seed_products`
 in die Datenbank uebernommen (shop.Product).
 
 Optionale Attributfelder je Eintrag: hair_length, hair_size, hair_structure,
-hair_color, hair_density, cap_type (Peruecken) bzw. content_amount, usage_notes
-(Pflege, Zubehoer, Top Holder).
+hair_color, hair_density, cap_type (Peruecken und Topper) bzw.
+content_amount, usage_notes (Zubehoer, Pflege).
 """
 
 # Konfigurierbare Echthaarperücken: Preis = Rohpreis (Grundausführung).
@@ -40,7 +40,7 @@ KONFIG_PRODUCTS = [
 ]
 
 # Fertig konfigurierte Echthaarperücken im Bestand — sofort bestellbar.
-BESTAND_PRODUCTS = [
+ECHTHAAR_PERUECKE_PRODUCTS = [
     {"display_name": 'Perücke „Classic“', "label": "CLASSIC", "price": "890", "badge": "popular",
      "desc": "Zeitloses, schulterlanges Modell mit natürlichem Ansatz und glattem Haar.",
      "hair_length": "ca. 40 cm", "hair_size": "54-56 cm", "hair_structure": "glatt",
@@ -173,7 +173,7 @@ ZUBEHOER_PRODUCTS = [
      "usage_notes": "Perücke locker über den Kopf des Ständers ziehen und mit dem Netz umschließen."},
 ]
 
-# Top Holder — Halterungen und Montageköpfe für Präsentation und Lagerung.
+# Halterungen und Montageköpfe für Präsentation und Lagerung — ebenfalls Zubehör.
 TOPHOLDER_PRODUCTS = [
     {"display_name": "Top Holder Basic", "label": "HOLDER BASIC", "price": "34", "badge": "popular",
      "desc": "Standfeste Tischhalterung für die sichere Präsentation und Lagerung einer Perücke.",
@@ -189,8 +189,10 @@ TOPHOLDER_PRODUCTS = [
      "usage_notes": "Vor Gebrauch aufklappen und einrasten; nach Gebrauch flach zusammenlegen."},
 ]
 
-# Nur fuer B2B-Kunden sichtbar (audience "b2b")
-ROHLING_PRODUCTS = [
+# Handelsware fuer Kollegen, nur fuer B2B-Kunden sichtbar (audience "b2b").
+# Kategorie ist Echthaarperuecke - die Zielgruppe steckt nicht mehr in der
+# Kategorie, sondern im Feld audience.
+B2B_PRODUCTS = [
     {"display_name": "Echthaar-Rohling 30 cm, naturbraun", "label": "ROHLING 30 BRAUN", "price": "240", "badge": None,
      "audience": "b2b",
      "desc": "Unbehandeltes europäisches Echthaar auf Tresse, ideal für Konfektion und Maßanfertigung.",
@@ -216,6 +218,51 @@ ROHLING_PRODUCTS = [
      "desc": "Doppelt gezogene Premium-Qualität in Tiefschwarz für anspruchsvolle Maßanfertigungen.",
      "hair_length": "60 cm", "hair_size": "Tresse ca. 120 cm", "hair_structure": "glatt",
      "hair_color": "Tiefschwarz", "hair_density": "voll", "cap_type": "Tresse"},
+]
+
+ECHTHAAR_TOPPER_PRODUCTS = [
+    {"display_name": "Echthaar-Topper „Scheitel fein“", "label": "TOPPER FEIN", "price": "690", "badge": "popular",
+     "desc": "Leichter Echthaar-Topper für den Oberkopf, deckt lichten Scheitel und Ansatz "
+             "unauffällig ab.",
+     "hair_length": "ca. 30 cm", "hair_size": "Oberkopf/Scheitel", "hair_structure": "glatt",
+     "hair_color": "Naturbraun", "hair_density": "leicht", "cap_type": "Monofilament"},
+    {"display_name": "Echthaar-Topper „Volumen“", "label": "TOPPER VOLUMEN", "price": "790", "badge": None,
+     "desc": "Dichterer Topper für sichtbar mehr Fülle am Oberkopf, mit weichem Übergang "
+             "ins Eigenhaar.",
+     "hair_length": "ca. 35 cm", "hair_size": "Oberkopf/Scheitel", "hair_structure": "leicht gewellt",
+     "hair_color": "Hellbraun", "hair_density": "mittel", "cap_type": "Integrationsmontur"},
+    {"display_name": "Echthaar-Topper „Filmansatz“", "label": "TOPPER FILM", "price": "890", "badge": "new",
+     "desc": "Topper mit unsichtbarem Filmansatz für einen besonders natürlichen Haaransatz.",
+     "hair_length": "ca. 40 cm", "hair_size": "Oberkopf/Scheitel", "hair_structure": "glatt",
+     "hair_color": "Dunkelbraun", "hair_density": "mittel", "cap_type": "Filmansatz"},
+]
+
+KUNSTHAAR_PERUECKE_PRODUCTS = [
+    {"display_name": "Kunsthaarperücke „Bob“", "label": "KUNST BOB", "price": "290", "badge": "popular",
+     "desc": "Pflegeleichter Kunsthaar-Bob mit fertig eingelegter Form — nach dem Waschen "
+             "fällt die Frisur von selbst wieder.",
+     "hair_length": "ca. 25 cm", "hair_size": "54-56 cm", "hair_structure": "glatt gestuft",
+     "hair_color": "Naturbraun", "hair_density": "mittel", "cap_type": "Tressenmontur mit Monofilament-Scheitel"},
+    {"display_name": "Kunsthaarperücke „Kurz“", "label": "KUNST KURZ", "price": "240", "badge": None,
+     "desc": "Leichter Kurzhaarschnitt aus Kunsthaar, angenehm im Sommer und schnell gerichtet.",
+     "hair_length": "ca. 20 cm", "hair_size": "52-54 cm", "hair_structure": "kurzhaarschnitt",
+     "hair_color": "Grau meliert", "hair_density": "leicht", "cap_type": "Tresse"},
+    {"display_name": "Kunsthaarperücke „Lang gewellt“", "label": "KUNST LANG", "price": "340", "badge": "new",
+     "desc": "Lange, weich gewellte Kunsthaarperücke mit Monofilament-Scheitel für einen "
+             "natürlichen Scheitelverlauf.",
+     "hair_length": "ca. 45 cm", "hair_size": "54-56 cm", "hair_structure": "gewellt",
+     "hair_color": "Hellblond", "hair_density": "voll", "cap_type": "Monofilament"},
+]
+
+KUNSTHAAR_TOPPER_PRODUCTS = [
+    {"display_name": "Kunsthaar-Topper „Leicht“", "label": "KUNST TOPPER LEICHT", "price": "180", "badge": None,
+     "desc": "Preiswerter Kunsthaar-Topper für mehr Fülle am Oberkopf, sehr leicht zu tragen.",
+     "hair_length": "ca. 30 cm", "hair_size": "Oberkopf/Scheitel", "hair_structure": "glatt",
+     "hair_color": "Naturbraun", "hair_density": "leicht", "cap_type": "Integrationsmontur"},
+    {"display_name": "Kunsthaar-Topper „Welle“", "label": "KUNST TOPPER WELLE", "price": "210", "badge": None,
+     "desc": "Gewellter Kunsthaar-Topper, der sich gut mit dem Eigenhaar verbinden lässt.",
+     "hair_length": "ca. 35 cm", "hair_size": "Oberkopf/Scheitel", "hair_structure": "gewellt",
+     "hair_color": "Kastanienbraun", "hair_density": "mittel", "cap_type": "Monofilament"},
 ]
 
 # Konfigurator-Katalog: gilt global fuer alle konfigurierbaren Peruecken.

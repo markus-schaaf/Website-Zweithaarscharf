@@ -213,6 +213,41 @@
     });
   });
 
+  // --- Eigenschaften nur bei Haarware ---------------------------------------
+
+  // Farbe, Laenge, Montur und Co. gibt es an Zubehoer und Pflegeprodukten
+  // nicht. Ohne JavaScript bleiben die Felder sichtbar - Pflicht sind sie
+  // ohnehin nur serverseitig und nur bei Haarware.
+  document.querySelectorAll("[data-haar-felder]").forEach(function (block) {
+    var kategorie = document.getElementById("id_shop_category");
+    if (!kategorie) return;
+    var haar = block.getAttribute("data-haar-felder").split(",");
+    function zeigen() {
+      block.hidden = haar.indexOf(kategorie.value) === -1;
+    }
+    kategorie.addEventListener("change", zeigen);
+    zeigen();
+  });
+
+  // --- Hinweis: eine Artikelnummer fuer alle Stueck -------------------------
+
+  // Beim Wareneingang mehrerer Stueck entsteht je Stueck ein Datensatz, aber
+  // die Artikelnummer des Lieferanten gilt fuer den Artikel. Das soll man
+  // sehen, bevor jemand eine stueckgenaue Nummer eintraegt.
+  document.querySelectorAll("[data-artikelnummer-hinweis]").forEach(function (hinweis) {
+    var anzahl = document.getElementById("id_quantity");
+    if (!anzahl) return;
+    var zahl = hinweis.querySelector("[data-artikelnummer-anzahl]");
+    function zeigen() {
+      var menge = parseInt(anzahl.value, 10);
+      hinweis.hidden = !(menge > 1);
+      if (menge > 1 && zahl) zahl.textContent = menge;
+    }
+    anzahl.addEventListener("input", zeigen);
+    anzahl.addEventListener("change", zeigen);
+    zeigen();
+  });
+
   // --- Filterleiste ---------------------------------------------------------
 
   document.querySelectorAll("[data-wws-filter]").forEach(function (form) {

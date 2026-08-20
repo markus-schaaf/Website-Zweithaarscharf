@@ -96,8 +96,10 @@
               <span class="wws-row__name">{{ s.product_name|default:"Ohne Namen" }}</span>
               <span class="wws-row__meta">
                 {{ s.get_shop_category_display|default:"ohne Kategorie" }}
-                {% if s.color %}&middot; {{ s.color }}{% endif %}
-                {% if s.length %}&middot; {{ s.length }}{% endif %}
+                {% if s.ist_projektfaehig %}
+                  {% if s.color %}&middot; {{ s.color }}{% endif %}
+                  {% if s.length %}&middot; {{ s.length }}{% endif %}
+                {% endif %}
                 {% if s.stock_mode == "menge" %}&middot; {{ s.quantity }} St&uuml;ck{% endif %}
               </span>
             </a>

@@ -244,6 +244,7 @@ class StockItemListView(StaffMixin, ListView):
             qs = qs.filter(
                 Q(inventory_no__icontains=suche)
                 | Q(product_name__icontains=suche)
+                | Q(supplier_article_no__icontains=suche)
                 | Q(invoice_no__icontains=suche)
                 | Q(supplier__name__icontains=suche)
                 | Q(color__icontains=suche)
@@ -336,27 +337,33 @@ class StockItemCreateView(StaffMixin, CreateView):
         data = form.cleaned_data
         supplier = data["supplier"]
         menge = data["quantity"]
-        # Bestandsart folgt der Kategorie: Peruecken und Rohlinge ergeben je
-        # Stueck einen Datensatz, Mengenware einen mit der Anzahl.
+        # Bestandsart folgt der Kategorie: Haarware ergibt je Stueck einen
+        # Datensatz, Zubehoer und Pflege einen mit der Anzahl.
         einzeln = (
             StockItem.mode_for_category(data["shop_category"])
             == StockItem.StockMode.EINZELSTUECK
         )
         counters = reserve_numbers(supplier, menge if einzeln else 1)
 
+        def nummer(counter):
+            return build_inventory_no(
+                supplier, data["color"], data["length"], counter,
+                data["product_name"],
+            )
+
+        # Gilt fuer alle Stuecke dieses Wareneingangs - auch die
+        # Lieferanten-Artikelnummer, die je Artikel und nicht je Stueck gilt.
         felder = (
-            "product_name", "invoice_no", "purchase_price", "vat_rate",
+            "product_name", "supplier_article_no", "invoice_no", "purchase_price",
             "color", "length", "size", "structure", "density", "cap_type",
-            "received_at", "shop_category", "sale_price", "notes",
+            "received_at", "shop_category", "sale_price", "description", "notes",
         )
         gemeinsam = {name: data[name] for name in felder}
 
         with transaction.atomic():
             for counter in counters:
                 stueck = StockItem.objects.create(
-                    inventory_no=build_inventory_no(
-                        supplier, data["color"], data["length"], counter
-                    ),
+                    inventory_no=nummer(counter),
                     supplier=supplier,
                     quantity=1 if einzeln else menge,
                     **gemeinsam,
@@ -368,11 +375,9 @@ class StockItemCreateView(StaffMixin, CreateView):
                     note=f"Wareneingang, Rechnung {stueck.invoice_no}",
                 )
 
-        erste = build_inventory_no(supplier, data["color"], data["length"], counters[0])
+        erste = nummer(counters[0])
         if einzeln and len(counters) > 1:
-            letzte = build_inventory_no(
-                supplier, data["color"], data["length"], counters[-1]
-            )
+            letzte = nummer(counters[-1])
             messages.success(
                 self.request, f"{len(counters)} Stück erfasst ({erste} bis {letzte})."
             )
@@ -396,11 +401,6 @@ class StockItemPublishView(StaffMixin, FormView):
         self.stueck = get_object_or_404(StockItem, pk=kwargs["pk"])
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["stueck"] = self.stueck  # fuer die Rohling-Regel im Formular
-        return kwargs
-
     def get_initial(self):
         # Was der Wareneingang schon weiss, vorbelegen. Die Zielgruppe bewusst
         # nicht - sie soll hier bewusst entschieden werden.
@@ -408,7 +408,9 @@ class StockItemPublishView(StaffMixin, FormView):
             "product": self.stueck.product_id,
             "name": self.stueck.product_name,
             "label": self.stueck.product_name[:60],
-            "category": self.stueck.shop_category or Product.Category.BESTAND,
+            "category": (
+                self.stueck.shop_category or Product.Category.ECHTHAAR_PERUECKE
+            ),
             "price": self.stueck.sale_price,
         }
 

@@ -46,6 +46,15 @@ class CatalogFieldsMixin:
 
     catalog_fields = ()
 
+    @property
+    def haar_kategorien(self):
+        """Kategorien mit Haarangaben, als Liste fuers data-Attribut.
+
+        Das Formular blendet die Eigenschaften danach ein und aus; massgeblich
+        bleibt die Pruefung in clean().
+        """
+        return ",".join(StockItem.PROJEKTFAEHIGE_KATEGORIEN)
+
     def _apply_catalog(self):
         for name in self.catalog_fields:
             field = self.fields[name]
@@ -90,12 +99,15 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
     catalog_fields = ("color", "length", "size", "structure", "density", "cap_type")
 
     # Ohne diese Angaben laesst sich nichts einkaufen; alles Weitere
-    # (Verkaufspreis, Beschreibung, Zielgruppe) kommt beim Bearbeiten und beim
-    # Onlinestellen dazu.
+    # (Verkaufspreis, Zielgruppe) kommt beim Bearbeiten und beim Onlinestellen
+    # dazu.
     required_fields = (
-        "supplier", "product_name", "invoice_no", "purchase_price", "vat_rate",
-        "color", "length", "size", "received_at", "shop_category",
+        "supplier", "product_name", "invoice_no", "purchase_price",
+        "received_at", "shop_category",
     )
+    # Nur bei Haarware Pflicht - an Zubehoer und Pflegeprodukten gibt es weder
+    # Farbe noch Laenge noch Kopfumfang.
+    required_haar_fields = ("color", "length", "size")
 
     class Meta:
         model = StockItem
@@ -103,9 +115,9 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
             "shop_category",
             "supplier",
             "product_name",
+            "supplier_article_no",
             "invoice_no",
             "purchase_price",
-            "vat_rate",
             "color",
             "length",
             "size",
@@ -114,10 +126,12 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
             "cap_type",
             "received_at",
             "sale_price",
+            "description",
             "notes",
         )
         widgets = {
             "received_at": DATE_WIDGET,
+            "description": forms.Textarea(attrs={"rows": 4}),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
@@ -126,7 +140,10 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
         self._apply_catalog()
         for name in self.required_fields:
             self.fields[name].required = True
-        for name in ("structure", "density", "cap_type", "sale_price", "notes"):
+        # Die Haarfelder sind ChoiceFields aus dem Katalog: waeren sie hier
+        # schon Pflicht, scheiterte die Validierung vor clean() - und damit
+        # bevor die Kategorie bekannt ist.
+        for name in self.catalog_fields + ("sale_price", "description", "notes"):
             self.fields[name].required = False
         self.fields["supplier"].empty_label = "Bitte wählen"
         self.fields["shop_category"].choices = [
@@ -135,6 +152,15 @@ class GoodsReceiptForm(CatalogFieldsMixin, forms.ModelForm):
         # Ware wird fast immer am Eingangstag erfasst. Ein leeres Datumsfeld
         # sieht auf dem iPhone zudem aus wie ein Fehler.
         self.fields["received_at"].initial = timezone.localdate()
+
+    def clean(self):
+        daten = super().clean()
+        kategorie = daten.get("shop_category")
+        if kategorie in StockItem.PROJEKTFAEHIGE_KATEGORIEN:
+            for name in self.required_haar_fields:
+                if not daten.get(name):
+                    self.add_error(name, "Dieses Feld ist erforderlich.")
+        return daten
 
 
 class StockItemPublishForm(forms.Form):
@@ -164,7 +190,6 @@ class StockItemPublishForm(forms.Form):
         # aber die Kette bleibt so in jedem Fall zirkelfrei.
         from shop.models import Product
 
-        self.stueck = kwargs.pop("stueck", None)
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.order_by("name")
         self.fields["category"].choices = [("", "---------")] + [
@@ -174,17 +199,6 @@ class StockItemPublishForm(forms.Form):
         self.fields["audience"].choices = [
             ("", "Bitte wählen")
         ] + list(StockItem.Audience.choices)
-
-    def clean_audience(self):
-        wert = self.cleaned_data["audience"]
-        # Rohlinge sind Handelsware fuer Kollegen. Frueher wurde das still
-        # korrigiert - jetzt ein Fehler, damit die Nutzerin es mitbekommt.
-        if self.stueck and self.stueck.shop_category == "rohling":
-            if wert != StockItem.Audience.B2B:
-                raise forms.ValidationError(
-                    "Rohlinge sind B2B-Ware und dürfen nicht an alle Kunden gehen."
-                )
-        return wert
 
     def clean(self):
         daten = super().clean()
@@ -255,9 +269,9 @@ class StockItemForm(CatalogFieldsMixin, forms.ModelForm):
             "product_name",
             "quantity",
             "supplier",
+            "supplier_article_no",
             "invoice_no",
             "purchase_price",
-            "vat_rate",
             "received_at",
             "color",
             "length",

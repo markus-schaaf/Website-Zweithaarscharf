@@ -34,7 +34,9 @@ class ProductSitemap(Sitemap):
 
     def items(self):
         # Nur öffentliche (B2C) aktive Produkte — B2B bleibt unsichtbar
-        return Product.objects.filter(is_active=True, audience=Product.Audience.B2C)
+        return Product.objects.filter(is_active=True).exclude(
+            audience=Product.Audience.B2B
+        )
 
     def location(self, obj):
         return reverse("product_detail", args=[obj.slug])
