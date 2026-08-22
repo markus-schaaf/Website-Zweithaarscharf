@@ -9,44 +9,106 @@
 
 <section class="hero hero--plain">
   <div class="container">
-    <span class="eyebrow">Beratungstermin</span>
-    <h1>Ihr <em>Beratungstermin</em></h1>
-    <p>Pers&ouml;nlich, unverbindlich und ganz auf Sie abgestimmt &ndash; Sie entscheiden, wie.</p>
+    <div class="res-intro">
+      <span class="eyebrow">Beratungstermin</span>
+      <h1>Ihr <em>Beratungstermin</em></h1>
+      <p>Pers&ouml;nlich, unverbindlich und ganz auf Sie abgestimmt &ndash; Sie entscheiden, wie.</p>
+      <div class="res-tags">
+        <span class="pill pill--sm">Kostenlos</span>
+        <span class="pill pill--sm">Unverbindlich</span>
+        <span class="pill pill--sm">Diskret</span>
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="section section--tight">
   <div class="container">
-    <div class="section-heading">
+    <div class="section-heading res-heading">
       <h2>Wie m&ouml;chten Sie beraten werden?</h2>
       <p>Ob vor Ort im Studio oder bequem von zu Hause per Videoanruf &ndash; beide Beratungen sind kostenlos und unverbindlich.</p>
     </div>
-    <div class="grid grid-2">
-      <div class="feature-card">
-        <div class="feature-card__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+
+    <div class="choice-grid">
+      <article class="choice-card choice-card--featured">
+        <div class="choice-card__top">
+          <span class="choice-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+          </span>
+          <span class="choice-card__badge">Empfohlen</span>
         </div>
         <h3>Pr&auml;senz-Beratung</h3>
-        <p>Pers&ouml;nliches Gespr&auml;ch bei uns im Studio &ndash; mit Anprobe vor Ort, in diskreter und ruhiger Atmosph&auml;re. Dauer: ca. 60 Minuten.</p>
-        <p class="mb-0"><a class="btn btn-gold" href="{% url 'reservation_praesenz' %}">Pr&auml;senz-Termin anfragen</a></p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-card__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5 21 7v10l-5-3.5"/></svg>
+        <p class="choice-card__text">Pers&ouml;nliches Gespr&auml;ch bei uns im Studio &ndash; mit Anprobe vor Ort, in diskreter und ruhiger Atmosph&auml;re.</p>
+        <dl class="choice-specs">
+          <div><dt>Dauer</dt><dd>ca. 60 Minuten</dd></div>
+          <div><dt>Ort</dt><dd>Studio Ulmen</dd></div>
+          <div><dt>Sie brauchen</dt><dd>nur Ihre Zeit</dd></div>
+          <div><dt>Kosten</dt><dd class="choice-specs__free">kostenlos</dd></div>
+        </dl>
+        <a class="btn choice-card__cta" href="{% url 'reservation_praesenz' %}">Pr&auml;senz-Termin anfragen</a>
+        <p class="choice-card__hint">Freie Termine meist innerhalb einer Woche</p>
+      </article>
+
+      <article class="choice-card">
+        <div class="choice-card__top">
+          <span class="choice-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5 21 7v10l-5-3.5"/></svg>
+          </span>
+          <span class="choice-card__badge">Von zu Hause</span>
         </div>
         <h3>Digitale Beratung</h3>
-        <p>Videoberatung bequem von zu Hause &ndash; per WhatsApp oder Zoom, ein Smartphone gen&uuml;gt. Dauer: ca. 30&ndash;45 Minuten.</p>
-        <p class="mb-0"><a class="btn btn-gold" href="{% url 'reservation_digital' %}">Digitale Beratung anfragen</a></p>
-      </div>
+        <p class="choice-card__text">Videoberatung bequem von zu Hause &ndash; per WhatsApp oder Zoom, ein Smartphone gen&uuml;gt.</p>
+        <dl class="choice-specs">
+          <div><dt>Dauer</dt><dd>ca. 30&ndash;45 Minuten</dd></div>
+          <div><dt>Ort</dt><dd>WhatsApp oder Zoom</dd></div>
+          <div><dt>Sie brauchen</dt><dd>Smartphone oder Laptop</dd></div>
+          <div><dt>Kosten</dt><dd class="choice-specs__free">kostenlos</dd></div>
+        </dl>
+        <a class="btn choice-card__cta" href="{% url 'reservation_digital' %}">Digitale Beratung anfragen</a>
+        <p class="choice-card__hint">Auch abends nach Absprache m&ouml;glich</p>
+      </article>
     </div>
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section section--tight">
   <div class="container">
-    <div class="section-heading">
-      <h2>Gut zu wissen</h2>
-      <p>Egal wof&uuml;r Sie sich entscheiden: Sie erhalten nach Ihrer Anfrage eine pers&ouml;nliche R&uuml;ckmeldung von uns zur Terminbest&auml;tigung &ndash; kostenlos, unverbindlich und ohne jede Verpflichtung.</p>
+    <div class="res-process">
+      <span class="eyebrow">Ablauf</span>
+      <h2>Was nach Ihrer Anfrage passiert</h2>
+      <ol class="res-steps">
+        <li class="res-step">
+          <span class="res-step__num" aria-hidden="true">01</span>
+          <p class="res-step__title">Sie senden Ihre Anfrage</p>
+          <p>Name, Kontakt und ein Wunschzeitraum gen&uuml;gen. Keine Vorauswahl, keine Zahlungsdaten.</p>
+        </li>
+        <li class="res-step">
+          <span class="res-step__num" aria-hidden="true">02</span>
+          <p class="res-step__title">Wir melden uns innerhalb von 24 Stunden</p>
+          <p>Telefonisch oder per E-Mail, wie es Ihnen lieber ist. Gemeinsam legen wir den Termin fest.</p>
+        </li>
+        <li class="res-step">
+          <span class="res-step__num" aria-hidden="true">03</span>
+          <p class="res-step__title">Ihre Beratung findet statt</p>
+          <p>In Ruhe, ohne Zeitdruck und ohne Kaufverpflichtung. Sie entscheiden danach frei.</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="res-contact">
+      <div class="res-contact__intro">
+        <h2>Lieber direkt sprechen?</h2>
+        <p>Rufen Sie uns an oder schreiben Sie uns &ndash; wir beantworten auch kleine Fragen gern vorab.</p>
+      </div>
+      <div class="res-contact__actions">
+        {# TODO: Echte Telefonnummer eintragen #}
+        <a class="btn btn-outline" href="tel:+4912345678">+49 123 456 78</a>
+        <a class="btn btn-outline" href="{% url 'contact' %}">Nachricht schreiben</a>
+      </div>
     </div>
   </div>
 </section>

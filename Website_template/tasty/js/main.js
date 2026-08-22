@@ -208,10 +208,28 @@
     box.focus();
   }
 
+  /* ---------- Galerie: Vorher-Nachher-Regler ---------- */
+
+  function initGalleryCompare() {
+    var box = document.getElementById('gal-compare');
+    if (!box) { return; }
+    var range = box.querySelector('.gal-compare__range');
+    if (!range) { return; }
+
+    // Der Input liefert Ziehen, Tippen und Pfeiltasten - hier wird nur der
+    // Wert an die CSS-Variable durchgereicht, die den Zuschnitt steuert.
+    function apply() {
+      box.style.setProperty('--split', range.value);
+    }
+    range.addEventListener('input', apply);
+    apply();
+  }
+
   function init() {
     buildOffcanvas();
     initScrollFx();
     initProductMarquee();
+    initGalleryCompare();
     initFormFeedback();
     focusFeedback();
   }

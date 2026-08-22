@@ -129,6 +129,10 @@
     });
   }
 
+  function itemsLabel(n) {
+    return n + (n === 1 ? ' Modell' : ' Modelle') + ' im Warenkorb';
+  }
+
   /* ---------- In den Warenkorb ---------- */
 
   function flashButton(btn) {
@@ -221,12 +225,17 @@
       setBadge(resp.count);
       var total = document.getElementById('cart-total');
       if (total) { total.textContent = resp.total_display; }
+      // Zwischensumme entspricht der Gesamtsumme - es gibt keine Zuschlaege
+      var subtotal = document.getElementById('cart-subtotal');
+      if (subtotal) { subtotal.textContent = resp.total_display; }
       if (resp.quantity === 0 || resp.removed) {
         row.remove();
       } else if (typeof resp.quantity !== 'undefined') {
         row.querySelector('.qty-value').textContent = resp.quantity;
         row.querySelector('.js-line-total').textContent = resp.line_total_display;
       }
+      var label = document.getElementById('cart-count-label');
+      if (label) { label.textContent = itemsLabel(list.querySelectorAll('.cart-item').length); }
       if (!list.querySelector('.cart-item')) {
         var box = document.getElementById('cart-box');
         if (box) { box.style.display = 'none'; }
@@ -342,46 +351,91 @@
       }
 
       var total = 0;
+      var shopUrl = container.dataset.shopUrl;
       var cards = ids.map(function (id) {
         var p = products[id];
         var qty = cart.items[id];
         var line = p.price * qty;
         total += line;
+        var chips =
+          (p.category_label ? '<span class="cart-chip">' + p.category_label + '</span>' : '') +
+          (p.stock_label ? '<span class="cart-chip">' + p.stock_label + '</span>' : '');
+        var notice = p.sold_out
+          ? '<div class="cart-notice">' +
+            '<span class="cart-notice__icon" aria-hidden="true">!</span>' +
+            '<div>' +
+            '<p class="cart-notice__title">Inzwischen verkauft</p>' +
+            '<p>Dieses Einzelstück ist nicht mehr verfügbar. ' +
+            'Wir finden gern ein vergleichbares Modell für Sie.</p>' +
+            '<div class="cart-notice__links">' +
+            '<a href="#" class="js-remove">Aus dem Warenkorb entfernen</a>' +
+            '<a href="' + shopUrl + '">Ähnliche Modelle zeigen</a>' +
+            '</div></div></div>'
+          : '';
         return (
           '<article class="cart-item" data-product-id="' + p.id + '">' +
           '<a class="cart-item__img" href="' + p.url + '">' +
           (p.image ? '<img src="' + p.image + '" alt="" loading="lazy">' : '') +
           '</a>' +
-          '<div class="cart-item__info">' +
+          '<div class="cart-item__body">' +
           '<a class="cart-item__name" href="' + p.url + '">' + p.name + '</a>' +
+          '<div class="cart-item__chips">' + chips + '</div>' +
           '<p class="cart-item__meta">Einzelpreis: ab ' + p.price_display + ',- €</p>' +
+          notice +
+          '<div class="cart-item__actions">' +
           '<span class="qty-controls">' +
           '<button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">−</button>' +
           '<span class="qty-value">' + qty + '</span>' +
           '<button type="button" class="qty-btn js-qty-plus" aria-label="Menge erhöhen">+</button>' +
-          '</span></div>' +
+          '</span>' +
+          '<a href="#" class="cart-item__remove js-remove">Entfernen</a>' +
+          '</div></div>' +
           '<div class="cart-item__side">' +
           '<span class="cart-item__total js-line-total">' + euroFormat.format(line) + '</span>' +
-          '<a href="#" class="cart-item__remove js-remove">Entfernen</a>' +
           '</div></article>'
         );
       }).join('');
 
+      var summe = euroFormat.format(total);
+
       container.innerHTML =
         '<div class="cart-layout" id="cart-box">' +
+        '<div class="cart-items-col">' +
+        '<div class="cart-list-head"><span id="cart-count-label">' +
+        itemsLabel(ids.length) + '</span></div>' +
         '<div class="cart-items" id="cart-items">' + cards + '</div>' +
+        '<div class="cart-list-foot">' +
+        '<a class="cart-back" href="' + shopUrl + '">← Weiter stöbern</a>' +
+        '<span>Fragen zu einem Modell? ' +
+        '<a href="tel:+4912345678">Rufen Sie uns an: +49 123 456 78</a></span>' +
+        '</div></div>' +
         '<aside class="cart-summary">' +
+        '<div class="cart-summary__rule" aria-hidden="true"></div>' +
+        '<div class="cart-summary__inner">' +
         '<h2 class="cart-summary__title">Zusammenfassung</h2>' +
-        '<div class="cart-summary__row"><span>Gesamtsumme</span>' +
-        '<strong id="cart-total">' + euroFormat.format(total) + '</strong></div>' +
+        '<div class="cart-summary__row"><span>Zwischensumme</span>' +
+        '<span id="cart-subtotal">' + summe + '</span></div>' +
+        '<div class="cart-summary__row"><span>Beratung im Studio</span>' +
+        '<span class="cart-summary__free">kostenlos</span></div>' +
+        '<div class="cart-summary__total"><span>Gesamtsumme</span>' +
+        '<strong id="cart-total">' + summe + '</strong></div>' +
         '<p class="cart-summary__hint text-muted">' +
         'Alle Preise sind „ab“-Richtwerte für die Grundausführung – ' +
         'der endgültige Preis wird im Beratungsgespräch festgelegt.</p>' +
         (container.dataset.reservationUrl
           ? '<a class="btn btn-gold" href="' + container.dataset.reservationUrl + '">Beratungstermin vereinbaren</a>'
           : '') +
-        '<a class="btn btn-outline" href="' + container.dataset.shopUrl + '">Weiter stöbern</a>' +
-        '</aside></div>';
+        (container.dataset.contactUrl
+          ? '<a class="btn btn-outline" href="' + container.dataset.contactUrl + '">Unverbindlich anfragen</a>'
+          : '') +
+        '<ul class="cart-trust">' +
+        '<li><span class="cart-trust__check" aria-hidden="true">✓</span>' +
+        '<span>Kostenlose Erstberatung, telefonisch oder im Studio</span></li>' +
+        '<li><span class="cart-trust__check" aria-hidden="true">✓</span>' +
+        '<span>Der Warenkorb ist eine Merkliste – es entsteht keine Zahlungspflicht</span></li>' +
+        '<li><span class="cart-trust__check" aria-hidden="true">✓</span>' +
+        '<span>Anpassung und Schnitt durch Meisterhand inklusive</span></li>' +
+        '</ul></div></aside></div>';
 
       container.querySelector('.cart-items').addEventListener('click', function (event) {
         var row = event.target.closest('.cart-item[data-product-id]');

@@ -8,59 +8,113 @@
 
 <section class="hero hero--plain">
   <div class="container">
-    <span class="eyebrow">Shop</span>
-    <h1>Ihr <em>Warenkorb</em></h1>
-    <p>Gesammelte Modelle f&uuml;r Ihre Beratung oder Bestellung.</p>
+    <div class="cart-head">
+      <div class="cart-head__intro">
+        <span class="eyebrow">Shop</span>
+        <h1>Ihr <em>Warenkorb</em></h1>
+        <p>Gesammelte Modelle f&uuml;r Ihre Beratung oder Bestellung.</p>
+      </div>
+      <ol class="cart-steps">
+        <li class="cart-step cart-step--current"><span class="cart-step__num">1</span>Warenkorb</li>
+        <li class="cart-steps__line" aria-hidden="true"></li>
+        <li class="cart-step"><span class="cart-step__num">2</span>Beratung</li>
+        <li class="cart-steps__line" aria-hidden="true"></li>
+        <li class="cart-step"><span class="cart-step__num">3</span>Bestellung</li>
+      </ol>
+    </div>
   </div>
 </section>
 
 <section class="section section--tight">
-  <div class="container container--wide">
+  <div class="container">
     {% if user.is_authenticated %}
 
       {% if cart_items %}
         <div class="cart-layout" id="cart-box">
-          <div class="cart-items" id="cart-items">
-            {% for item in cart_items %}
-            <article class="cart-item" data-product-id="{{ item.product_id }}">
-              <a class="cart-item__img" href="{% url 'product_detail' item.product.slug %}">
-                {% if item.product.image %}
-                  <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
-                {% elif item.product.placeholder_image %}
-                  <img src="{% static item.product.placeholder_image %}" alt="Illustration: {{ item.product.name }}" loading="lazy">
-                {% endif %}
-              </a>
-              <div class="cart-item__info">
-                <a class="cart-item__name" href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
-                <p class="cart-item__meta">Einzelpreis: ab {{ item.product.price_display }},- &euro;</p>
-                {% if item.product.is_sold_out %}
-                  <p class="cart-item__meta cart-item__meta--soldout">Inzwischen verkauft &ndash; bitte entfernen.</p>
-                {% endif %}
-                <span class="qty-controls">
-                  <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
-                  <span class="qty-value">{{ item.quantity }}</span>
-                  <button type="button" class="qty-btn js-qty-plus" aria-label="Menge erh&ouml;hen">+</button>
-                </span>
-              </div>
-              <div class="cart-item__side">
-                <span class="cart-item__total js-line-total">{{ item.line_total|euro }}</span>
-                <a href="#" class="cart-item__remove js-remove">Entfernen</a>
-              </div>
-            </article>
-            {% endfor %}
-          </div>
-          <aside class="cart-summary">
-            <h2 class="cart-summary__title">Zusammenfassung</h2>
-            <div class="cart-summary__row">
-              <span>Gesamtsumme</span>
-              <strong id="cart-total">{{ cart.total_price|euro }}</strong>
+          <div class="cart-items-col">
+            <div class="cart-list-head">
+              <span id="cart-count-label">{{ cart_items|length }} Modell{{ cart_items|length|pluralize:"e" }} im Warenkorb</span>
             </div>
-            <p class="cart-summary__hint text-muted">
-              Alle Preise sind &bdquo;ab&ldquo;-Richtwerte f&uuml;r die Grundausf&uuml;hrung &ndash;
-              der endg&uuml;ltige Preis wird im Beratungsgespr&auml;ch festgelegt.
-            </p>
-            <a class="btn btn-gold" href="{% url 'reservation' %}">Beratungstermin vereinbaren</a>
-            <a class="btn btn-outline" href="{% url 'wigs' %}">Weiter st&ouml;bern</a>
+            <div class="cart-items" id="cart-items">
+              {% for item in cart_items %}
+              <article class="cart-item" data-product-id="{{ item.product_id }}">
+                <a class="cart-item__img" href="{% url 'product_detail' item.product.slug %}">
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+                  {% elif item.product.placeholder_image %}
+                    <img src="{% static item.product.placeholder_image %}" alt="Illustration: {{ item.product.name }}" loading="lazy">
+                  {% endif %}
+                </a>
+                <div class="cart-item__body">
+                  <a class="cart-item__name" href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                  <div class="cart-item__chips">
+                    <span class="cart-chip">{{ item.product.get_category_display }}</span>
+                    {% if item.product.stock_label %}<span class="cart-chip">{{ item.product.stock_label }}</span>{% endif %}
+                  </div>
+                  <p class="cart-item__meta">Einzelpreis: ab {{ item.product.price_display }},- &euro;</p>
+                  {% if item.product.is_sold_out %}
+                    <div class="cart-notice">
+                      <span class="cart-notice__icon" aria-hidden="true">!</span>
+                      <div>
+                        <p class="cart-notice__title">Inzwischen verkauft</p>
+                        <p>Dieses Einzelst&uuml;ck ist nicht mehr verf&uuml;gbar. Wir finden gern ein vergleichbares Modell f&uuml;r Sie.</p>
+                        <div class="cart-notice__links">
+                          <a href="#" class="js-remove">Aus dem Warenkorb entfernen</a>
+                          <a href="{% url 'wigs' %}">&Auml;hnliche Modelle zeigen</a>
+                        </div>
+                      </div>
+                    </div>
+                  {% endif %}
+                  <div class="cart-item__actions">
+                    <span class="qty-controls">
+                      <button type="button" class="qty-btn js-qty-minus" aria-label="Menge verringern">&minus;</button>
+                      <span class="qty-value">{{ item.quantity }}</span>
+                      <button type="button" class="qty-btn js-qty-plus" aria-label="Menge erh&ouml;hen">+</button>
+                    </span>
+                    <a href="#" class="cart-item__remove js-remove">Entfernen</a>
+                  </div>
+                </div>
+                <div class="cart-item__side">
+                  <span class="cart-item__total js-line-total">{{ item.line_total|euro }}</span>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+            <div class="cart-list-foot">
+              <a class="cart-back" href="{% url 'wigs' %}">&larr; Weiter st&ouml;bern</a>
+              {# TODO: Echte Telefonnummer eintragen #}
+              <span>Fragen zu einem Modell? <a href="tel:+4912345678">Rufen Sie uns an: +49 123 456 78</a></span>
+            </div>
+          </div>
+
+          <aside class="cart-summary">
+            <div class="cart-summary__rule" aria-hidden="true"></div>
+            <div class="cart-summary__inner">
+              <h2 class="cart-summary__title">Zusammenfassung</h2>
+              <div class="cart-summary__row">
+                <span>Zwischensumme</span>
+                <span id="cart-subtotal">{{ cart.total_price|euro }}</span>
+              </div>
+              <div class="cart-summary__row">
+                <span>Beratung im Studio</span>
+                <span class="cart-summary__free">kostenlos</span>
+              </div>
+              <div class="cart-summary__total">
+                <span>Gesamtsumme</span>
+                <strong id="cart-total">{{ cart.total_price|euro }}</strong>
+              </div>
+              <p class="cart-summary__hint text-muted">
+                Alle Preise sind &bdquo;ab&ldquo;-Richtwerte f&uuml;r die Grundausf&uuml;hrung &ndash;
+                der endg&uuml;ltige Preis wird im Beratungsgespr&auml;ch festgelegt.
+              </p>
+              <a class="btn btn-gold" href="{% url 'reservation' %}">Beratungstermin vereinbaren</a>
+              <a class="btn btn-outline" href="{% url 'contact' %}">Unverbindlich anfragen</a>
+              <ul class="cart-trust">
+                <li><span class="cart-trust__check" aria-hidden="true">&#10003;</span><span>Kostenlose Erstberatung, telefonisch oder im Studio</span></li>
+                <li><span class="cart-trust__check" aria-hidden="true">&#10003;</span><span>Der Warenkorb ist eine Merkliste &ndash; es entsteht keine Zahlungspflicht</span></li>
+                <li><span class="cart-trust__check" aria-hidden="true">&#10003;</span><span>Anpassung und Schnitt durch Meisterhand inklusive</span></li>
+              </ul>
+            </div>
           </aside>
         </div>
         <div class="cart-empty form-card" id="cart-empty" style="display: none;">
@@ -76,7 +130,10 @@
 
     {% else %}
 
-      <div id="cart-anon-root" data-shop-url="{% url 'wigs' %}" data-reservation-url="{% url 'reservation' %}">
+      <div id="cart-anon-root"
+           data-shop-url="{% url 'wigs' %}"
+           data-reservation-url="{% url 'reservation' %}"
+           data-contact-url="{% url 'contact' %}">
         <div class="cart-empty form-card">
           <h2>Ihr Warenkorb wird geladen &hellip;</h2>
         </div>

@@ -285,6 +285,15 @@ class Product(models.Model):
         """Wird auf Bestellung beim Lieferanten geordert, liegt nicht im Lager."""
         return self.delivery_days is not None
 
+    @property
+    def stock_label(self):
+        """Kurzlabel fuer den Warenkorb-Chip: woher das Stueck kommt."""
+        if self.ist_bestellware:
+            return "Bestellware"
+        if self.stock_mode == self.StockMode.EINZELSTUECK:
+            return "Einzelstück"
+        return ""
+
     # Illustrations-Fallback je Kategorie, solange kein echtes Foto hochgeladen ist
     PLACEHOLDER_IMAGES = {
         Category.KONFIG: "images/wigs/wig-curly-volume.svg",

@@ -12,68 +12,263 @@
     <span class="eyebrow">Galerie</span>
     <h1>Unsere <em>Galerie</em></h1>
     <p>Ein Eindruck unserer Modelle &ndash; echte Fotos folgen in K&uuml;rze.</p>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="container">
-    <div class="gallery-filters">
-      <a href="#peruecken" class="pill">Echthaarper&uuml;cken</a>
-      <a href="#vorher-nachher" class="pill">Vorher &amp; Nachher</a>
+    <div class="gal-scrollcue" aria-hidden="true">
+      <span>Nach unten</span>
+      <span class="gal-scrollcue__line"></span>
     </div>
   </div>
 </section>
 
-<section class="section" id="peruecken" style="padding-top: 0;">
+<nav class="gal-nav" aria-label="Abschnitte dieser Seite">
   <div class="container">
-    <div class="section-heading section-heading--left mb-40">
+    <a href="#peruecken">Modelle</a>
+    <a href="#vorher-nachher">Vorher &amp; Nachher</a>
+    <a href="#studio">Im Studio</a>
+    <a href="#termin">Termin</a>
+  </div>
+</nav>
+
+<section class="section section--tight" id="peruecken">
+  <div class="container">
+    <div class="gal-intro">
       <h2>Echthaarper&uuml;cken</h2>
+      <p>Jede dieser Per&uuml;cken hat eine eigene Bearbeitung hinter sich. Hier steht, was wir daran gemacht haben und mit welchen Handgriffen.</p>
     </div>
-    <div class="grid grid-4 gallery-grid">
-      <div>
-        <img class="img-tile" src="{% static 'images/wigs/wig-classic.svg' %}" alt="Illustration der Per&uuml;cke Classic &ndash; schulterlanges, glattes Modell" loading="lazy">
-        <p class="gallery-tile__label">Per&uuml;cke &bdquo;Classic&ldquo;</p>
+
+    <article class="gal-model">
+      <div class="gal-model__media">
+        <div class="gal-model__frame">
+          <img src="{% static 'images/wigs/wig-classic.svg' %}" alt="Illustration der Per&uuml;cke Classic &ndash; schulterlanges, glattes Modell" loading="lazy">
+          <span class="gal-model__number" aria-hidden="true">01</span>
+        </div>
       </div>
-      <div>
-        <img class="img-tile" src="{% static 'images/wigs/wig-long-layers.svg' %}" alt="Illustration der Per&uuml;cke Long Layers &ndash; langes, gestuftes Modell" loading="lazy">
-        <p class="gallery-tile__label">Per&uuml;cke &bdquo;Long Layers&ldquo;</p>
+      <div class="gal-model__body">
+        <span class="gal-model__tag">Echthaar, von Hand gearbeitet</span>
+        <h3>Per&uuml;cke &bdquo;Classic&ldquo;</h3>
+        <p class="gal-model__desc">Dieses Modell kam als lange, ungeschnittene Rohper&uuml;cke zu uns. Wir haben sie auf eine Kundin mit schmalem Gesicht gearbeitet: erst die Montur eingepasst, dann in mehreren Durchg&auml;ngen K&uuml;rzen und Pr&uuml;fen im Spiegel, bis der Fall ruhig lag.</p>
+        <div class="gal-craft">
+          <p class="gal-craft__label">Angewendetes Handwerk</p>
+          <ul>
+            <li>
+              <div>
+                <span class="gal-craft__step">Montur eingepasst</span>
+                <p class="gal-craft__note">B&auml;ndchen und Umfang von Hand auf die Kopfform gestellt</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Nassschnitt in Etappen</span>
+                <p class="gal-craft__note">L&auml;nge in drei Durchg&auml;ngen genommen, dazwischen jeweils getrocknet</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Ansatz ausged&uuml;nnt</span>
+                <p class="gal-craft__note">Haardichte an der Stirn reduziert, damit der &Uuml;bergang nicht abrupt wirkt</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a class="btn gal-model__cta" href="#termin">Dazu beraten lassen</a>
       </div>
-      <div>
-        <img class="img-tile" src="{% static 'images/wigs/wig-bob-chic.svg' %}" alt="Illustration der Per&uuml;cke Bob Chic &ndash; kinnlanger, glatter Bob" loading="lazy">
-        <p class="gallery-tile__label">Per&uuml;cke &bdquo;Bob Chic&ldquo;</p>
+    </article>
+
+    <article class="gal-model gal-model--flip">
+      <div class="gal-model__media">
+        <div class="gal-model__frame">
+          <img src="{% static 'images/wigs/wig-long-layers.svg' %}" alt="Illustration der Per&uuml;cke Long Layers &ndash; langes, gestuftes Modell" loading="lazy">
+          <span class="gal-model__number" aria-hidden="true">02</span>
+        </div>
       </div>
-      <div>
-        <img class="img-tile" src="{% static 'images/wigs/wig-curly-volume.svg' %}" alt="Illustration der Per&uuml;cke Curly Volume &ndash; volumin&ouml;ses Lockenmodell" loading="lazy">
-        <p class="gallery-tile__label">Per&uuml;cke &bdquo;Curly Volume&ldquo;</p>
+      <div class="gal-model__body">
+        <span class="gal-model__tag">Echthaar, von Hand gearbeitet</span>
+        <h3>Per&uuml;cke &bdquo;Long Layers&ldquo;</h3>
+        <p class="gal-model__desc">Die L&auml;nge war vorhanden, die Bewegung nicht. Wir haben Stufen freihand in die trockene Per&uuml;cke geschnitten und anschlie&szlig;end die Spitzen so bearbeitet, dass sie nicht mehr als Kante auffallen.</p>
+        <div class="gal-craft">
+          <p class="gal-craft__label">Angewendetes Handwerk</p>
+          <ul>
+            <li>
+              <div>
+                <span class="gal-craft__step">Stufenschnitt freihand</span>
+                <p class="gal-craft__note">Trocken geschnitten, weil Echthaar nass anders f&auml;llt als sp&auml;ter im Alltag</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Spitzen slicing</span>
+                <p class="gal-craft__note">Mit dem Messer ausgearbeitet statt gerade abgeschnitten</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Farbe abgeglichen</span>
+                <p class="gal-craft__note">Zwei Nuancen im Deckhaar aufgehellt, damit das Licht bricht</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a class="btn gal-model__cta" href="#termin">Dazu beraten lassen</a>
       </div>
-    </div>
+    </article>
+
+    <article class="gal-model">
+      <div class="gal-model__media">
+        <div class="gal-model__frame">
+          <img src="{% static 'images/wigs/wig-bob-chic.svg' %}" alt="Illustration der Per&uuml;cke Bob Chic &ndash; kinnlanger, glatter Bob" loading="lazy">
+          <span class="gal-model__number" aria-hidden="true">03</span>
+        </div>
+      </div>
+      <div class="gal-model__body">
+        <span class="gal-model__tag">Echthaar, von Hand gearbeitet</span>
+        <h3>Per&uuml;cke &bdquo;Bob Chic&ldquo;</h3>
+        <p class="gal-model__desc">Ein Bob verzeiht keine Unsauberkeit. Die Kontur wurde in Sitzposition der Kundin geschnitten, weil sich die Linie beim Kopfneigen sonst verschiebt, und der Scheitel danach neu von Hand gekn&uuml;pft.</p>
+        <div class="gal-craft">
+          <p class="gal-craft__label">Angewendetes Handwerk</p>
+          <ul>
+            <li>
+              <div>
+                <span class="gal-craft__step">Konturschnitt am Kopf</span>
+                <p class="gal-craft__note">In Sitzh&ouml;he der Tr&auml;gerin gearbeitet, nicht am St&auml;nder</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Scheitel nachgekn&uuml;pft</span>
+                <p class="gal-craft__note">Einzelne Haare von Hand eingezogen, bis die Kopfhaut durchscheint</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Kante gegl&auml;ttet</span>
+                <p class="gal-craft__note">Innenlinie mit der Schere ausged&uuml;nnt, damit der Bob nicht bl&ouml;ckt</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a class="btn gal-model__cta" href="#termin">Dazu beraten lassen</a>
+      </div>
+    </article>
+
+    <article class="gal-model gal-model--flip">
+      <div class="gal-model__media">
+        <div class="gal-model__frame">
+          <img src="{% static 'images/wigs/wig-curly-volume.svg' %}" alt="Illustration der Per&uuml;cke Curly Volume &ndash; volumin&ouml;ses Lockenmodell" loading="lazy">
+          <span class="gal-model__number" aria-hidden="true">04</span>
+        </div>
+      </div>
+      <div class="gal-model__body">
+        <span class="gal-model__tag">Echthaar, von Hand gearbeitet</span>
+        <h3>Per&uuml;cke &bdquo;Curly Volume&ldquo;</h3>
+        <p class="gal-model__desc">Locken brauchen Struktur, sonst werden sie zur Kappe. Wir haben die Per&uuml;cke Str&auml;hne f&uuml;r Str&auml;hne aufgewickelt, die Form &uuml;ber Nacht ruhen lassen und erst danach das Volumen an den Seiten herausgenommen.</p>
+        <div class="gal-craft">
+          <p class="gal-craft__label">Angewendetes Handwerk</p>
+          <ul>
+            <li>
+              <div>
+                <span class="gal-craft__step">Lockenform gewickelt</span>
+                <p class="gal-craft__note">Str&auml;hnenweise aufgewickelt und schonend fixiert</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Volumen reduziert</span>
+                <p class="gal-craft__note">&Uuml;ber den Ohren ausged&uuml;nnt, damit die Silhouette nicht breit wirkt</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <span class="gal-craft__step">Pflege eingearbeitet</span>
+                <p class="gal-craft__note">Echthaar r&uuml;ckgefettet, weil Locken schneller trocken werden</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a class="btn gal-model__cta" href="#termin">Dazu beraten lassen</a>
+      </div>
+    </article>
   </div>
 </section>
 
-<section class="section section-alt" id="vorher-nachher">
+<section class="gal-quote">
   <div class="container">
-    <div class="section-heading section-heading--left mb-40">
+    <figure class="gal-quote__inner">
+      <span class="gal-quote__eyebrow">Aus dem Studio</span>
+      <blockquote>&bdquo;Die meisten Kundinnen erkennen sich im Spiegel sofort wieder. Genau darum geht es.&ldquo;</blockquote>
+      <figcaption>Zweithaar Schaaf</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section--tight" id="vorher-nachher">
+  <div class="container">
+    <div class="gal-intro">
       <h2>Vorher &amp; Nachher</h2>
-      <p class="mb-0">Beispiele folgen in K&uuml;rze.</p>
+      <p>Beispiele folgen in K&uuml;rze.</p>
     </div>
-    <div class="grid grid-2 gallery-grid">
-      <div>
-        <div class="ph-image" style="--ph-ratio: 4/3;"><span class="ph-image__label">VORHER<br>FOTO FOLGT</span></div>
-        <p class="gallery-tile__label">Vorher</p>
+
+    <div class="gal-compare" id="gal-compare">
+      <div class="gal-compare__side ph-image">
+        <span class="ph-image__label">VORHER<br>FOTO FOLGT</span>
       </div>
-      <div>
-        <div class="ph-image" style="--ph-ratio: 4/3;"><span class="ph-image__label">NACHHER<br>FOTO FOLGT</span></div>
-        <p class="gallery-tile__label">Nachher</p>
+      <div class="gal-compare__side gal-compare__side--after ph-image">
+        <span class="ph-image__label">NACHHER<br>FOTO FOLGT</span>
       </div>
+      <input type="range" class="gal-compare__range" min="0" max="100" value="50" step="1"
+             aria-label="Vergleich zwischen Vorher und Nachher">
+      <span class="gal-compare__line" aria-hidden="true"></span>
+      <span class="gal-compare__knob" aria-hidden="true">&#8596;</span>
+      <span class="gal-compare__tag gal-compare__tag--before" aria-hidden="true">VORHER</span>
+      <span class="gal-compare__tag gal-compare__tag--after" aria-hidden="true">NACHHER</span>
+      <span class="gal-compare__hint" aria-hidden="true">Zum Vergleichen ziehen &ndash; Fotos folgen</span>
     </div>
+    <p class="gal-compare-note">Aus R&uuml;cksicht auf unsere Kundinnen ver&ouml;ffentlichen wir Vorher-Nachher-Bilder nur mit ausdr&uuml;cklicher Zustimmung. Im Studio zeigen wir Ihnen gern weitere Beispiele.</p>
   </div>
 </section>
 
-<section class="cta-band">
+<section class="section section--tight" id="studio">
   <div class="container">
-    <h2>Ihre Per&uuml;cke live erleben</h2>
-    <p>Am besten &uuml;berzeugen Sie sich pers&ouml;nlich &ndash; in einem kostenlosen Beratungstermin.</p>
-    <a href="{% url 'reservation' %}" class="btn btn-gold">Beratungstermin vereinbaren</a>
+    <div class="gal-intro">
+      <h2>Im Studio</h2>
+      <p>Ein eigener Raum, geschlossene T&uuml;r, Zeit ohne Termindruck. So l&auml;uft ein Besuch bei uns ab.</p>
+    </div>
+    <ol class="gal-steps">
+      <li>
+        <span class="gal-steps__no" aria-hidden="true">01</span>
+        <span class="gal-steps__title">Ankommen</span>
+        <span class="gal-steps__text">Eigener Beratungsraum, Kaffee oder Tee, geschlossene T&uuml;r. Niemand sieht Ihnen zu.</span>
+      </li>
+      <li>
+        <span class="gal-steps__no" aria-hidden="true">02</span>
+        <span class="gal-steps__title">Zuh&ouml;ren</span>
+        <span class="gal-steps__text">Wir sprechen &uuml;ber Ihre Situation, Ihr Eigenhaar und dar&uuml;ber, wie Sie sich sehen m&ouml;chten.</span>
+      </li>
+      <li>
+        <span class="gal-steps__no" aria-hidden="true">03</span>
+        <span class="gal-steps__title">Anprobieren</span>
+        <span class="gal-steps__text">Sie probieren mehrere Modelle &ndash; so lange, bis eines wirklich passt.</span>
+      </li>
+      <li>
+        <span class="gal-steps__no" aria-hidden="true">04</span>
+        <span class="gal-steps__title">Anpassen</span>
+        <span class="gal-steps__text">Schnitt, Ansatz und Sitz werden auf Ihren Kopf gearbeitet. Nachjustieren ist jederzeit m&ouml;glich.</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section section--tight" id="termin">
+  <div class="container">
+    <div class="gal-cta">
+      <span class="eyebrow">Ihr n&auml;chster Schritt</span>
+      <h2>Ihr Modell ist noch nicht dabei?</h2>
+      <p>Wir zeigen Ihnen im Studio deutlich mehr Modelle, als hier zu sehen sind &ndash; und finden gemeinsam das passende.</p>
+      <div class="gal-cta__actions">
+        <a class="btn btn-gold" href="{% url 'reservation' %}">Termin vereinbaren</a>
+        <a class="btn btn-outline" href="{% url 'wigs' %}">Zum Shop</a>
+      </div>
+      {# TODO: Echte Telefonnummer eintragen #}
+      <p class="gal-cta__phone">Oder rufen Sie uns an: <a href="tel:+4912345678">+49 123 456 78</a></p>
+    </div>
   </div>
 </section>
 

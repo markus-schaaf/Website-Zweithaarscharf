@@ -234,6 +234,8 @@ def api_products(request):
             "name": p.name,
             "label": p.label,
             "category": p.category,
+            "category_label": p.get_category_display(),
+            "stock_label": p.stock_label,
             "audience": p.audience,
             "price": float(p.price),
             "price_display": p.price_display,
